@@ -11,7 +11,7 @@ const data = JSON.stringify({
 
 const options = {
   hostname: 'localhost',
-  port: 7050,
+  port: 7052,
   path: '/api/products',
   method: 'POST',
   headers: {

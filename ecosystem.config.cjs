@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'sweettree-backend',
+      name: 'maxglow-backend',
       script: './backend/src/server.js',
       instances: 1,
       exec_mode: 'fork',
@@ -10,16 +10,16 @@ module.exports = {
       max_memory_restart: '1G',
       env_production: {
         NODE_ENV: 'production',
-        PORT: 7050
+        PORT: 7052
       },
       error_file: './logs/backend-err.log',
       out_file: './logs/backend-out.log',
       log_date_format: 'YYYY-MM-DD HH:mm Z'
     },
     {
-      name: 'sweettree-frontend',
+      name: 'maxglow-frontend',
       script: 'node_modules/next/dist/bin/next',
-      args: 'start -p 7051',
+      args: 'start -p 7053',
       cwd: './frontend',
       instances: 1,
       exec_mode: 'fork',
@@ -27,7 +27,7 @@ module.exports = {
       watch: false,
       env_production: {
         NODE_ENV: 'production',
-        PORT: 7051
+        PORT: 7053
       },
       error_file: './logs/frontend-err.log',
       out_file: './logs/frontend-out.log',

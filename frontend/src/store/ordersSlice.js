@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import api from '../utils/axiosConfig.js';
+import api from '../utils/axiosConfig';
 
 export const createOrder = createAsyncThunk(
   'orders/create',

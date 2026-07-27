@@ -9,7 +9,7 @@ import Inventory from './src/models/Inventory.js';
 
 const testDashboard = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/sweettree', { useNewUrlParser: true, useUnifiedTopology: true });
+    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/maxglow', { useNewUrlParser: true, useUnifiedTopology: true });
     console.log('MongoDB connected');
     
     console.log('1. Testing total sales aggregation...');

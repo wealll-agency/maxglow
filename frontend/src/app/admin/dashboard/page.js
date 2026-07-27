@@ -1,3 +1,5 @@
+"use client";
+
 'use client';
 
 import { useEffect } from 'react';
@@ -8,7 +10,7 @@ import { DollarSign, ShoppingBag, Users, AlertTriangle, Star, RefreshCw, Store, 
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 
-const EarningStatistics = dynamic(() => import('../../../components/admin/EarningStatistics.js'), { 
+const EarningStatistics = dynamic(() => import('../../../components/admin/EarningStatistics'), { 
   ssr: false,
   loading: () => <div className="d-flex justify-content-center align-items-center" style={{height: 300}}>Loading chart...</div>
 });

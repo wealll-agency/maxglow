@@ -118,7 +118,7 @@ function BuildComboContent() {
                 return (
                   <div key={product._id} className="col-sm-6 col-md-4">
                     <div className="item h-100 px-2 py-3" onClick={() => { if (product.stock > 0) toggleProductSelection(product._id); }} style={{ cursor: product.stock > 0 ? 'pointer' : 'not-allowed' }}>
-                      <div className={`Sweettree-product-card position-relative transition-all ${isSelected ? 'border-primary shadow-sm' : ''}`} style={{ opacity: product.stock <= 0 ? 0.7 : 1 }}>
+                      <div className={`maxglow-product-card position-relative transition-all ${isSelected ? 'border-primary shadow-sm' : ''}`} style={{ opacity: product.stock <= 0 ? 0.7 : 1 }}>
                         
                         {isSelected && (
                           <div className="position-absolute top-0 end-0 m-2 rounded-circle d-flex align-items-center justify-content-center shadow" style={{ width: '28px', height: '28px', zIndex: 10, backgroundColor: '#1c72b9', color: 'white' }}>
@@ -149,7 +149,7 @@ function BuildComboContent() {
                           <div className="card-divider"></div>
                           
                           <div className="product-meta d-flex justify-content-between align-items-center">
-                            <span className="brand-text">{product.brand || 'Sweettree'}</span>
+                             <span className="brand-text">{product.brand || 'MaxGlow'}</span>
                           </div>
                           
                           <h3 className="product-name" style={{ userSelect: 'none' }}>{product.name}</h3>
@@ -166,7 +166,7 @@ function BuildComboContent() {
                         </div>
 
                         <button 
-                          className={`Sweettree-btn-cart w-100 mt-2`}
+                          className={`maxglow-btn-cart w-100 mt-2`}
                           onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (product.stock > 0) toggleProductSelection(product._id); }}
                           style={product.stock <= 0 ? { opacity: 0.5, cursor: 'not-allowed', backgroundColor: '#6c757d', borderColor: '#6c757d' } : (isSelected ? { backgroundColor: '#1c72b9', color: 'white', borderColor: '#1c72b9' } : {})}
                           disabled={product.stock <= 0}
@@ -222,7 +222,7 @@ function BuildComboContent() {
             <button 
               onClick={handleAddComboToCart}
               disabled={selectedProductIds.length < 2}
-              className="Sweettree-btn-cart w-100 mt-3"
+              className="maxglow-btn-cart w-100 mt-3"
               style={selectedProductIds.length < 2 ? { backgroundColor: '#ccc', borderColor: '#ccc', cursor: 'not-allowed' } : {}}
             >
               {selectedProductIds.length < 2 ? 'Select at least 2 items' : 'Add Combo to Cart'}

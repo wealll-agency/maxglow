@@ -1,8 +1,10 @@
-'use client';
+"use client";
+
+
 
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchWarehouses, createWarehouse, updateWarehouse, deleteWarehouse } from '../../../store/adminSlice.js';
+import { fetchWarehouses, createWarehouse, updateWarehouse, deleteWarehouse } from '../../../store/adminSlice';
 import { Plus, Edit2, Trash2, MapPin, Phone } from 'lucide-react';
 import { useNotification } from '../../../context/NotificationContext';
 

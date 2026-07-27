@@ -1,14 +1,17 @@
-'use client';
-import React, { useEffect, useState, Suspense } from 'react';
+"use client";
 import Link from 'next/link';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
+import React, { useEffect, useState, Suspense, memo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchProducts } from '../../store/productsSlice.js';
-import ProductCard from '../../components/ProductCard.jsx';
-import { useSearchParams } from 'next/navigation';
+import { fetchProducts } from '../../store/productsSlice';
+import ProductCard from '../../components/ProductCard';
+import { FiGrid, FiList, FiChevronDown, FiFilter, FiX } from 'react-icons/fi';
+import { Leaf } from 'lucide-react';
 
 function ShopContent() {
   const dispatch = useDispatch();
+  const router = useRouter();
   const searchParams = useSearchParams();
   
   const { items: products, loading } = useSelector((state) => state.products);
@@ -24,6 +27,7 @@ function ShopContent() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [sortBy, setSortBy] = useState('Best Selling');
   const [viewType, setViewType] = useState('grid');
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   useEffect(() => {
     dispatch(fetchProducts({ limit: 100 }));
@@ -111,308 +115,386 @@ function ShopContent() {
     return (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0);
   });
 
+  const clearAllFilters = () => {
+    setPriceFrom('');
+    setPriceTo('');
+    setSelectedStock(null);
+    setSelectedBrand(null);
+    setSelectedDiscount(null);
+    setSelectedCategory(null);
+    router.push('/shop');
+  };
+
+  const isAnyFilterActive = priceFrom || priceTo || selectedStock || selectedBrand || selectedDiscount || selectedCategory;
+
   return (
     <>
-      <div className="marquee-wrapper">
-        <marquee behavior="scroll" direction="left" scrollamount="5">
-          || 🥜 Sweettree Anmol Jumbo Nuts - Extra 10% OFF! 🥜 || 🎁 Nuts For Savings 🎁 || 🔥 PayDay Sale Is LIVE - Extra 15% OFF Sitewide! 🔥 ||
-        </marquee>
-      </div>
-
       {/* Shop Banner */}
-      <section className="shop-banner">
-        <div className="container">
-          <div className="shop_banner_image">
-            <Image src="/shop_banner.jpg" alt="Shop Banner" width={1920} height={300} priority={true} style={{ width: '100%', height: 'auto', display: 'block' }} />
-          </div>
+      <section style={{
+        position: 'relative',
+        overflow: 'hidden',
+        minHeight: '200px',
+        display: 'flex',
+        alignItems: 'center',
+        backgroundImage: 'url("/trending_banner.png")',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}>
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(90deg, rgba(234, 248, 255, 0.92) 0%, rgba(221, 247, 227, 0.8) 50%, rgba(255, 255, 255, 0.15) 100%)',
+          zIndex: 1,
+        }} />
+        <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '40px 20px', width: '100%', position: 'relative', zIndex: 2 }}>
+          <nav style={{ fontSize: '13px', color: '#64748b', marginBottom: '8px' }}>
+            <Link href="/" style={{ textDecoration: 'none', color: '#64748b' }}>Home</Link> &gt; 
+            <span style={{ color: '#1a2332', fontWeight: '600', marginLeft: '6px' }}>Shop</span>
+          </nav>
+          <h1 style={{ fontFamily: 'var(--font-outfit)', fontSize: '36px', fontWeight: '800', color: '#1a2332', margin: 0 }}>
+            MaxGlow Herbal Shop
+          </h1>
+          <p style={{ fontSize: '14px', color: '#334155', marginTop: '8px', maxWidth: '600px', fontWeight: '500' }}>
+            Explore our curated range of premium natural wellness products. Clean formulas, botanical actives, and natural care.
+          </p>
         </div>
       </section>
 
-      {/* Breadcrumb and Description */}
-      <div className="container py-3">
-        <nav aria-label="breadcrumb">
-          <ol className="breadcrumb mb-2" style={{ fontSize: '13px' }}>
-            <li className="breadcrumb-item"><Link href="/" className="text-muted">Home</Link></li>
-            <li className="breadcrumb-item active text-dark fw-bold" aria-current="page">Shop</li>
-          </ol>
-        </nav>
-        <p className="mb-4" style={{ fontSize: '14px', color: '#555' }}>
-          Nutraj <strong>PAYDAY SALE is Live!</strong> ✨ Get up to <strong>60% Off + Extra 15% Off</strong> on premium Nuts & Dry Fruits. Shop now for healthy savings!
-        </p>
-      </div>
+      {/* Main Grid */}
+      <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '40px 20px' }}>
+        <div style={{ display: 'flex', gap: '32px', alignItems: 'flex-start' }}>
 
-      <div className="container pb-5">
-        <div className="row">
-          {/* Sidebar Filters */}
-          <div className="col-lg-3 d-none d-lg-block">
-            <div className="shop-sidebar-filter card border-0 shadow-sm rounded-0 p-4 mb-4">
-              <div className="filter-header d-flex justify-content-between align-items-center mb-1">
-                <h5 className="fw-bold m-0 text-dark" style={{ fontSize: '16px' }}>Filter By</h5>
-                {(priceFrom || priceTo || selectedStock || selectedBrand || selectedDiscount || selectedCategory) && (
-                  <button 
-                    onClick={() => {
-                      setPriceFrom('');
-                      setPriceTo('');
-                      setSelectedStock(null);
-                      setSelectedBrand(null);
-                      setSelectedDiscount(null);
-                      setSelectedCategory(null);
-                      router.push('/shop'); // Reset URL queries too
-                    }}
-                    className="btn btn-link text-decoration-none p-0 text-danger fs-8 fw-semibold"
-                  >
+          {/* Desktop Sidebar Filters */}
+          <aside style={{ width: '280px', flexShrink: 0, display: 'none', position: 'sticky', top: '90px' }} className="show-desktop-aside">
+            <div className="glass" style={{ borderRadius: '20px', padding: '24px', border: '1px solid rgba(221,244,255,0.8)', boxShadow: '0 4px 20px rgba(74,144,226,0.05)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h3 style={{ fontFamily: 'var(--font-outfit)', fontSize: '16px', fontWeight: '700', color: '#1a2332', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <FiFilter /> Filter By
+                </h3>
+                {isAnyFilterActive && (
+                  <button onClick={clearAllFilters} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>
                     Clear All
                   </button>
                 )}
               </div>
 
               {/* Price Filter */}
-              <div className="filter-section border-top py-3">
-                <div className="d-flex justify-content-between align-items-center filter-toggle" data-bs-toggle="collapse" data-bs-target="#priceFilter">
-                  <span className="fw-bold" style={{ fontSize: '14px' }}>Price</span>
-                  <i className="fas fa-minus small"></i>
-                </div>
-                <div id="priceFilter" className="collapse show mt-3">
-                  <div className="from-to-inputs d-flex align-items-center gap-2">
-                    <div className="input-group input-group-sm border rounded">
-                      <span className="input-group-text bg-white border-0 text-muted">₹</span>
-                      <input 
-                        type="number" 
-                        className="form-control border-0 px-1" 
-                        value={priceFrom}
-                        onChange={(e) => setPriceFrom(e.target.value)}
-                      />
-                    </div>
-                    <div className="input-group input-group-sm border rounded">
-                      <span className="input-group-text bg-white border-0 text-muted">₹</span>
-                      <input 
-                        type="number" 
-                        className="form-control border-0 px-1" 
-                        value={priceTo}
-                        onChange={(e) => setPriceTo(e.target.value)}
-                      />
-                    </div>
+              <div style={{ borderTop: '1.5px solid #f1f5f9', padding: '16px 0' }}>
+                <h4 style={{ fontFamily: 'var(--font-outfit)', fontSize: '14px', fontWeight: '700', color: '#1a2332', marginBottom: '12px' }}>Price Range</h4>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <div style={{ position: 'relative', flex: 1 }}>
+                    <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '12px', color: '#94a3b8' }}>₹</span>
+                    <input
+                      type="number"
+                      placeholder="Min"
+                      className="mg-input"
+                      value={priceFrom}
+                      onChange={(e) => setPriceFrom(e.target.value)}
+                      style={{ paddingLeft: '22px', paddingTop: '8px', paddingBottom: '8px', borderRadius: '8px' }}
+                    />
+                  </div>
+                  <span style={{ color: '#94a3b8', fontSize: '12px' }}>to</span>
+                  <div style={{ position: 'relative', flex: 1 }}>
+                    <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '12px', color: '#94a3b8' }}>₹</span>
+                    <input
+                      type="number"
+                      placeholder="Max"
+                      className="mg-input"
+                      value={priceTo}
+                      onChange={(e) => setPriceTo(e.target.value)}
+                      style={{ paddingLeft: '22px', paddingTop: '8px', paddingBottom: '8px', borderRadius: '8px' }}
+                    />
                   </div>
                 </div>
               </div>
 
-              {/* Availability Filter */}
-              <div className="filter-section border-top py-3">
-                <div className="d-flex justify-content-between align-items-center filter-toggle collapse-indicator" data-bs-toggle="collapse" data-bs-target="#stockFilter">
-                  <span className="fw-bold" style={{ fontSize: '14px' }}>Availability</span>
-                  <i className="fas fa-minus small"></i>
-                </div>
-                <div id="stockFilter" className="collapse show mt-3">
-                  <div className="d-flex flex-wrap gap-2">
-                    <button 
-                      onClick={() => setSelectedStock(selectedStock === 'In Stock' ? null : 'In Stock')}
-                      className={`filter-pill-btn ${selectedStock === 'In Stock' ? 'active' : ''}`}
+              {/* Availability */}
+              <div style={{ borderTop: '1.5px solid #f1f5f9', padding: '16px 0' }}>
+                <h4 style={{ fontFamily: 'var(--font-outfit)', fontSize: '14px', fontWeight: '700', color: '#1a2332', marginBottom: '12px' }}>Availability</h4>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {['In Stock', 'Out Of Stock'].map(stock => (
+                    <button
+                      key={stock}
+                      onClick={() => setSelectedStock(selectedStock === stock ? null : stock)}
+                      style={{
+                        padding: '6px 14px', borderRadius: '9999px', fontSize: '12px', fontWeight: '600',
+                        background: selectedStock === stock ? '#DDF7E3' : '#F7FBFD',
+                        border: `1.5px solid ${selectedStock === stock ? '#3BAE56' : '#e2e8f0'}`,
+                        color: selectedStock === stock ? '#3BAE56' : '#374151', cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                      }}
                     >
-                      In Stock
+                      {stock}
                     </button>
-                    <button 
-                      onClick={() => setSelectedStock(selectedStock === 'Out Of Stock' ? null : 'Out Of Stock')}
-                      className={`filter-pill-btn ${selectedStock === 'Out Of Stock' ? 'active' : ''}`}
+                  ))}
+                </div>
+              </div>
+
+              {/* Brands */}
+              <div style={{ borderTop: '1.5px solid #f1f5f9', padding: '16px 0' }}>
+                <h4 style={{ fontFamily: 'var(--font-outfit)', fontSize: '14px', fontWeight: '700', color: '#1a2332', marginBottom: '12px' }}>Brand</h4>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {['MaxGlow', 'MaxGlow ANMOL', 'MaxGlow SNACKRITE'].map(brand => (
+                    <button
+                      key={brand}
+                      onClick={() => setSelectedBrand(selectedBrand === brand ? null : brand)}
+                      style={{
+                        padding: '6px 14px', borderRadius: '9999px', fontSize: '12px', fontWeight: '600',
+                        background: selectedBrand === brand ? '#EAF8FF' : '#F7FBFD',
+                        border: `1.5px solid ${selectedBrand === brand ? '#4A90E2' : '#e2e8f0'}`,
+                        color: selectedBrand === brand ? '#4A90E2' : '#374151', cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                      }}
                     >
-                      Out Of Stock
+                      {brand}
                     </button>
-                  </div>
+                  ))}
                 </div>
               </div>
 
-              {/* Brand Filter */}
-              <div className="filter-section border-top py-3">
-                <div className="d-flex justify-content-between align-items-center filter-toggle collapse-indicator" data-bs-toggle="collapse" data-bs-target="#brandFilter">
-                  <span className="fw-bold" style={{ fontSize: '14px' }}>Brand</span>
-                  <i className="fas fa-minus small"></i>
-                </div>
-                <div id="brandFilter" className="collapse show mt-3">
-                  <div className="d-flex flex-wrap gap-2">
-                    {['Sweettree', 'Sweettree ANMOL', 'Sweettree SNACKRITE'].map((brand) => (
-                      <button
-                        key={brand}
-                        onClick={() => setSelectedBrand(selectedBrand === brand ? null : brand)}
-                        className="filter-tag-btn"
-                        style={selectedBrand === brand ? { backgroundColor: 'var(--primary-color)', color: '#fff', borderColor: 'var(--primary-color)' } : {}}
-                      >
-                        {brand}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Discount Filter */}
-              <div className="filter-section border-top py-3">
-                <div className="d-flex justify-content-between align-items-center filter-toggle collapse-indicator" data-bs-toggle="collapse" data-bs-target="#discountFilter">
-                  <span className="fw-bold" style={{ fontSize: '14px' }}>Discount</span>
-                  <i className="fas fa-minus small"></i>
-                </div>
-                <div id="discountFilter" className="collapse show mt-3">
-                  <div className="discount-grid">
-                    {['10% Off', '30% Off', '50% Off'].map((disc) => (
-                      <button
-                        key={disc}
-                        onClick={() => setSelectedDiscount(selectedDiscount === disc ? null : disc)}
-                        className="filter-tag-btn"
-                        style={selectedDiscount === disc ? { backgroundColor: 'var(--primary-color)', color: '#fff', borderColor: 'var(--primary-color)' } : {}}
-                      >
-                        {disc}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Shop By Category */}
-              <div className="filter-section border-top py-3">
-                <div className="d-flex justify-content-between align-items-center filter-toggle" data-bs-toggle="collapse" data-bs-target="#shopCatFilter">
-                  <span className="fw-bold">Shop By Category</span>
-                  <i className="fas fa-minus"></i>
-                </div>
-                <div id="shopCatFilter" className="collapse show mt-3">
-                  <div className="discount-grid">
-                    {['Almond', 'Cashew', 'Dates', 'Makhana', 'Spices'].map((cat) => (
-                      <button
-                        key={cat}
-                        onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
-                        className="filter-tag-btn"
-                        style={selectedCategory === cat ? { backgroundColor: 'var(--primary-color)', color: '#fff', borderColor: 'var(--primary-color)' } : {}}
-                      >
-                        {cat}
-                      </button>
-                    ))}
-                  </div>
+              {/* Categories */}
+              <div style={{ borderTop: '1.5px solid #f1f5f9', padding: '16px 0' }}>
+                <h4 style={{ fontFamily: 'var(--font-outfit)', fontSize: '14px', fontWeight: '700', color: '#1a2332', marginBottom: '12px' }}>Category</h4>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {['Skin Care', 'Hair Care', 'Body Care', 'Wellness', 'Baby Care', 'Combos'].map(cat => (
+                    <button
+                      key={cat}
+                      onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
+                      style={{
+                        padding: '6px 14px', borderRadius: '9999px', fontSize: '12px', fontWeight: '600',
+                        background: selectedCategory === cat ? '#DDF7E3' : '#F7FBFD',
+                        border: `1.5px solid ${selectedCategory === cat ? '#3BAE56' : '#e2e8f0'}`,
+                        color: selectedCategory === cat ? '#3BAE56' : '#374151', cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      {cat}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
-          </div>
+          </aside>
 
-          <div className="col-lg-9">
-            {/* Minimal View Bar */}
-            <div className="view-tools-bar mb-4">
-              <div className="d-none d-lg-flex align-items-center">
-                <button 
-                  onClick={() => setViewType('grid')}
-                  className={`view-btn ${viewType === 'grid' ? 'active' : ''}`}
+          {/* Product Listing Area */}
+          <div style={{ flex: 1 }}>
+            {/* View controls */}
+            <div className="glass" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderRadius: '16px', marginBottom: '24px', border: '1px solid rgba(221,244,255,0.8)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <button
+                  onClick={() => setIsMobileFilterOpen(true)}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#F7FBFD', border: '1.5px solid #e2e8f0', borderRadius: '9999px', padding: '6px 14px', fontSize: '13px', fontWeight: '600', color: '#374151', cursor: 'pointer' }}
+                  className="show-mobile-filter-btn"
                 >
-                  <i className="fas fa-th-large me-1"></i> Grid View
+                  <FiFilter /> Filter
                 </button>
-                <div className="vr mx-3" style={{ height: '20px', opacity: 0.2 }}></div>
-                <button 
-                  onClick={() => setViewType('list')}
-                  className={`view-btn ${viewType === 'list' ? 'active' : ''}`}
-                >
-                  <i className="fas fa-list me-1"></i> List View
-                </button>
+
+                <div style={{ display: 'flex', gap: '4px' }} className="hide-mobile-view-btns">
+                  <button
+                    onClick={() => setViewType('grid')}
+                    style={{ background: viewType === 'grid' ? '#EAF8FF' : 'transparent', border: 'none', color: viewType === 'grid' ? '#4A90E2' : '#64748b', cursor: 'pointer', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <FiGrid size={18} />
+                  </button>
+                  <button
+                    onClick={() => setViewType('list')}
+                    style={{ background: viewType === 'list' ? '#EAF8FF' : 'transparent', border: 'none', color: viewType === 'list' ? '#4A90E2' : '#64748b', cursor: 'pointer', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <FiList size={18} />
+                  </button>
+                </div>
+                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '600' }} className="hide-mobile-view-btns">
+                  Showing {sortedProducts.length} product{sortedProducts.length !== 1 ? 's' : ''}
+                </span>
               </div>
 
-              <div className="sort-select-wrapper d-none d-lg-block">
-                <select 
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="form-select form-select-sm border-dark rounded-pill px-3" 
-                  style={{ width: '175px' }}
-                >
-                  <option>Best Selling</option>
-                  <option>Price: Low to High</option>
-                  <option>Price: High to Low</option>
-                  <option>Newest</option>
-                </select>
+              {/* Sort by */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '600' }}>Sort by</span>
+                <div style={{ position: 'relative' }}>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="mg-select"
+                    style={{ paddingTop: '6px', paddingBottom: '6px', paddingLeft: '14px', paddingRight: '36px', borderRadius: '9999px', fontSize: '13px', fontWeight: '600', border: '1.5px solid #e2e8f0', minWidth: '150px' }}
+                  >
+                    <option>Best Selling</option>
+                    <option>Price: Low to High</option>
+                    <option>Price: High to Low</option>
+                    <option>Newest</option>
+                  </select>
+                </div>
               </div>
             </div>
 
-            <div className={viewType === 'grid' ? "row row-cols-2 row-cols-lg-3 g-2 g-lg-4" : "row g-3"} id="shopProductGrid">
-              {loading ? (
-                // Loading placeholders
-                Array(6).fill(0).map((_, idx) => (
-                  <div className="col" key={idx}>
-                    <div className="placeholder-glow">
-                      <div className="placeholder bg-light w-100 rounded mb-2" style={{ height: '260px' }}></div>
-                      <div className="placeholder bg-light col-8 mb-1"></div>
-                      <div className="placeholder bg-light col-4"></div>
-                    </div>
+            {/* Products Grid / List */}
+            {loading ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '20px' }}>
+                {Array(6).fill(0).map((_, i) => (
+                  <div key={i} className="mg-card" style={{ height: '320px', padding: '16px' }}>
+                    <div className="mg-skeleton" style={{ height: '180px', width: '100%', marginBottom: '16px' }} />
+                    <div className="mg-skeleton" style={{ height: '16px', width: '60%', marginBottom: '8px' }} />
+                    <div className="mg-skeleton" style={{ height: '16px', width: '40%' }} />
                   </div>
-                ))
-              ) : sortedProducts && sortedProducts.length > 0 ? (
-                sortedProducts.map((product) => {
-                  const finalPrice = product.discountedPrice !== undefined ? product.discountedPrice : product.price;
-                  return viewType === 'grid' ? (
-                    <div className="col" key={product._id}>
-                      <ProductCard product={product} />
-                    </div>
-                  ) : (
-                    <div className="col-12" key={product._id}>
-                      <div className="card border-0 shadow-sm p-3 rounded-3" style={{ border: '1px solid #eee' }}>
-                        <div className="row g-0 align-items-center">
-                          <div className="col-4 col-md-3 text-center position-relative" style={{ height: '130px' }}>
-                            <Image 
-                              src={product.images?.[0] || product.image || '/placeholder.png'} 
-                              className="img-fluid rounded" 
-                              alt={product.name} 
-                              fill
-                              sizes="(max-width: 768px) 33vw, 25vw"
-                              style={{ objectFit: 'contain' }} 
-                            />
-                          </div>
-                          <div className="col-8 col-md-9 ps-3 ps-md-4">
-                            <div className="d-flex justify-content-between align-items-start">
-                              <div>
-                                <span className="badge bg-light text-dark border mb-1">{product.brand || 'Sweettree'}</span>
-                                <h5 className="fw-bold text-dark mb-1">{product.name}</h5>
-                                <p className="text-muted fs-7 mb-2 text-truncate-2" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{product.description}</p>
-                              </div>
-                              {product.discount > 0 && <span className="badge bg-danger">{product.discount}% OFF</span>}
-                            </div>
-                            <div className="d-flex align-items-center gap-2 mb-3">
-                              <span className="fw-bold fs-5 text-success">₹{finalPrice}</span>
-                              {product.discount > 0 && (
-                                <span className="text-muted text-decoration-line-through fs-7">₹{product.price}</span>
-                              )}
-                            </div>
-                            <Link href={`/shop-details?id=${product._id}`} className="btn btn-sm btn-brand px-4 text-white">
-                              View Details
-                            </Link>
+                ))}
+              </div>
+            ) : sortedProducts.length > 0 ? (
+              viewType === 'grid' ? (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '20px' }}>
+                  {sortedProducts.map(product => (
+                    <ProductCard key={product._id} product={product} />
+                  ))}
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {sortedProducts.map(product => {
+                    const finalPrice = product.discountedPrice !== undefined ? product.discountedPrice : product.price;
+                    const discountLabel = product.discount > 0 ? (product.discountType === 'Flat' ? `₹${product.discount} OFF` : `${product.discount}% OFF`) : null;
+                    return (
+                      <div key={product._id} className="mg-card" style={{ padding: '16px', display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
+                        <div style={{ width: '120px', height: '120px', flexShrink: 0, position: 'relative', background: '#F7FBFD', borderRadius: '12px', overflow: 'hidden' }}>
+                          <Image src={product.images?.[0] || product.image || '/placeholder.png'} alt={product.name} fill sizes="120px" style={{ objectFit: 'contain', padding: '8px' }} />
+                        </div>
+                        <div style={{ flex: 1, minWidth: '240px' }}>
+                          <div style={{ fontSize: '10px', fontWeight: '700', color: '#3BAE56', letterSpacing: '0.08em', marginBottom: '4px' }}>MAXGLOW</div>
+                          <h3 style={{ fontFamily: 'var(--font-outfit)', fontSize: '16px', fontWeight: '700', color: '#1a2332', margin: '0 0 6px' }}>{product.name}</h3>
+                          <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 12px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{product.description}</p>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontFamily: 'var(--font-outfit)', fontSize: '18px', fontWeight: '800', color: '#1a2332' }}>₹{finalPrice}</span>
+                            {product.discount > 0 && <del style={{ fontSize: '13px', color: '#94a3b8' }}>₹{product.price}</del>}
+                            {discountLabel && <span className="mg-badge mg-badge-green" style={{ fontSize: '10px' }}>{discountLabel}</span>}
                           </div>
                         </div>
+                        <Link href={`/shop-details?name=${encodeURIComponent(product.name)}`} className="btn-mg-primary" style={{ fontSize: '13px', padding: '10px 24px' }}>
+                          View Details
+                        </Link>
                       </div>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="col-12 py-5 text-center w-100">
-                  <h4 className="fw-bold mb-2">No Products Found</h4>
-                  <p className="text-muted">There are no products to display matching your criteria.</p>
+                    );
+                  })}
                 </div>
-              )}
-            </div>
-            
-            {/* Pagination */}
-            <div className="pagination-wrapper d-flex justify-content-center mt-5 mb-5">
-              <nav>
-                <ul className="pagination custom-maroon-pagination">
-                  <li className="page-item active text-white"><a className="page-link bg-transparent text-white" href="#">1</a></li>
-                </ul>
-              </nav>
-            </div>
-
+              )
+            ) : (
+              <div className="glass" style={{ textAlign: 'center', padding: '60px 20px', borderRadius: '20px' }}>
+                <Leaf size={40} color="#94a3b8" style={{ marginBottom: '16px' }} />
+                <h3 style={{ fontFamily: 'var(--font-outfit)', fontSize: '18px', fontWeight: '700', color: '#1a2332', marginBottom: '8px' }}>No Products Found</h3>
+                <p style={{ fontSize: '14px', color: '#64748b', margin: 0 }}>Try clearing your filters or searching for something else.</p>
+              </div>
+            )}
           </div>
+
         </div>
       </div>
-      
-      {/* People Are Also Looking For Section */}
-      <section className="tags-section bg-white py-5">
-        <div className="container py-3">
-          <h3 className="mb-4 text-start" style={{ fontSize: '24px', color: '#333' }}>People Are Also Looking For</h3>
-          <div className="d-flex flex-wrap gap-2">
-            <Link href="/shop?keyword=Cashew" className="search-tag-pill">Cashew Royale</Link>
-            <Link href="/shop?keyword=Cashew" className="search-tag-pill">Cashew Premium</Link>
-            <Link href="/shop?keyword=Almond" className="search-tag-pill">Almond American</Link>
-            <Link href="/shop?keyword=Walnut" className="search-tag-pill">Walnut Royale</Link>
-            <Link href="/shop?keyword=Dates" className="search-tag-pill">Dates Royale</Link>
+
+      {/* Mobile filter Drawer */}
+      {isMobileFilterOpen && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9998 }} onClick={() => setIsMobileFilterOpen(false)} />
+      )}
+      <div style={{
+        position: 'fixed', top: 0, right: 0, height: '100vh', width: '320px',
+        background: 'white', zIndex: 9999, padding: '24px', display: 'flex', flexDirection: 'column',
+        boxShadow: '-4px 0 40px rgba(0,0,0,0.15)',
+        transform: isMobileFilterOpen ? 'translateX(0)' : 'translateX(100%)',
+        transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        overflowY: 'auto',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <h3 style={{ fontFamily: 'var(--font-outfit)', fontSize: '18px', fontWeight: '700', color: '#1a2332', margin: 0 }}>Filters</h3>
+          <button onClick={() => setIsMobileFilterOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+            <FiX size={20} />
+          </button>
+        </div>
+
+        {/* Filters content (cloned for mobile) */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', flex: 1 }}>
+          <div>
+            <h4 style={{ fontFamily: 'var(--font-outfit)', fontSize: '14px', fontWeight: '700', color: '#1a2332', marginBottom: '12px' }}>Price Range</h4>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <input type="number" placeholder="Min" className="mg-input" value={priceFrom} onChange={(e) => setPriceFrom(e.target.value)} style={{ padding: '8px 12px' }} />
+              <span style={{ color: '#94a3b8' }}>-</span>
+              <input type="number" placeholder="Max" className="mg-input" value={priceTo} onChange={(e) => setPriceTo(e.target.value)} style={{ padding: '8px 12px' }} />
+            </div>
+          </div>
+
+          <div>
+            <h4 style={{ fontFamily: 'var(--font-outfit)', fontSize: '14px', fontWeight: '700', color: '#1a2332', marginBottom: '12px' }}>Availability</h4>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              {['In Stock', 'Out Of Stock'].map(stock => (
+                <button
+                  key={stock}
+                  onClick={() => { setSelectedStock(selectedStock === stock ? null : stock); setIsMobileFilterOpen(false); }}
+                  style={{
+                    padding: '6px 14px', borderRadius: '9999px', fontSize: '12px', fontWeight: '600',
+                    background: selectedStock === stock ? '#DDF7E3' : '#F7FBFD',
+                    border: `1.5px solid ${selectedStock === stock ? '#3BAE56' : '#e2e8f0'}`,
+                    color: selectedStock === stock ? '#3BAE56' : '#374151', cursor: 'pointer',
+                  }}
+                >
+                  {stock}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h4 style={{ fontFamily: 'var(--font-outfit)', fontSize: '14px', fontWeight: '700', color: '#1a2332', marginBottom: '12px' }}>Brand</h4>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              {['MaxGlow', 'MaxGlow ANMOL', 'MaxGlow SNACKRITE'].map(brand => (
+                <button
+                  key={brand}
+                  onClick={() => { setSelectedBrand(selectedBrand === brand ? null : brand); setIsMobileFilterOpen(false); }}
+                  style={{
+                    padding: '6px 14px', borderRadius: '9999px', fontSize: '12px', fontWeight: '600',
+                    background: selectedBrand === brand ? '#EAF8FF' : '#F7FBFD',
+                    border: `1.5px solid ${selectedBrand === brand ? '#4A90E2' : '#e2e8f0'}`,
+                    color: selectedBrand === brand ? '#4A90E2' : '#374151', cursor: 'pointer',
+                  }}
+                >
+                  {brand}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h4 style={{ fontFamily: 'var(--font-outfit)', fontSize: '14px', fontWeight: '700', color: '#1a2332', marginBottom: '12px' }}>Category</h4>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              {['Skin Care', 'Hair Care', 'Body Care', 'Wellness', 'Baby Care', 'Combos'].map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => { setSelectedCategory(selectedCategory === cat ? null : cat); setIsMobileFilterOpen(false); }}
+                  style={{
+                    padding: '6px 14px', borderRadius: '9999px', fontSize: '12px', fontWeight: '600',
+                    background: selectedCategory === cat ? '#DDF7E3' : '#F7FBFD',
+                    border: `1.5px solid ${selectedCategory === cat ? '#3BAE56' : '#e2e8f0'}`,
+                    color: selectedCategory === cat ? '#3BAE56' : '#374151', cursor: 'pointer',
+                  }}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      </section>
+
+        <div style={{ borderTop: '1.5px solid #f1f5f9', paddingTop: '20px', marginTop: '20px' }}>
+          <button
+            onClick={() => { clearAllFilters(); setIsMobileFilterOpen(false); }}
+            style={{ width: '100%', background: '#fff0f0', border: '1px solid #fecaca', borderRadius: '9999px', padding: '12px', color: '#ef4444', fontWeight: '700', cursor: 'pointer', fontSize: '14px' }}
+          >
+            Clear All Filters
+          </button>
+        </div>
+      </div>
+
+      <style>{`
+        @media (min-width: 992px) {
+          .show-desktop-aside { display: block !important; }
+          .show-mobile-filter-btn { display: none !important; }
+        }
+        @media (max-width: 991px) {
+          .hide-mobile-view-btns { display: none !important; }
+        }
+      `}</style>
     </>
   );
 }
@@ -420,10 +502,8 @@ function ShopContent() {
 export default function ShopPage() {
   return (
     <Suspense fallback={
-      <div className="container py-5 text-center">
-        <div className="spinner-border text-success" role="status">
-          <span className="visually-hidden">Loading shop...</span>
-        </div>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+        <div style={{ width: '40px', height: '40px', border: '4px solid #f3f3f3', borderTop: '4px solid #3BAE56', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
       </div>
     }>
       <ShopContent />

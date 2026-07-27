@@ -1,12 +1,17 @@
-'use client';
+"use client";
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+
+
+import Image from 'next/image';
+
 
 import { useEffect, useState, Suspense } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchAdminOrders, updateOrderStatus, refundOrder, createDelhiveryShipment, cancelDelhiveryShipment, getDelhiveryLabel, fetchWarehouses } from '../../../store/adminSlice.js';
+import { fetchAdminOrders, updateOrderStatus, refundOrder, createDelhiveryShipment, cancelDelhiveryShipment, getDelhiveryLabel, fetchWarehouses } from '../../../store/adminSlice';
 import { ShoppingBag, Eye, MapPin, Check, Filter, Clock, Search, X, Printer, Package, Truck, CheckCircle, CreditCard, RotateCcw, AlertTriangle } from 'lucide-react';
-import Image from 'next/image';
-import { useSearchParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
+
+
 import { useNotification } from '../../../context/NotificationContext';
 
 const getStateCode = (stateName) => {
@@ -641,7 +646,7 @@ function AdminOrdersContent() {
               <div className="col-4 text-end d-flex align-items-center justify-content-end gap-2">
                 <div style={{ fontSize: '9px', fontWeight: 'bold' }}>e-Invoice</div>
                 <Image 
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=${encodeURIComponent('https://www.sweettreeon.com/invoice/' + selectedOrder._id)}`} 
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=${encodeURIComponent('https://www.maxglowon.com/invoice/' + selectedOrder._id)}`} 
                   alt="e-invoice QR" 
                   width={60}
                   height={60}
@@ -655,7 +660,7 @@ function AdminOrdersContent() {
               <tbody>
                 <tr>
                   <td style={{ width: '55%', borderTop: 'none', borderLeft: 'none' }} className="border-right">
-                    <div className="fw-bold" style={{ fontSize: '12px' }}>Sweettree Enterprises - FY 2026-27 - (from 1-Apr-26)</div>
+                    <div className="fw-bold" style={{ fontSize: '12px' }}>MaxGlow Enterprises - FY 2026-27 - (from 1-Apr-26)</div>
                     <div>33, Maharshi Devendra Road, Kolkata - 700006</div>
                     <div>FSSAI NO: 12819019002064</div>
                     <div>UDYAM REGN: UDYAM-WB-10-0002145 (MICRO)</div>
@@ -868,7 +873,7 @@ function AdminOrdersContent() {
               <div className="col-3 p-2 border-end d-flex flex-column align-items-center justify-content-center">
                 <div style={{ fontSize: '9px', fontWeight: 'bold', marginBottom: '4px' }}>Scan to Pay</div>
                 <Image 
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent('upi://pay?pa=sweettree2026@icici&pn=Sweettree%20Enterprises&am=' + selectedOrder.totalAmount + '&cu=INR')}`} 
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent('upi://pay?pa=sweettree2026@icici&pn=MaxGlow%20Enterprises&am=' + selectedOrder.totalAmount + '&cu=INR')}`} 
                   alt="UPI QR Code" 
                   width={80}
                   height={80}
@@ -929,7 +934,7 @@ function AdminOrdersContent() {
                     
                     <div style={{ marginTop: '15px' }} className="fw-bold">Company's Bank Details:</div>
                     <div>Bank Name: <strong>ICICI Bank</strong></div>
-                    <div>A/c Holder's Name: <strong>Sweettree Enterprises</strong></div>
+                    <div>A/c Holder's Name: <strong>MaxGlow Enterprises</strong></div>
                     <div>A/c No.: <strong>339505000253</strong></div>
                     <div>Branch & IFS Code: <strong>POSTA BRANCH & ICIC0003395</strong></div>
                     
@@ -938,7 +943,7 @@ function AdminOrdersContent() {
                     </div>
                   </td>
                   <td style={{ width: '45%', border: 'none', verticalAlign: 'top', padding: '10px', textAlign: 'right' }}>
-                    <div className="fw-bold text-end">for Sweettree Enterprises</div>
+                    <div className="fw-bold text-end">for MaxGlow Enterprises</div>
                     <div style={{ marginTop: '140px', borderTop: '1px solid #000', paddingTop: '5px', width: '180px', display: 'inline-block' }} className="text-center fw-bold">
                       Authorised Signatory
                     </div>

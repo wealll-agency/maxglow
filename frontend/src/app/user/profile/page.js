@@ -1,9 +1,13 @@
-'use client';
+"use client";
+import { useRouter } from 'next/navigation';
+
+
+
 
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { addAddress, deleteAddress, updateAddress, updateUserProfile } from '../../../store/authSlice.js';
-import { useRouter } from 'next/navigation';
+import { addAddress, deleteAddress, updateAddress, updateUserProfile } from '../../../store/authSlice';
+
 import { User, MapPin, Trash2, Edit2, Mail, Phone, Plus } from 'lucide-react';
 import { useNotification } from '../../../context/NotificationContext';
 

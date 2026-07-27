@@ -1,57 +1,54 @@
-'use client';
-
-import { useSelector, useDispatch } from 'react-redux';
-import { toggleWishlist } from '../../store/wishlistSlice.js';
-import { addToCart } from '../../store/cartSlice.js';
+"use client";
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Heart, Trash2 } from 'lucide-react';
-import ProductCard from '../../components/ProductCard.jsx';
+import React from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { toggleWishlist } from '../../store/wishlistSlice';
+import { addToCart } from '../../store/cartSlice';
+import { FiHeart, FiTrash2 } from 'react-icons/fi';
+
+import ProductCard from '../../components/ProductCard';
 
 export default function WishlistPage() {
   const router = useRouter();
   const dispatch = useDispatch();
-  const wishlistItems = useSelector((state) => state.wishlist.items);
-
-  const handleAddToCart = (product) => {
-    dispatch(addToCart({ product, quantity: 1, size: '100ml' }));
-  };
-
-  const handleBuyNow = (product) => {
-    dispatch(addToCart({ product, quantity: 1, size: '100ml' }));
-    router.push('/checkout');
-  };
+  const wishlistItems = useSelector((state) => state.wishlist.items || []);
 
   if (wishlistItems.length === 0) {
     return (
-      <div className="container py-5 text-center animate-fade-in">
-        <div className="glass-card bg-white p-5 max-w-lg mx-auto">
-          <Heart size={56} className="text-muted mb-3 mx-auto" />
-          <h2 className="fw-bold mb-2">Your Wishlist is Empty</h2>
-          <p className="text-muted mb-4">Save products you like to purchase them later.</p>
-          <Link href="/shop" className="btn btn-brand">Explore Products</Link>
+      <div style={{ background: '#F7FBFD', padding: '80px 20px', minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="glass" style={{ borderRadius: '24px', padding: '40px 24px', maxWidth: '480px', width: '100%', textAlign: 'center' }}>
+          <div style={{ width: '80px', height: '80px', background: '#fff0f0', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+            <FiHeart size={36} color="#ef4444" fill="#ef4444" />
+          </div>
+          <h2 style={{ fontFamily: 'var(--font-outfit)', fontSize: '22px', fontWeight: '800', color: '#1a2332', marginBottom: '8px' }}>Your Wishlist is Empty</h2>
+          <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '24px' }}>Save items you love here to easily find and purchase them later.</p>
+          <Link href="/shop" className="btn-mg-green" style={{ display: 'inline-flex' }}>Explore Products</Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container py-5 animate-fade-in">
-      <h1 className="fw-bold mb-4 display-font">My Wishlist</h1>
+    <div style={{ background: '#F7FBFD', padding: '40px 0', minHeight: '60vh' }}>
+      <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
+        <h1 style={{ fontFamily: 'var(--font-outfit)', fontSize: '32px', fontWeight: '800', color: '#1a2332', marginBottom: '28px' }}>
+          My Wishlist
+        </h1>
 
-      <div className="row g-4">
-        {wishlistItems.map((product) => (
-          <div key={product._id} className="col-sm-6 col-md-4 col-lg-3">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '20px' }}>
+          {wishlistItems.map((product) => (
             <ProductCard 
+              key={product._id}
               product={{
                 ...product,
                 image: product.images?.[0] || product.image,
                 mrp: product.purchasePrice || product.price,
-                brand: 'Sweettree'
+                brand: 'MaxGlow'
               }} 
             />
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

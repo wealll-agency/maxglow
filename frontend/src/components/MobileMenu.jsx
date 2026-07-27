@@ -32,8 +32,8 @@ const MobileMenu = () => {
 
   return (
     <div className="offcanvas offcanvas-start" tabIndex="-1" id="mobileMenu" aria-labelledby="mobileMenuLabel">
-      <div className="offcanvas-header" style={{ backgroundColor: '#004c03', color: 'white' }}>
-        <h5 className="offcanvas-title fw-bold" id="mobileMenuLabel">Sweettree</h5>
+      <div className="offcanvas-header" style={{ backgroundColor: '#162C18', color: 'white' }}>
+        <h5 className="offcanvas-title fw-bold" id="mobileMenuLabel">MaxGlow</h5>
         <button type="button" className="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
       </div>
       <div className="offcanvas-body p-0">

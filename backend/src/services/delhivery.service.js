@@ -3,7 +3,7 @@ import delhiveryProvider from '../providers/delhivery.provider.js';
 class DelhiveryService {
   /**
    * Format order and create a shipment in Delhivery
-   * @param {Object} order - The Sweettree order document
+   * @param {Object} order - The MaxGlow order document
    */
   async createShipment(order) {
     // 1. Map business logic (Order model) to Delhivery-specific payload
@@ -31,7 +31,7 @@ class DelhiveryService {
           order_date: new Date(order.createdAt).toISOString(),
           total_amount: order.totalAmount.toString(),
           seller_add: '',
-          seller_name: 'Sweettree Enterprises',
+          seller_name: 'MaxGlow Enterprises',
           seller_inv: '',
           quantity: order.items.reduce((acc, item) => acc + item.quantity, 0).toString(),
           tax_value: order.tax ? order.tax.toString() : '0',

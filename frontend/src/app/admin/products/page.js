@@ -1,10 +1,12 @@
-'use client';
+"use client";
+
+import Image from 'next/image';
+
 
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchAdminProducts, addProduct, editProduct, removeProduct, toggleProductState, fetchWarehouses } from '../../../store/adminSlice.js';
+import { fetchAdminProducts, addProduct, editProduct, removeProduct, toggleProductState, fetchWarehouses } from '../../../store/adminSlice';
 import { Plus, Edit, Trash2, X, Eye, Download, Search, LayoutGrid } from 'lucide-react';
-import Image from 'next/image';
 import { useNotification } from '../../../context/NotificationContext';
 
 export default function AdminProductsPage() {
@@ -31,7 +33,7 @@ export default function AdminProductsPage() {
 
   // Form fields
   const [name, setName] = useState('');
-  const [category, setCategory] = useState('Dry Fruits');
+  const [category, setCategory] = useState('Skin Care');
   const [subCategory, setSubCategory] = useState('');
   const [subSubCategory, setSubSubCategory] = useState('');
   const [brand, setBrand] = useState('');
@@ -136,7 +138,7 @@ export default function AdminProductsPage() {
 
   const resetForm = () => {
     setName('');
-    setCategory('Dry Fruits');
+    setCategory('Skin Care');
     setSubCategory('');
     setSubSubCategory('');
     setBrand('');
@@ -396,24 +398,29 @@ export default function AdminProductsPage() {
                 <label className="fw-medium mb-1 fs-7">Brand</label>
                 <select className="form-select" value={filterBrand} onChange={(e) => setFilterBrand(e.target.value)}>
                   <option value="All Brands">All Brands</option>
-                  <option value="Sweettree">Sweettree</option>
+                  <option value="MaxGlow">MaxGlow</option>
                 </select>
               </div>
               <div className="col-md-3">
                 <label className="fw-medium mb-1 fs-7">Category</label>
                 <select className="form-select" value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
                   <option value="Select category">Select category</option>
-                  <option value="Dry Fruits">Dry Fruits</option>
-                  <option value="Healthy Snacking">Healthy Snacking</option>
-                  <option value="Combo Gift Box">Combo Gift Box</option>
+                  <option value="Skin Care">Skin Care</option>
+                  <option value="Hair Care">Hair Care</option>
+                  <option value="Body Care">Body Care</option>
+                  <option value="Wellness">Wellness</option>
+                  <option value="Baby Care">Baby Care</option>
+                  <option value="Combos">Combos</option>
                 </select>
               </div>
               <div className="col-md-3">
                 <label className="fw-medium mb-1 fs-7">Sub Category</label>
                 <select className="form-select" value={filterSubCategory} onChange={(e) => setFilterSubCategory(e.target.value)}>
                   <option value="Select Sub Category">Select Sub Category</option>
-                  <option value="Nuts">Nuts</option>
-                  <option value="Seeds">Seeds</option>
+                  <option value="Serums">Serums</option>
+                  <option value="Lotions">Lotions</option>
+                  <option value="Creams">Creams</option>
+                  <option value="Oils">Oils</option>
                 </select>
               </div>
               <div className="col-md-3">
@@ -513,12 +520,12 @@ export default function AdminProductsPage() {
                   <div className="col-md-4">
                     <label className="fw-medium mb-1 fs-7">Category</label>
                     <select className="form-select" value={category} onChange={(e) => setCategory(e.target.value)}>
-                      <option value="Dry Fruits">Dry Fruits</option>
-                      <option value="Top Selling Products">Top Selling Products</option>
-                      <option value="Healthy Snacking">Healthy Snacking</option>
-                      <option value="Combo Gift Box">Combo Gift Box</option>
-                      <option value="Flavoured Nuts">Flavoured Nuts</option>
-                      <option value="Seeds And Berries">Seeds And Berries</option>
+                      <option value="Skin Care">Skin Care</option>
+                      <option value="Hair Care">Hair Care</option>
+                      <option value="Body Care">Body Care</option>
+                      <option value="Wellness">Wellness</option>
+                      <option value="Baby Care">Baby Care</option>
+                      <option value="Combos">Combos</option>
                     </select>
                   </div>
                   <div className="col-md-4">

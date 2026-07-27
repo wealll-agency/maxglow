@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 dotenv.config({ path: '../.env' });
 
-const dbUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/sweettree';
+const dbUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/maxglow';
 
 mongoose.connect(dbUri).then(async () => {
   const Product = mongoose.model('Product', new mongoose.Schema({}, { strict: false }));

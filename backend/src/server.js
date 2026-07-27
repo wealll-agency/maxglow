@@ -64,9 +64,9 @@ app.use(compression());
 const allowedOrigins = [
   'http://localhost:3000', 
   'http://localhost:3001', 
-  'http://localhost:7051',
-  'https://sweettreeon.com',
-  'https://www.sweettreeon.com'
+  'http://localhost:7053',
+  'https://maxglowon.com',
+  'https://www.maxglowon.com'
 ];
 if (process.env.FRONTEND_URL) {
   allowedOrigins.push(...process.env.FRONTEND_URL.split(',').map(url => url.trim()));
@@ -116,7 +116,7 @@ app.use('/api/warehouses', warehouseRoutes);
 
 // Root route
 app.get('/', (req, res) => {
-  res.json({ success: true, message: 'Sweettree Enterprise E-commerce API Active' });
+  res.json({ success: true, message: 'MaxGlow Enterprise E-commerce API Active' });
 });
 
 // Centralized error handler

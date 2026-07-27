@@ -104,7 +104,7 @@ export const logoutUser = async (req, res, next) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      ...(process.env.NODE_ENV === 'production' && { domain: '.sweettreeon.com' }),
+      ...(process.env.NODE_ENV === 'production' && { domain: '.maxglowon.com' }),
       expires: new Date(0)
     };
     res.cookie('token', '', cookieOptions);
@@ -126,7 +126,7 @@ export const refreshTokenUser = async (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'super_secret_jwt_key_for_sweettree_2026_enterprise');
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'super_secret_jwt_key_for_maxglow_2026_enterprise');
     const user = await User.findById(decoded.id);
 
     if (!user) {
@@ -135,7 +135,7 @@ export const refreshTokenUser = async (req, res, next) => {
 
     const accessToken = jwt.sign(
       { id: user._id },
-      process.env.JWT_SECRET || 'super_secret_jwt_key_for_sweettree_2026_enterprise',
+      process.env.JWT_SECRET || 'super_secret_jwt_key_for_maxglow_2026_enterprise',
       { expiresIn: '7d' }
     );
 

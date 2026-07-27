@@ -21,13 +21,13 @@ const wishlistSlice = createSlice({
       }
 
       if (typeof window !== 'undefined') {
-        localStorage.setItem('sweettree_wishlist', JSON.stringify(state.items));
+        localStorage.setItem('maxglow_wishlist', JSON.stringify(state.items));
       }
     },
     clearWishlist: (state) => {
       state.items = [];
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('sweettree_wishlist');
+        localStorage.removeItem('maxglow_wishlist');
       }
     },
     hydrateWishlist: (state, action) => {

@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "Enterprise Express.js backend for Sweettree",
+  "description": "Enterprise Express.js backend for MaxGlow",
   "main": "src/server.js",
   "type": "module",
   "scripts": {

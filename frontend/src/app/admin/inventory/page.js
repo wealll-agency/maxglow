@@ -1,8 +1,10 @@
-'use client';
+"use client";
+
+
 
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchAdminProducts, editProduct } from '../../../store/adminSlice.js';
+import { fetchAdminProducts, editProduct } from '../../../store/adminSlice';
 import { AlertTriangle, Clock, ArrowDownUp, RefreshCw } from 'lucide-react';
 import { useNotification } from '../../../context/NotificationContext';
 

@@ -189,7 +189,7 @@ export const exportSalesReportPDF = async (req, res, next) => {
     doc.pipe(res);
 
     // Title Section
-    doc.fillColor('#1E3F20').fontSize(24).text('SWEETTREE ECOMMERCE PLATFORM', { align: 'center' });
+    doc.fillColor('#1E3F20').fontSize(24).text('MAXGLOW ECOMMERCE PLATFORM', { align: 'center' });
     doc.fillColor('#2C3E2D').fontSize(14).text('Executive Sales Report', { align: 'center' });
     doc.fontSize(10).text(`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, { align: 'center' });
     doc.moveDown(2);

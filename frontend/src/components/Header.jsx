@@ -1,258 +1,355 @@
-'use client';
-import React, { useState, useEffect, useRef } from 'react';
+"use client";
 import Link from 'next/link';
-import { useSelector, useDispatch } from 'react-redux';
-import { logoutUser } from '../store/authSlice';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { 
-  Home, 
-  Store, 
-  Gift, 
-  Leaf, 
-  BookOpen, 
-  Envelope, 
-  Search, 
-  X, 
-  User, 
-  Heart, 
-  ShoppingBag, 
-  Menu,
-  LayoutDashboard,
-  Package,
-  LogOut,
-  LogIn,
-  Mail
-} from 'lucide-react';
+import React, { useState, useEffect, useRef, memo } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { logoutUser } from '../store/authSlice';
+import {
+  FiSearch, FiX, FiUser, FiHeart, FiShoppingBag,
+  FiMenu, FiLogIn, FiLogOut, FiPackage, FiSettings, FiChevronDown
+} from 'react-icons/fi';
+import { Leaf } from 'lucide-react';
+import { MdDashboard } from 'react-icons/md';
+import CartOffcanvas from './CartOffcanvas';
 
 const Header = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const dropdownRef = useRef(null);
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const searchRef = useRef(null);
+  const userDropdownRef = useRef(null);
+
   const { user } = useSelector((state) => state.auth);
   const wishlistItems = useSelector((state) => state.wishlist?.items || []);
-  const wishlistCount = wishlistItems.length;
-  
-  const { items: cartItems, total: cartTotal } = useSelector((state) => state.cart);
+  const { items: cartItems } = useSelector((state) => state.cart);
   const cartCount = cartItems ? cartItems.reduce((acc, item) => acc + item.quantity, 0) : 0;
-  
+  const wishlistCount = wishlistItems.length;
+
   const dispatch = useDispatch();
   const router = useRouter();
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (userDropdownRef.current && !userDropdownRef.current.contains(e.target)) {
+        setIsUserDropdownOpen(false);
+      }
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setIsSearchOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleLogout = (e) => {
     e.preventDefault();
     dispatch(logoutUser());
-    if (dropdownRef.current) {
-      dropdownRef.current.removeAttribute('open');
-    }
+    setIsUserDropdownOpen(false);
     router.push('/login');
   };
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      const closestDropdown = event.target.closest('.dropdown');
-      if (closestDropdown !== dropdownRef.current && dropdownRef.current) {
-        dropdownRef.current.removeAttribute('open');
-      }
-    };
-    document.addEventListener("pointerdown", handleClickOutside);
-    return () => {
-      document.removeEventListener("pointerdown", handleClickOutside);
-    };
-  }, []);
-
-
-
-
 
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       router.push(`/shop?keyword=${encodeURIComponent(searchQuery.trim())}`);
       setIsSearchOpen(false);
+      setSearchQuery('');
     }
   };
 
+  const navLinks = [
+    { href: '/shop', label: 'Categories' },
+    { href: '/shop?sort=bestselling', label: 'Bestsellers' },
+    { href: '/build-combo', label: 'Combos' },
+    { href: '/blog', label: 'Blog' },
+    { href: '/about', label: 'About' },
+  ];
+
   return (
-    <header className="main-header">
-      <div className="container">
-        <div className="row align-items-center">
-          {/* Logo */}
-          <div className="col-lg-2 col-5">
-            <Link href="/">
-              <Image src="/logo.png" alt="Sweettree Logo" width={180} height={50} priority={true} className="brand-logo" style={{ objectFit: 'contain' }} />
+    <>
+      <header
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 9000,
+          background: isScrolled ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.98)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderBottom: '1px solid rgba(221,244,255,0.8)',
+          transition: 'all 0.3s ease',
+          boxShadow: isScrolled ? '0 4px 20px rgba(74,144,226,0.1)' : 'none',
+        }}
+      >
+        <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', height: '64px', gap: '24px' }}>
+
+            {/* Logo */}
+            <Link href="/" style={{ textDecoration: 'none', flexShrink: 0, display: 'flex', alignItems: 'center', width: '180px', height: '50px', overflow: 'hidden', position: 'relative' }}>
+              <img
+                src="/logo.png"
+                alt="MaxGlow"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scale(2.3)' }}
+              />
             </Link>
-          </div>
 
-          {/* Desktop Nav Links */}
-          <div className="col-lg-7 d-none d-lg-block">
-            <ul className="d-flex justify-content-center align-items-center m-0 p-0" style={{ listStyle: 'none', gap: '6px' }}>
-              <li>
-                <Link href="/" className="premium-nav-link">
-                  <span className="nav-icon"><Home size={16} /></span>
-                  <span className="nav-text">HOME</span>
+            {/* Desktop Nav */}
+            <nav style={{ display: 'flex', alignItems: 'center', gap: '2px', flex: 1 }} className="hide-mobile">
+              {navLinks.map((link) => (
+                <Link key={link.href} href={link.href} className="mg-nav-link">
+                  {link.label}
                 </Link>
-              </li>
-              <li>
-                <Link href="/shop" className="premium-nav-link">
-                  <span className="nav-icon"><Store size={16} /></span>
-                  <span className="nav-text">SHOP</span>
-                </Link>
-              </li>
-              <li>
-                <Link href="/build-combo" className="premium-nav-link">
-                  <span className="nav-icon"><Gift size={16} /></span>
-                  <span className="nav-text">COMBO BOX</span>
-                </Link>
-              </li>
-              <li>
-                <Link href="/about" className="premium-nav-link">
-                  <span className="nav-icon"><Leaf size={16} /></span>
-                  <span className="nav-text">ABOUT</span>
-                </Link>
-              </li>
-              {/* 
-              <li>
-                <Link href="/blog" className="premium-nav-link">
-                  <span className="nav-icon"><BookOpen size={16} /></span>
-                  <span className="nav-text">BLOG</span>
-                </Link>
-              </li> 
-              */}
-              <li>
-                <Link href="/contact" className="premium-nav-link">
-                  <span className="nav-icon"><Mail size={16} /></span>
-                  <span className="nav-text">CONTACT</span>
-                </Link>
-              </li>
-            </ul>
-          </div>
+              ))}
+            </nav>
 
-          {/* Right Action Icons */}
-          <div className="col-lg-3 col-7 d-flex justify-content-end align-items-center gap-3 gap-md-2">
-            {/* Search */}
-            <div className={`sliding-search-container d-none d-md-flex ${isSearchOpen ? 'open' : ''}`}>
-              <form onSubmit={handleSearch} className="sliding-search-form mb-0">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="sliding-search-input"
-                />
+            {/* Search Bar */}
+            <div ref={searchRef} style={{ position: 'relative', flexShrink: 0 }} className="hide-mobile">
+              {isSearchOpen ? (
+                <form onSubmit={handleSearch} style={{
+                  display: 'flex', alignItems: 'center',
+                  background: 'white',
+                  border: '1.5px solid #4A90E2',
+                  borderRadius: '9999px',
+                  padding: '6px 16px',
+                  boxShadow: '0 0 0 3px rgba(74,144,226,0.15)',
+                  width: '260px',
+                  transition: 'all 0.3s ease',
+                }}>
+                  <FiSearch size={16} color="#94a3b8" style={{ flexShrink: 0 }} />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    style={{
+                      border: 'none', background: 'transparent', outline: 'none',
+                      flex: 1, padding: '0 8px', fontSize: '14px', color: '#1a2332',
+                    }}
+                    autoFocus
+                  />
+                  <button type="button" onClick={() => setIsSearchOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#94a3b8' }}>
+                    <FiX size={16} />
+                  </button>
+                </form>
+              ) : (
                 <button
-                  type="button"
-                  className="header-action-btn search-toggle-btn"
-                  onClick={() => setIsSearchOpen(!isSearchOpen)}
-                  title="Search"
+                  onClick={() => setIsSearchOpen(true)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '8px',
+                    background: '#F7FBFD', border: '1.5px solid rgba(221,244,255,0.8)',
+                    borderRadius: '9999px', padding: '7px 16px',
+                    fontSize: '13px', color: '#94a3b8', cursor: 'pointer',
+                    transition: 'all 0.2s ease', whiteSpace: 'nowrap',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#4A90E2'; e.currentTarget.style.background = 'white'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(221,244,255,0.8)'; e.currentTarget.style.background = '#F7FBFD'; }}
                 >
-                  {isSearchOpen ? <X size={18} /> : <Search size={18} />}
+                  <FiSearch size={15} />
+                  Search on MaxGlow
                 </button>
-              </form>
+              )}
             </div>
 
-            {/* User Dropdown */}
-            <details className="dropdown d-none d-md-block" ref={dropdownRef} style={{ position: 'relative' }}>
-              <summary 
-                className="header-action-btn" 
-                title="Account"
-                style={{ listStyle: 'none', outline: 'none', cursor: 'pointer' }}
-              >
-                <User size={18} />
-              </summary>
-              <ul 
-                className="dropdown-menu premium-dropdown show" 
-                aria-label="user menu"
-                style={{
-                  display: 'block',
-                  position: 'absolute',
-                  top: '100%',
-                  right: 0,
-                  left: 'auto',
-                  marginTop: '10px',
-                  minWidth: '220px',
-                  zIndex: 99999,
-                  transform: 'none'
-                }}
-              >
-                {user ? (
-                  <>
-                    <li className="dropdown-header-item">
-                      <span className="d-block fw-bold text-dark" style={{ fontSize: '13px' }}>Hi, {user.name?.split(' ')[0] || 'User'}</span>
-                      <span className="text-muted" style={{ fontSize: '11px' }}>{user.email}</span>
-                    </li>
-                    <li><hr className="dropdown-divider my-1" /></li>
-                    {(user?.role === 'Super Admin' || user?.role === 'Manager' || user?.role === 'Staff') && (
-                      <li>
-                        <Link href="/admin/dashboard" className="dropdown-item premium-dropdown-item" onClick={() => dropdownRef.current?.removeAttribute('open')}>
-                          <LayoutDashboard size={16} className="me-2 text-success" /> Admin Panel
+            {/* Right Actions */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+
+              {/* User */}
+              <div ref={userDropdownRef} style={{ position: 'relative' }} className="hide-mobile">
+                <button className="mg-action-btn" onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}>
+                  <FiUser size={20} />
+                </button>
+                {isUserDropdownOpen && (
+                  <div className="mg-dropdown">
+                    {user ? (
+                      <>
+                        <div style={{ padding: '12px', borderBottom: '1px solid #f1f5f9', marginBottom: '4px' }}>
+                          <div style={{ fontSize: '13px', fontWeight: '700', color: '#1a2332' }}>Hi, {user.name?.split(' ')[0] || 'User'}</div>
+                          <div style={{ fontSize: '11px', color: '#94a3b8' }}>{user.email}</div>
+                        </div>
+                        {(user?.role === 'Super Admin' || user?.role === 'Manager' || user?.role === 'Staff') && (
+                          <Link href="/admin/dashboard" className="mg-dropdown-item" onClick={() => setIsUserDropdownOpen(false)}>
+                            <MdDashboard size={16} color="#4A90E2" /> Admin Panel
+                          </Link>
+                        )}
+                        <Link href="/user/profile" className="mg-dropdown-item" onClick={() => setIsUserDropdownOpen(false)}>
+                          <FiUser size={16} color="#4A90E2" /> My Profile
                         </Link>
-                      </li>
+                        <Link href="/user/orders" className="mg-dropdown-item" onClick={() => setIsUserDropdownOpen(false)}>
+                          <FiPackage size={16} color="#3BAE56" /> My Orders
+                        </Link>
+                        <div className="mg-dropdown-divider" />
+                        <button onClick={handleLogout} className="mg-dropdown-item danger">
+                          <FiLogOut size={16} color="#ef4444" /> Log Out
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <Link href="/login" className="mg-dropdown-item" onClick={() => setIsUserDropdownOpen(false)}>
+                          <FiLogIn size={16} color="#3BAE56" /> Sign In
+                        </Link>
+                        <Link href="/register" className="mg-dropdown-item" onClick={() => setIsUserDropdownOpen(false)}>
+                          <FiUser size={16} color="#4A90E2" /> Sign Up
+                        </Link>
+                      </>
                     )}
-                    <li>
-                      <Link href="/user/profile" className="dropdown-item premium-dropdown-item" onClick={() => dropdownRef.current?.removeAttribute('open')}>
-                        <User size={16} className="me-2 text-primary" /> My Profile
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="/user/orders" className="dropdown-item premium-dropdown-item" onClick={() => dropdownRef.current?.removeAttribute('open')}>
-                        <Package size={16} className="me-2 text-warning" /> My Orders
-                      </Link>
-                    </li>
-                    <li><hr className="dropdown-divider my-1" /></li>
-                    <li>
-                      <button onClick={handleLogout} className="dropdown-item premium-dropdown-item text-danger">
-                        <LogOut size={16} className="me-2" /> Log Out
-                      </button>
-                    </li>
-                  </>
-                ) : (
-                  <>
-                    <li>
-                      <Link href="/login" className="dropdown-item premium-dropdown-item" onClick={() => dropdownRef.current?.removeAttribute('open')}>
-                        <LogIn size={16} className="me-2 text-success" /> Sign In
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="/register" className="dropdown-item premium-dropdown-item" onClick={() => dropdownRef.current?.removeAttribute('open')}>
-                        <User size={16} className="me-2 text-primary" /> Sign Up
-                      </Link>
-                    </li>
-                  </>
+                  </div>
                 )}
-              </ul>
-            </details>
+              </div>
 
-            {/* Wishlist */}
-            <Link href="/wishlist" className="header-action-btn d-none d-md-flex text-decoration-none position-relative" title="Wishlist">
-              <Heart size={18} />
-              {wishlistCount > 0 && (
-                <span className="header-badge">{wishlistCount}</span>
-              )}
-            </Link>
+              {/* Wishlist */}
+              <Link href="/wishlist" className="mg-action-btn hide-mobile" style={{ position: 'relative', color: '#374151' }}>
+                <FiHeart size={20} />
+                {wishlistCount > 0 && (
+                  <span className="mg-action-badge">{wishlistCount}</span>
+                )}
+              </Link>
 
-            {/* Cart */}
-            <a
-              href="#"
-              className="header-action-btn text-decoration-none position-relative"
-              onClick={(e) => e.preventDefault()}
-              data-bs-toggle="offcanvas"
-              data-bs-target="#cartOffcanvas"
-              title="Cart"
-            >
-              <ShoppingBag size={18} />
-              <span className="header-badge">{cartCount}</span>
-            </a>
+              {/* Cart */}
+              <button
+                className="mg-action-btn"
+                onClick={() => setIsCartOpen(true)}
+                style={{ position: 'relative', color: '#374151', border: 'none', cursor: 'pointer' }}
+              >
+                <FiShoppingBag size={20} />
+                <span className="mg-action-badge">{cartCount}</span>
+              </button>
 
-            {/* Mobile Hamburger */}
-            <Link href="#" className="header-action-btn d-lg-none text-decoration-none" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu">
-              <Menu size={18} />
-            </Link>
+              {/* Mobile hamburger */}
+              <button
+                className="mg-action-btn show-mobile"
+                onClick={() => setIsMobileMenuOpen(true)}
+                style={{ border: 'none', cursor: 'pointer', color: '#374151' }}
+              >
+                <FiMenu size={22} />
+              </button>
+            </div>
           </div>
+        </div>
+      </header>
+
+      {/* Cart Offcanvas */}
+      <CartOffcanvas isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+            zIndex: 9990, backdropFilter: 'blur(4px)'
+          }}
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Mobile Menu Drawer */}
+      <div style={{
+        position: 'fixed', top: 0, left: 0, height: '100vh', width: '300px',
+        background: 'white', zIndex: 9991,
+        boxShadow: '4px 0 40px rgba(0,0,0,0.15)',
+        transform: isMobileMenuOpen ? 'translateX(0)' : 'translateX(-100%)',
+        transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        display: 'flex', flexDirection: 'column',
+        overflowY: 'auto',
+      }}>
+        {/* Mobile Header */}
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '20px', borderBottom: '1px solid #f1f5f9',
+          background: 'linear-gradient(135deg, #EAF8FF 0%, #DDF7E3 100%)',
+        }}>
+          <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }} onClick={() => setIsMobileMenuOpen(false)}>
+            <div style={{ width: '28px', height: '28px', background: 'linear-gradient(135deg, #4A90E2, #3BAE56)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Leaf size={16} color="white" />
+            </div>
+            <span style={{ fontFamily: 'var(--font-outfit)', fontSize: '20px', fontWeight: '800', color: '#1a2332', letterSpacing: '-0.03em' }}>
+              Max<span style={{ color: '#3BAE56' }}>Glow</span>
+            </span>
+          </Link>
+          <button onClick={() => setIsMobileMenuOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: '4px' }}>
+            <FiX size={22} />
+          </button>
+        </div>
+
+        {/* Mobile Search */}
+        <div style={{ padding: '16px' }}>
+          <form onSubmit={(e) => { handleSearch(e); setIsMobileMenuOpen(false); }} style={{
+            display: 'flex', alignItems: 'center', gap: '8px',
+            background: '#F7FBFD', border: '1.5px solid #e2e8f0', borderRadius: '12px', padding: '10px 14px',
+          }}>
+            <FiSearch size={16} color="#94a3b8" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ border: 'none', background: 'transparent', outline: 'none', flex: 1, fontSize: '14px', color: '#1a2332' }}
+            />
+          </form>
+        </div>
+
+        {/* Mobile Nav Links */}
+        <nav style={{ padding: '8px 16px', flex: 1 }}>
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={() => setIsMobileMenuOpen(false)}
+              style={{
+                display: 'flex', alignItems: 'center', padding: '14px 12px',
+                borderRadius: '10px', fontSize: '15px', fontWeight: '600',
+                color: '#374151', textDecoration: 'none',
+                fontFamily: 'var(--font-outfit), sans-serif',
+                marginBottom: '4px', transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#DDF7E3'; e.currentTarget.style.color = '#3BAE56'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#374151'; }}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+
+        {/* Mobile Footer */}
+        <div style={{ padding: '16px', borderTop: '1px solid #f1f5f9' }}>
+          {user ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <Link href="/user/profile" className="btn-mg-outline" onClick={() => setIsMobileMenuOpen(false)} style={{ justifyContent: 'center', fontSize: '14px', padding: '10px 20px' }}>
+                <FiUser size={16} /> My Profile
+              </Link>
+              <button onClick={handleLogout} style={{ background: '#fff0f0', border: 'none', borderRadius: '9999px', padding: '10px', color: '#ef4444', fontWeight: '600', cursor: 'pointer', fontSize: '14px' }}>
+                <FiLogOut size={16} style={{ marginRight: '6px' }} /> Log Out
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <Link href="/login" className="btn-mg-primary" onClick={() => setIsMobileMenuOpen(false)} style={{ justifyContent: 'center', fontSize: '14px', padding: '11px 20px' }}>
+                <FiLogIn size={16} /> Sign In
+              </Link>
+              <Link href="/register" className="btn-mg-outline" onClick={() => setIsMobileMenuOpen(false)} style={{ justifyContent: 'center', fontSize: '14px', padding: '10px 20px' }}>
+                <FiUser size={16} /> Sign Up
+              </Link>
+            </div>
+          )}
         </div>
       </div>
 
-    </header>
+      <style>{`
+        @media (max-width: 768px) {
+          .hide-mobile { display: none !important; }
+        }
+        @media (min-width: 769px) {
+          .show-mobile { display: none !important; }
+        }
+      `}</style>
+    </>
   );
 };
 
-export default Header;
+export default memo(Header);

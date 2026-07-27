@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
 import api from '../../../utils/axiosConfig';
 import { Bell, RefreshCw, CheckCircle, Clock } from 'lucide-react';
@@ -11,7 +11,7 @@ export default function InventoryNotificationsPage() {
   const [loading, setLoading] = useState(true);
   const { showAlert } = useNotification();
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.get('/notifications/admin/stock');
@@ -23,11 +23,11 @@ export default function InventoryNotificationsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showAlert]);
 
   useEffect(() => {
     fetchNotifications();
-  }, []);
+  }, [fetchNotifications]);
 
   return (
     <div className="animate-fade-in">

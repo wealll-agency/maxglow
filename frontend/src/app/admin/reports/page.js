@@ -8,7 +8,7 @@ export default function AdminReportsPage() {
   const [endDate, setEndDate] = useState('');
   
   const handleExportPDF = () => {
-    let url = `${process.env.NEXT_PUBLIC_API_URL || 'https://www.sweettreeon.com/api'}/reports/export/pdf`;
+    let url = `${process.env.NEXT_PUBLIC_API_URL || 'https://www.maxglowon.com/api'}/reports/export/pdf`;
     const params = [];
     if (startDate) params.push(`startDate=${startDate}`);
     if (endDate) params.push(`endDate=${endDate}`);
@@ -18,7 +18,7 @@ export default function AdminReportsPage() {
   };
 
   const handleExportExcel = () => {
-    let url = `${process.env.NEXT_PUBLIC_API_URL || 'https://www.sweettreeon.com/api'}/reports/export/excel`;
+    let url = `${process.env.NEXT_PUBLIC_API_URL || 'https://www.maxglowon.com/api'}/reports/export/excel`;
     const params = [];
     if (startDate) params.push(`startDate=${startDate}`);
     if (endDate) params.push(`endDate=${endDate}`);

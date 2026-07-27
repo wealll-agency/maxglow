@@ -3,13 +3,13 @@ import jwt from 'jsonwebtoken';
 const generateToken = (res, userId, rememberMe = true) => {
   const accessToken = jwt.sign(
     { id: userId },
-    process.env.JWT_SECRET || 'super_secret_jwt_key_for_sweettree_2026_enterprise',
+    process.env.JWT_SECRET || 'super_secret_jwt_key_for_maxglow_2026_enterprise',
     { expiresIn: rememberMe ? '7d' : '1d' }
   );
 
   const refreshToken = jwt.sign(
     { id: userId },
-    process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'super_secret_jwt_key_for_sweettree_2026_enterprise',
+    process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'super_secret_jwt_key_for_maxglow_2026_enterprise',
     { expiresIn: rememberMe ? '30d' : '1d' }
   );
 
@@ -17,7 +17,7 @@ const generateToken = (res, userId, rememberMe = true) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
-    ...(process.env.NODE_ENV === 'production' && { domain: '.sweettreeon.com' })
+    ...(process.env.NODE_ENV === 'production' && { domain: '.maxglowon.com' })
   };
 
   if (rememberMe) {

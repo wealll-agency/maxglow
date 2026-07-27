@@ -47,6 +47,7 @@ export default function CheckoutPage() {
   const [addressType, setAddressType] = useState('Home');
     const [paymentMode, setPaymentMode] = useState('CCAvenue');
   const [hasCodPermission, setHasCodPermission] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (!hasCodPermission && paymentMode === 'COD') {
@@ -187,6 +188,7 @@ export default function CheckoutPage() {
   };
 
   const handlePlaceOrder = async () => {
+    if (isSubmitting) return;
     if (!user) {
       const checkoutState = {
         addrName, addrPhone, pincode, locality, address, city, stateName, landmark, altPhone, addressType, paymentMode
@@ -220,6 +222,7 @@ export default function CheckoutPage() {
       paymentMode: paymentMode
     };
 
+    setIsSubmitting(true);
     try {
       // 1. Create order on backend (returns local order and CCAvenue payload)
       const orderResult = await dispatch(createOrder(orderData)).unwrap();
@@ -259,6 +262,8 @@ export default function CheckoutPage() {
       form.submit();
     } catch (err) {
       showAlert(err || 'Failed to place order', 'error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -626,10 +631,10 @@ export default function CheckoutPage() {
 
             <button
               onClick={handlePlaceOrder}
-              disabled={loading || (user && user.addresses?.length === 0) || (!user && (!address || !city))}
+              disabled={loading || isSubmitting || (user && user.addresses?.length === 0) || (!user && (!address || !city))}
               className="btn btn-brand w-100 py-3 mt-4 fw-bold fs-6 d-flex align-items-center justify-content-center gap-2"
             >
-              {loading ? 'Processing Order...' : 'Pay Now'}
+              {(loading || isSubmitting) ? 'Processing Order...' : 'Pay Now'}
             </button>
           </div>
 

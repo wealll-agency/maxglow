@@ -26,7 +26,7 @@ export const protect = async (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'super_secret_jwt_key_for_sweettree_2026_enterprise');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'super_secret_jwt_key_for_maxglow_2026_enterprise');
     
     const cachedUser = userCache.get(decoded.id);
     if (cachedUser && (Date.now() - cachedUser.timestamp < CACHE_TTL)) {

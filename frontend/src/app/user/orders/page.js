@@ -1,12 +1,17 @@
-'use client';
+"use client";
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+
+
+import Image from 'next/image';
+
 
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchMyOrders } from '../../../store/ordersSlice.js';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { fetchMyOrders } from '../../../store/ordersSlice';
+
+
 import { ShoppingBag, Eye } from 'lucide-react';
-import Image from 'next/image';
 
 export default function OrderHistoryPage() {
   const dispatch = useDispatch();
@@ -120,7 +125,7 @@ export default function OrderHistoryPage() {
                       )}
                     </div>
                     <div className="flex-grow-1">
-                      <span className="brand-text d-block mb-1 text-uppercase">SWEETTREE</span>
+                      <span className="brand-text d-block mb-1 text-uppercase">MAXGLOW</span>
                       <h3 className="product-name m-0" style={{ fontSize: '14px', lineHeight: '1.4' }}>{item.name}</h3>
                       <div className="product-pricing mt-1">
                         <span className="current-price fs-6">₹{item.price}</span> <span className="text-muted fs-7">x {item.quantity}</span>

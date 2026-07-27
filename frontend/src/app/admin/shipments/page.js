@@ -1,10 +1,14 @@
-'use client';
+"use client";
+import Link from 'next/link';
+
+
+
 
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchAdminShipments, getDelhiveryLabel, cancelDelhiveryShipment } from '../../../store/adminSlice.js';
+import { fetchAdminShipments, getDelhiveryLabel, cancelDelhiveryShipment } from '../../../store/adminSlice';
 import { Search, Printer, X, FileText, CheckCircle, Package, MoreVertical, Eye, RefreshCw, Truck } from 'lucide-react';
-import Link from 'next/link';
+
 import { useNotification } from '../../../context/NotificationContext';
 
 export default function AdminShipments() {

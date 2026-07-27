@@ -63,7 +63,11 @@ const orderSchema = new mongoose.Schema({
     currentLocation: { type: String },
     lastScan: { type: String },
     lastUpdated: { type: Date }
-  }]
+  }],
+  
+  // --- PRODUCTION FIX: Catch-all for legacy unique indexes ---
+  paymentId: { type: String, default: () => new mongoose.Types.ObjectId().toString() },
+  transactionId: { type: String, default: () => new mongoose.Types.ObjectId().toString() }
 }, {
   timestamps: true
 });

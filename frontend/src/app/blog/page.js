@@ -1,13 +1,14 @@
-'use client';
-import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+
+import React from 'react';
+
 export default function BlogPage() {
   return (
     <>
       <div className="marquee-wrapper">
         <marquee behavior="scroll" direction="left" scrollamount="5">
-          || 🥜 Sweettree Anmol Jumbo Nuts - Extra 10% OFF! 🥜 || 🎁 Nuts For Savings 🎁 || 🔥 PayDay Sale Is LIVE - Extra 15% OFF Sitewide! 🔥 ||
+          || 🌿 MaxGlow Premium Skin & Hair Care - Extra 10% OFF! 🌿 || 🎁 Gift of Herbal Glow 🎁 || 🔥 PayDay Sale Is LIVE - Extra 15% OFF Sitewide! 🔥 ||
         </marquee>
       </div>
 
@@ -26,7 +27,7 @@ export default function BlogPage() {
                       <div className="d-flex justify-content-between align-items-center mb-0">
                         <div className="d-flex align-items-center">
                           <div className="logo-circle-mini">
-                            <Image src="/logo.png" alt="Sweettree Logo" width={40} height={40} />
+                            <Image src="/logo.png" alt="MaxGlow Logo" width={40} height={40} style={{ width: '100%', height: 'auto' }} />
                           </div>
                           <div className="text-start ms-2">
                             <h6 className="mb-0 fw-bold blog-meta-bold">Admin</h6>
@@ -35,15 +36,15 @@ export default function BlogPage() {
                         </div>
                         <div className="d-flex align-items-center">
                           <div className="text-end me-2">
-                            <h6 className="mb-0 fw-bold blog-meta-bold">Dried Apricots Benefits <i className="fas fa-file-alt blog-meta-icon"></i></h6>
-                            <span className="blog-meta-date">Sweettree <i className="fas fa-file-alt blog-meta-icon"></i></span>
+                            <h6 className="mb-0 fw-bold blog-meta-bold">Organic Facial Cleanser <i className="fas fa-file-alt blog-meta-icon"></i></h6>
+                            <span className="blog-meta-date">MaxGlow <i className="fas fa-file-alt blog-meta-icon"></i></span>
                           </div>
                           <i className="fas fa-share blog-meta-share"></i>
                         </div>
                       </div>
                       <hr className="blog-hr" />
-                      <h4 className="blog-heading">How Can Dried Apricots Fit into a Healthy Lifestyle?</h4>
-                      <p className="blog-excerpt">Living a healthy lifestyle does not always require big changes. In most cases, it starts with small and consistent habits, especially when it comes to food. Today, people are looking for simple, natural and convenient...</p>
+                      <h4 className="blog-heading">How Can Organic Face Cleansers Improve Your Skin Glow?</h4>
+                      <p className="blog-excerpt">Achieving a radiant, healthy complexion does not require complex procedures. In most cases, it starts with choosing natural, organic face cleansers that nurture and hydrate your skin layers without harsh chemicals...</p>
                       <Link href="/blog-details" className="blog-read-more">Read More...</Link>
                     </div>
                   </div>
@@ -57,7 +58,7 @@ export default function BlogPage() {
                       <div className="d-flex justify-content-between align-items-center mb-0">
                         <div className="d-flex align-items-center">
                           <div className="logo-circle-mini">
-                            <Image src="/logo.png" alt="Sweettree Logo" width={40} height={40} />
+                            <Image src="/logo.png" alt="MaxGlow Logo" width={40} height={40} style={{ width: '100%', height: 'auto' }} />
                           </div>
                           <div className="text-start ms-2">
                             <h6 className="mb-0 fw-bold blog-meta-bold">Admin</h6>
@@ -66,15 +67,15 @@ export default function BlogPage() {
                         </div>
                         <div className="d-flex align-items-center">
                           <div className="text-end me-2">
-                            <h6 className="mb-0 fw-bold blog-meta-bold text-muted fw-normal">Sweettree <i className="fas fa-file-alt blog-meta-icon"></i></h6>
-                            <span className="blog-meta-date">Sweettree Blog <i className="fas fa-file-alt blog-meta-icon"></i></span>
+                            <h6 className="mb-0 fw-bold blog-meta-bold text-muted fw-normal">MaxGlow <i className="fas fa-file-alt blog-meta-icon"></i></h6>
+                            <span className="blog-meta-date">MaxGlow Blog <i className="fas fa-file-alt blog-meta-icon"></i></span>
                           </div>
                           <i className="fas fa-share blog-meta-share"></i>
                         </div>
                       </div>
                       <hr className="blog-hr" />
-                      <h4 className="blog-heading">Why Are Prunes Often Recommended for Digestive Wellness?</h4>
-                      <p className="blog-excerpt">Digestive health is becoming a growing concern worldwide. Studies suggest that many adults experience digestive issues like constipation, bloating or irregular bowel movements at some point in...</p>
+                      <h4 className="blog-heading">Why Is Rosehip Seed Oil Highly Recommended for Anti-Aging?</h4>
+                      <p className="blog-excerpt">Skin regeneration and elasticity are key priorities in modern skincare. Clinical studies suggest that botanical extracts like Rosehip oil help fade dark spots, smooth fine wrinkles, and restore moisture...</p>
                       <Link href="/blog-details" className="blog-read-more">Read More...</Link>
                     </div>
                   </div>
@@ -88,7 +89,7 @@ export default function BlogPage() {
                       <div className="d-flex justify-content-between align-items-center mb-0">
                         <div className="d-flex align-items-center">
                           <div className="logo-circle-mini">
-                            <Image src="/logo.png" alt="Sweettree Logo" width={40} height={40} />
+                            <Image src="/logo.png" alt="MaxGlow Logo" width={40} height={40} style={{ width: '100%', height: 'auto' }} />
                           </div>
                           <div className="text-start ms-2">
                             <h6 className="mb-0 fw-bold blog-meta-bold">Admin</h6>
@@ -97,15 +98,14 @@ export default function BlogPage() {
                         </div>
                         <div className="d-flex align-items-center">
                           <div className="text-end me-2">
-                            <h6 className="mb-0 fw-bold blog-meta-bold text-muted fw-normal">Sweettree <i className="fas fa-file-alt blog-meta-icon"></i></h6>
-                            <span className="blog-meta-date">Sweettree Blog <i className="fas fa-file-alt blog-meta-icon"></i></span>
+                            <h6 className="mb-0 fw-bold blog-meta-bold text-muted fw-normal text-start">Healthy Living <i className="fas fa-file-alt blog-meta-icon"></i></h6>
                           </div>
                           <i className="fas fa-share blog-meta-share"></i>
                         </div>
                       </div>
                       <hr className="blog-hr" />
-                      <h4 className="blog-heading">Which Snacks Provide Energy Without Causing Heaviness or Sluggishness?</h4>
-                      <p className="blog-excerpt">Choosing the right snack can make a big difference in how you feel throughout the day. While many snacks give quick satisfaction, they often leave you feeling...</p>
+                      <h4 className="blog-heading">What Makes MaxGlow Cosmetics the Preferred Choice for Sensitive Skin?</h4>
+                      <p className="blog-excerpt">In the beauty and wellness industry, quality and purity are of paramount importance. Conscious consumers are seeking clean, allergen-free skincare products that align with their healthy lifestyle...</p>
                       <Link href="/blog-details" className="blog-read-more">Read More...</Link>
                     </div>
                   </div>
@@ -119,7 +119,7 @@ export default function BlogPage() {
                       <div className="d-flex justify-content-between align-items-center mb-0">
                         <div className="d-flex align-items-center">
                           <div className="logo-circle-mini">
-                            <Image src="/logo.png" alt="Sweettree Logo" width={40} height={40} />
+                            <Image src="/logo.png" alt="MaxGlow Logo" width={40} height={40} style={{ width: '100%', height: 'auto' }} />
                           </div>
                           <div className="text-start ms-2">
                             <h6 className="mb-0 fw-bold blog-meta-bold">Admin</h6>
@@ -134,8 +134,8 @@ export default function BlogPage() {
                         </div>
                       </div>
                       <hr className="blog-hr" />
-                      <h4 className="blog-heading">What Makes Sweettree Dry Fruits a Preferred Choice for Quality-Conscious Buyers?</h4>
-                      <p className="blog-excerpt">In today's food industry, quality is no longer optional, it is expected. Consumers and businesses are becoming more aware of what they eat and use in their...</p>
+                      <h4 className="blog-heading">What Makes MaxGlow Cosmetics a Preferred Choice for Quality-Conscious Buyers?</h4>
+                      <p className="blog-excerpt">In today's beauty industry, quality is no longer optional, it is expected. Consumers and businesses are becoming more aware of what they apply to their skin...</p>
                       <Link href="/blog-details" className="blog-read-more">Read More...</Link>
                     </div>
                   </div>
@@ -193,14 +193,14 @@ export default function BlogPage() {
                   </div>
                   <div className="blog-widget-body">
                     <div className="blog-tags-container">
-                      <a href="#" className="blog-tag-pill">Ajwa Dates</a>
-                      <a href="#" className="blog-tag-pill">Almond Recipes</a>
-                      <a href="#" className="blog-tag-pill">Cardamom Recipes</a>
-                      <a href="#" className="blog-tag-pill">Cashew Recipes</a>
-                      <a href="#" className="blog-tag-pill">Chia Recipes</a>
-                      <a href="#" className="blog-tag-pill">Chia Seeds</a>
-                      <a href="#" className="blog-tag-pill">Clove Benefits</a>
-                      <a href="#" className="blog-tag-pill">Cloves</a>
+                      <a href="#" className="blog-tag-pill">Face Serums</a>
+                      <a href="#" className="blog-tag-pill">Hair Care</a>
+                      <a href="#" className="blog-tag-pill">Anti-Aging</a>
+                      <a href="#" className="blog-tag-pill">Herbal Cleanse</a>
+                      <a href="#" className="blog-tag-pill">Organic Skincare</a>
+                      <a href="#" className="blog-tag-pill">Face Oils</a>
+                      <a href="#" className="blog-tag-pill">Glowing Skin</a>
+                      <a href="#" className="blog-tag-pill">Essential Oils</a>
                     </div>
                   </div>
                 </div>
@@ -231,13 +231,13 @@ export default function BlogPage() {
         <div className="container py-3">
           <h3 className="mb-4 text-start" style={{ fontSize: '24px', color: '#333' }}>People Are Also Looking For</h3>
           <div className="d-flex flex-wrap gap-2">
-            <a href="#" className="search-tag-pill">Cashew Royale</a>
-            <a href="#" className="search-tag-pill">Cashew Premium</a>
-            <a href="#" className="search-tag-pill">Almond American</a>
-            <a href="#" className="search-tag-pill">Mamra</a>
-            <a href="#" className="search-tag-pill">Kishmish Royale</a>
-            <a href="#" className="search-tag-pill">Kishmish Premium</a>
-            <a href="#" className="search-tag-pill">Walnut Royale</a>
+            <a href="#" className="search-tag-pill">Brightening Cream</a>
+            <a href="#" className="search-tag-pill">Anti-Acne Serum</a>
+            <a href="#" className="search-tag-pill">Rose Water Toner</a>
+            <a href="#" className="search-tag-pill">Herbal Shampoo</a>
+            <a href="#" className="search-tag-pill">Hydrating Lotion</a>
+            <a href="#" className="search-tag-pill">Organic Cleanser</a>
+            <a href="#" className="search-tag-pill">Vitamin C Serum</a>
           </div>
         </div>
       </section>

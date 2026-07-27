@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/sweettree')
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/maxglow')
   .then(() => {
     console.log("Connected to MongoDB!");
     const initSchema = new mongoose.Schema({ msg: String });
@@ -16,7 +16,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/sweettree
     return InitModel.create({ msg: 'Database created' });
   })
   .then(() => {
-    console.log("sweettree database created successfully!");
+    console.log("maxGlow database created successfully!");
     process.exit(0);
   })
   .catch(err => {

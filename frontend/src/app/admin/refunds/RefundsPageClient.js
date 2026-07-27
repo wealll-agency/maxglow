@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchRefundRequests } from '../../../store/adminSlice.js';
-import RefundDetailsModal from '../../../components/RefundDetailsModal.js';
+import { fetchRefundRequests } from '../../../store/adminSlice';
+import RefundDetailsModal from '../../../components/RefundDetailsModal';
 import { Search, Eye, Download, ChevronDown, FolderOpen } from 'lucide-react';
 
 export default function RefundsPageClient({ status }) {

@@ -1,11 +1,13 @@
-'use client';
+"use client";
+
+
 
 import { useState, useEffect } from 'react';
-import api from '../../../utils/axiosConfig.js';
+import api from '../../../utils/axiosConfig';
 import { Tag, Trash2, PlusCircle, AlertCircle } from 'lucide-react';
 import { useNotification } from '../../../context/NotificationContext';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://www.sweettreeon.com/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://www.maxglowon.com/api';
 
 export default function CouponManagerPage() {
   const [coupons, setCoupons] = useState([]);

@@ -1,7 +1,7 @@
 {
-  "name": "sweettree-ecommerce-platform",
+  "name": "maxglow-ecommerce-platform",
   "version": "1.0.0",
-  "description": "Production-grade enterprise ecommerce monorepo for Sweettree",
+  "description": "Production-grade enterprise ecommerce monorepo for MaxGlow",
   "private": true,
   "workspaces": [
     "backend",

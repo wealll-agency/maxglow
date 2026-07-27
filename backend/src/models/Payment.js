@@ -20,7 +20,11 @@ const paymentSchema = new mongoose.Schema({
     amount: { type: Number },
     reason: { type: String },
     processedAt: { type: Date }
-  }
+  },
+  // --- PRODUCTION FIX: Catch-all for legacy unique indexes ---
+  paymentId: { type: String, default: () => new mongoose.Types.ObjectId().toString() },
+  orderId: { type: String, default: () => new mongoose.Types.ObjectId().toString() },
+  transactionId: { type: String, default: () => new mongoose.Types.ObjectId().toString() }
 }, {
   timestamps: true
 });

@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useRouter, usePathname } from 'next/navigation';
-import AdminSidebar from '../../components/AdminSidebar.js';
-import AdminHeader from '../../components/AdminHeader.js';
+import AdminSidebar from '../../components/AdminSidebar';
+import AdminHeader from '../../components/AdminHeader';
 import { ShieldAlert, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import './admin.css';

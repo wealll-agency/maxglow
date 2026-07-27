@@ -1,8 +1,10 @@
-'use client';
+"use client";
+
+
 import { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { Mail, MailOpen, Trash2, RefreshCw } from 'lucide-react';
-import api from '../../../utils/axiosConfig.js';
+import api from '../../../utils/axiosConfig';
 import { useNotification } from '../../../context/NotificationContext';
 
 export default function EnquiriesPage() {

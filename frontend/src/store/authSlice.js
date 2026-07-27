@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import api from '../utils/axiosConfig.js';
+import api from '../utils/axiosConfig';
 
 const getInitialUser = () => {
   return null;
@@ -105,9 +105,9 @@ const authSlice = createSlice({
       state.loading = false; // Hydration complete
       if (typeof window !== 'undefined') {
         if (action.payload) {
-          localStorage.setItem('sweettree_user', JSON.stringify(action.payload));
+          localStorage.setItem('maxglow_user', JSON.stringify(action.payload));
         } else {
-          localStorage.removeItem('sweettree_user');
+          localStorage.removeItem('maxglow_user');
         }
       }
     }
@@ -123,7 +123,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload;
         if (typeof window !== 'undefined') {
-          localStorage.setItem('sweettree_user', JSON.stringify(action.payload));
+          localStorage.setItem('maxglow_user', JSON.stringify(action.payload));
         }
       })
       .addCase(registerUser.rejected, (state, action) => {
@@ -139,7 +139,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload;
         if (typeof window !== 'undefined') {
-          localStorage.setItem('sweettree_user', JSON.stringify(action.payload));
+          localStorage.setItem('maxglow_user', JSON.stringify(action.payload));
         }
       })
       .addCase(loginUser.rejected, (state, action) => {
@@ -150,8 +150,8 @@ const authSlice = createSlice({
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
         if (typeof window !== 'undefined') {
-          localStorage.removeItem('sweettree_user');
-          localStorage.removeItem('sweettree_token');
+          localStorage.removeItem('maxglow_user');
+          localStorage.removeItem('maxglow_token');
           localStorage.removeItem('admin_token');
         }
       })
@@ -164,7 +164,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload;
         if (typeof window !== 'undefined') {
-          localStorage.setItem('sweettree_user', JSON.stringify(action.payload));
+          localStorage.setItem('maxglow_user', JSON.stringify(action.payload));
         }
       })
       .addCase(updateUserProfile.rejected, (state, action) => {

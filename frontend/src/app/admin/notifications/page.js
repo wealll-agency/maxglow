@@ -1,9 +1,13 @@
-'use client';
-import { useEffect, useCallback, useState } from 'react';
+"use client";
 import { useRouter } from 'next/navigation';
+
+
+
+import { useEffect, useCallback, useState } from 'react';
+
 import { ShoppingCart, RotateCcw, MessageSquare, Truck, CheckCircle, Bell, RefreshCw } from 'lucide-react';
 
-import api from '../../../utils/axiosConfig.js';
+import api from '../../../utils/axiosConfig';
 
 const TYPE_CONFIG = {
   new_order:       { icon: <ShoppingCart size={18} />, color: '#3b82f6', bg: '#eff6ff', label: 'New Order' },

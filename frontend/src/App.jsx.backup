@@ -1,0 +1,95 @@
+import React from 'react';
+
+import ConditionalHeader from '@/components/ConditionalHeader';
+import ConditionalFooter from '@/components/ConditionalFooter';
+import ScrollToTop from '@/components/ScrollToTop';
+
+// Auto-generated imports
+import About from './pages/About';
+import AdminAccess from './pages/AdminAccess';
+import AdminCoupons from './pages/AdminCoupons';
+import AdminCustomers from './pages/AdminCustomers';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminEnquiries from './pages/AdminEnquiries';
+import AdminHomepageProducts from './pages/AdminHomepage-products';
+import AdminInventory from './pages/AdminInventory';
+import AdminInventoryNotifications from './pages/AdminInventory-notifications';
+import AdminNotifications from './pages/AdminNotifications';
+import AdminOrders from './pages/AdminOrders';
+import AdminProducts from './pages/AdminProducts';
+import AdminRefundsApproved from './pages/AdminRefundsApproved';
+import AdminRefundsPending from './pages/AdminRefundsPending';
+import AdminRefundsRefunded from './pages/AdminRefundsRefunded';
+import AdminRefundsRejected from './pages/AdminRefundsRejected';
+import AdminReports from './pages/AdminReports';
+import AdminShipments from './pages/AdminShipments';
+import AdminShipmentsWaybill from './pages/AdminShipmentsWaybill';
+import AdminWarehouses from './pages/AdminWarehouses';
+import Blog from './pages/Blog';
+import BuildCombo from './pages/Build-combo';
+import Cart from './pages/Cart';
+import Checkout from './pages/Checkout';
+import Contact from './pages/Contact';
+import Login from './pages/Login';
+import Home from './pages/Home';
+import Products from './pages/Products';
+import ProductsId from './pages/ProductsId';
+import Register from './pages/Register';
+import Shop from './pages/Shop';
+import ShopDetails from './pages/Shop-details';
+import UserOrders from './pages/UserOrders';
+import UserOrdersId from './pages/UserOrdersId';
+import UserProfile from './pages/UserProfile';
+import Wishlist from './pages/Wishlist';
+
+const App = () => {
+  return (
+    <BrowserRouter>
+      <ScrollToTop />
+      <ConditionalHeader />
+      <main className="flex-grow-1">
+        <Routes>
+          <Route path="/about" element={<About />} />
+          <Route path="/admin/access" element={<AdminAccess />} />
+          <Route path="/admin/coupons" element={<AdminCoupons />} />
+          <Route path="/admin/customers" element={<AdminCustomers />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/enquiries" element={<AdminEnquiries />} />
+          <Route path="/admin/homepage-products" element={<AdminHomepageProducts />} />
+          <Route path="/admin/inventory" element={<AdminInventory />} />
+          <Route path="/admin/inventory-notifications" element={<AdminInventoryNotifications />} />
+          <Route path="/admin/notifications" element={<AdminNotifications />} />
+          <Route path="/admin/orders" element={<AdminOrders />} />
+          <Route path="/admin/products" element={<AdminProducts />} />
+          <Route path="/admin/refunds/approved" element={<AdminRefundsApproved />} />
+          <Route path="/admin/refunds/pending" element={<AdminRefundsPending />} />
+          <Route path="/admin/refunds/refunded" element={<AdminRefundsRefunded />} />
+          <Route path="/admin/refunds/rejected" element={<AdminRefundsRejected />} />
+          <Route path="/admin/reports" element={<AdminReports />} />
+          <Route path="/admin/shipments" element={<AdminShipments />} />
+          <Route path="/admin/shipments/:waybill" element={<AdminShipmentsWaybill />} />
+          <Route path="/admin/warehouses" element={<AdminWarehouses />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/build-combo" element={<BuildCombo />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/products/:id" element={<ProductsId />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/shop" element={<Shop />} />
+          <Route path="/shop-details" element={<ShopDetails />} />
+          <Route path="/user/orders" element={<UserOrders />} />
+          <Route path="/user/orders/:id" element={<UserOrdersId />} />
+          <Route path="/user/profile" element={<UserProfile />} />
+          <Route path="/wishlist" element={<Wishlist />} />
+        </Routes>
+      </main>
+      <ConditionalFooter />
+    </BrowserRouter>
+  );
+};
+
+export default App;

@@ -1,4 +1,4 @@
-import RefundsPageClient from '../RefundsPageClient.js';
+import RefundsPageClient from '../RefundsPageClient';
 
 export const metadata = {
   title: 'Rejected Refunds | Admin Panel',

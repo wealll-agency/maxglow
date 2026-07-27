@@ -1,14 +1,13 @@
-'use client';
-
-import React, { useState, useEffect, Suspense } from 'react';
+"use client";
+import React, { useState, useEffect, Suspense, memo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useDispatch, useSelector } from 'react-redux';
-import { addToCart, clearCart } from '../../store/cartSlice';
-import { fetchProducts, fetchProductDetails, fetchProductReviews, submitProductReview } from '../../store/productsSlice';
-import { Star, MessageCircle, Heart, Plus, Minus } from 'lucide-react';
+import { addToCart } from '../../store/cartSlice';
+import { fetchProductDetails, fetchProductReviews, submitProductReview, fetchProducts } from '../../store/productsSlice';
 import { toggleWishlist } from '../../store/wishlistSlice';
+import { Star, Heart, Plus, Minus, MessageCircle, Share2, ShieldCheck, RefreshCw, AlertCircle } from 'lucide-react';
 import api from '../../utils/axiosConfig';
 import { useNotification } from '../../context/NotificationContext';
 
@@ -18,7 +17,7 @@ function ShopDetailsContent() {
   const dispatch = useDispatch();
   const { showAlert } = useNotification();
 
-  const { items: products, selectedProduct, reviews, reviewsLoading } = useSelector((state) => state.products);
+  const { items: products, selectedProduct, reviews, reviewsLoading, loading, detailsLoading } = useSelector((state) => state.products);
   const wishlistItems = useSelector((state) => state.wishlist?.items || []);
   const { user } = useSelector((state) => state.auth);
   
@@ -37,18 +36,17 @@ function ShopDetailsContent() {
   const productIdParam = searchParams.get('id');
   const productNameParam = searchParams.get('name') || '';
 
-  // 1. If we have productIdParam, dispatch fetch details and reviews
+  // 1. Fetch logic
   useEffect(() => {
     if (productIdParam) {
       dispatch(fetchProductDetails(productIdParam));
       dispatch(fetchProductReviews(productIdParam));
     } else {
-      // Fetch public list to match by name
       dispatch(fetchProducts({ limit: 100 }));
     }
   }, [dispatch, productIdParam]);
 
-  // 2. Resolve the real product: either the fetched selectedProduct (if id param) or matched from list (if name param)
+  // 2. Resolve product
   let realProduct = null;
   if (productIdParam) {
     realProduct = selectedProduct;
@@ -60,7 +58,7 @@ function ShopDetailsContent() {
     });
   }
 
-  // 3. If matched by name, dispatch its reviews
+  // 3. Reviews sync
   useEffect(() => {
     if (realProduct && !productIdParam) {
       dispatch(fetchProductReviews(realProduct._id));
@@ -69,6 +67,7 @@ function ShopDetailsContent() {
 
   const defaultPackName = realProduct ? `${realProduct.unitValue || 1} ${realProduct.unit || 'Pack'}` : '';
   const [selectedPack, setSelectedPack] = useState('');
+  
   useEffect(() => {
     if (realProduct) {
       setSelectedPack(defaultPackName);
@@ -93,14 +92,22 @@ function ShopDetailsContent() {
   }
 
   if (!realProduct) {
-    return (
-      <div className="container py-5 text-center d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '60vh' }}>
-        <div className="spinner-border text-success mb-3" role="status">
-          <span className="visually-hidden">Loading product details...</span>
+    if (loading || detailsLoading) {
+      return (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+          <div style={{ width: '40px', height: '40px', border: '4px solid #f3f3f3', borderTop: '4px solid #3BAE56', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
         </div>
-        <p className="text-muted">Loading product details...</p>
-      </div>
-    );
+      );
+    } else {
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', textAlign: 'center', padding: '20px' }}>
+          <AlertCircle size={48} color="#ef4444" style={{ marginBottom: '16px' }} />
+          <h2 style={{ fontFamily: 'var(--font-outfit)', fontSize: '24px', fontWeight: '800', color: '#1a2332', marginBottom: '8px' }}>Product Not Found</h2>
+          <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '24px' }}>We couldn't find the product details you are looking for.</p>
+          <Link href="/shop" className="btn-mg-primary">Back to Shop</Link>
+        </div>
+      );
+    }
   }
 
   const handleAddToCart = () => {
@@ -108,23 +115,16 @@ function ShopDetailsContent() {
       _id: realProduct._id,
       name: realProduct.name,
       price: finalPrice,
-      discount: 0, // already applied
+      discount: 0,
       image: realProduct.images?.[0] || '/top_product1.png',
-      stock: realProduct.stock || 100
+      stock: realProduct.stock
     };
-    
     dispatch(addToCart({
       product: mockProduct,
       quantity,
       size: selectedPack || defaultPackName
     }));
-
-    if (typeof window !== 'undefined' && window.bootstrap) {
-      const offcanvas = document.getElementById('cartOffcanvas');
-      if (offcanvas) {
-        window.bootstrap.Offcanvas.getOrCreateInstance(offcanvas).show();
-      }
-    }
+    showAlert('Product added to cart successfully!', 'success');
   };
 
   const handleBuyNow = () => {
@@ -134,11 +134,8 @@ function ShopDetailsContent() {
       price: finalPrice,
       discount: 0,
       image: realProduct.images?.[0] || '/top_product1.png',
-      stock: realProduct.stock || 100
+      stock: realProduct.stock
     };
-    
-    dispatch(clearCart());
-    
     dispatch(addToCart({
       product: mockProduct,
       quantity,
@@ -200,256 +197,324 @@ function ShopDetailsContent() {
     if (!url) return '/top_product1.png';
     if (url.startsWith('http')) return url;
     if (url.startsWith('/uploads/')) {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'https://www.sweettreeon.com';
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'https://www.maxglowon.com';
       return `${baseUrl}${url}`;
     }
     return url.replace('/assets/images/', '/');
   };
 
   return (
-    <div className="container py-4 mt-2 bg-white animate-fade-in">
-      {/* Breadcrumb */}
-      <nav className="mb-4" style={{ fontSize: '13px', color: '#666' }}>
-        <Link href="/" style={{ textDecoration: 'none', color: '#666' }}>Home</Link> &gt; 
-        <Link href="/shop" style={{ textDecoration: 'none', color: '#666' }}> Shop </Link> &gt; 
-        <span style={{ color: '#333' }}>{realProduct.name}</span>
-      </nav>
+    <div style={{ background: '#F7FBFD', padding: '40px 0' }}>
+      <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
+        
+        {/* Breadcrumb */}
+        <nav style={{ fontSize: '13px', color: '#64748b', marginBottom: '24px' }}>
+          <Link href="/" style={{ textDecoration: 'none', color: '#64748b' }}>Home</Link> &gt; 
+          <Link href="/shop" style={{ textDecoration: 'none', color: '#64748b', marginLeft: '6px' }}>Shop</Link> &gt; 
+          <span style={{ color: '#1a2332', fontWeight: '600', marginLeft: '6px' }}>{realProduct.name}</span>
+        </nav>
 
-      <div className="row g-5 mb-5">
-        {/* Left Side: Images */}
-        <div className="col-lg-5">
-          <div className="mb-3 position-relative text-center border rounded-2 p-4">
-             {realProduct.isFeatured && <span className="badge bg-primary position-absolute top-0 start-0 m-3">PREMIUM</span>}
-            <Image
-              src={getImageUrl(images[activeImageIndex])}
-              alt={realProduct.name}
-              width={500}
-              height={400}
-              className="img-fluid object-fit-contain"
-              style={{ maxHeight: '400px', width: '100%' }}
-            />
-          </div>
+        {/* Product Details Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '40px', marginBottom: '48px', alignItems: 'start' }}>
           
-          <div className="d-flex justify-content-center gap-2 mb-4">
-            {images.map((imgUrl, index) => (
-              <div 
-                key={index} 
-                className={`border rounded p-1 cursor-pointer ${activeImageIndex === index ? 'border-primary border-2' : ''}`} 
-                style={{ width: '60px', height: '60px' }}
-                onClick={() => setActiveImageIndex(index)}
-              >
-                  <Image src={getImageUrl(imgUrl)} width={60} height={60} className="img-fluid h-100 object-fit-contain" alt={`Thumbnail ${index}`} />
+          {/* Left: Images Column */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '500px', margin: '0 auto', width: '100%' }}>
+            <div className="glass" style={{ borderRadius: '24px', aspectRatio: '1 / 1', overflow: 'hidden', background: 'white', position: 'relative', width: '100%' }}>
+              {realProduct.isFeatured && (
+                <span className="mg-badge mg-badge-blue" style={{ position: 'absolute', top: '16px', left: '16px' }}>
+                  PREMIUM
+                </span>
+              )}
+              <Image
+                src={getImageUrl(images[activeImageIndex])}
+                alt={realProduct.name}
+                width={400}
+                height={400}
+                style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                priority
+              />
+            </div>
+
+            {/* Thumbnails */}
+            {images.length > 1 && (
+              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
+                {images.map((imgUrl, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setActiveImageIndex(index)}
+                    style={{
+                      width: '64px', height: '64px', borderRadius: '12px', background: 'white',
+                      border: activeImageIndex === index ? '2px solid #3BAE56' : '1px solid #e2e8f0',
+                      padding: '0', cursor: 'pointer', flexShrink: 0,
+                    }}
+                  >
+                    <Image src={getImageUrl(imgUrl)} alt="" width={56} height={56} style={{ objectFit: 'cover', width: '100%', height: '100%', borderRadius: '12px' }} />
+                  </button>
+                ))}
               </div>
+            )}
+
+            {/* Trust icons row */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', borderTop: '1px solid #e2e8f0', paddingTop: '24px', textAlign: 'center' }}>
+              {[
+                { img: '/icon_heart.png', label: '100% Healthy' },
+                { img: '/icon_gluten.png', label: 'Gluten Free' },
+                { img: '/icon_nutrition.png', label: 'Rich Nutrients' },
+                { img: '/icon_cholesterol.png', label: 'No Toxins' },
+              ].map((item, i) => (
+                <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <div style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '6px' }}>
+                    <Image src={item.img} alt={item.label} width={30} height={30} />
+                  </div>
+                  <span style={{ fontSize: '10px', fontWeight: '600', color: '#64748b' }}>{item.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right: Info Column */}
+          <div className="glass" style={{ borderRadius: '24px', padding: '32px', background: 'white' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+              <span style={{ fontSize: '11px', fontWeight: '700', color: '#3BAE56', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                {realProduct.brand || 'MaxGlow'}
+              </span>
+              <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>
+                <Share2 size={18} />
+              </button>
+            </div>
+
+            <h1 style={{ fontFamily: 'var(--font-outfit)', fontSize: '24px', fontWeight: '800', color: '#1a2332', lineHeight: '1.3', marginBottom: '12px' }}>
+              {realProduct.name}
+            </h1>
+
+            {/* Rating summary */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid #f1f5f9' }}>
+              <div style={{ display: 'flex', gap: '2px' }}>
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} size={14} fill={i < Math.round(realProduct.rating || 5) ? "#f59e0b" : "none"} color="#f59e0b" />
+                ))}
+              </div>
+              <span style={{ fontSize: '13px', fontWeight: '700', color: '#374151' }}>{realProduct.rating || '5.0'}</span>
+              <span style={{ color: '#94a3b8' }}>|</span>
+              <span style={{ fontSize: '13px', color: '#64748b' }}>{reviews.length} reviews</span>
+            </div>
+
+            {/* Price Box */}
+            <div style={{ marginBottom: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
+                <span style={{ fontFamily: 'var(--font-outfit)', fontSize: '32px', fontWeight: '800', color: '#1a2332' }}>
+                  ₹{finalPrice}
+                </span>
+                {realProduct.discount > 0 && (
+                  <span style={{ background: '#DDF7E3', color: '#3BAE56', fontSize: '12px', fontWeight: '700', padding: '4px 10px', borderRadius: '9999px' }}>
+                    {realProduct.discount}% OFF
+                  </span>
+                )}
+              </div>
+              {realProduct.discount > 0 && (
+                <div style={{ fontSize: '13px', color: '#94a3b8' }}>
+                  MRP: <del>₹{realProduct.price}</del> <span style={{ fontSize: '11px' }}>(inclusive of all taxes)</span>
+                </div>
+              )}
+            </div>
+
+            {/* Select Pack Size */}
+            <div style={{ marginBottom: '24px' }}>
+              <label className="mg-form-label" style={{ marginBottom: '10px' }}>Select Pack Size</label>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => setSelectedPack(defaultPackName)}
+                  style={{
+                    minWidth: '110px', padding: '10px 14px', borderRadius: '12px', background: 'white',
+                    border: selectedPack === defaultPackName ? '2px solid #3BAE56' : '1.5px solid #e2e8f0',
+                    cursor: 'pointer', textAlign: 'center', transition: 'all 0.15s ease',
+                  }}
+                >
+                  <div style={{ fontSize: '12px', fontWeight: '700', color: '#1a2332' }}>{defaultPackName}</div>
+                  <div style={{ fontSize: '11px', color: '#3BAE56', fontWeight: '600', marginTop: '2px' }}>₹{realProduct.discountedPrice || realProduct.price}</div>
+                </button>
+
+                {realProduct.packSizes && realProduct.packSizes.map((pack, idx) => {
+                  const pName = `${pack.weight} ${pack.unit}`;
+                  let pPrice = pack.price;
+                  if (realProduct.discount > 0) {
+                    if (realProduct.discountType === 'Percent') {
+                      pPrice = Math.round(pack.price * (1 - realProduct.discount / 100));
+                    } else {
+                      pPrice = Math.max(0, pack.price - realProduct.discount);
+                    }
+                  }
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => setSelectedPack(pName)}
+                      style={{
+                        minWidth: '110px', padding: '10px 14px', borderRadius: '12px', background: 'white',
+                        border: selectedPack === pName ? '2px solid #3BAE56' : '1.5px solid #e2e8f0',
+                        cursor: 'pointer', textAlign: 'center', transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <div style={{ fontSize: '12px', fontWeight: '700', color: '#1a2332' }}>{pName}</div>
+                      <div style={{ fontSize: '11px', color: '#3BAE56', fontWeight: '600', marginTop: '2px' }}>₹{pPrice}</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Quantity */}
+            {realProduct.stock > 0 && (
+              <div style={{ marginBottom: '28px' }}>
+                <label className="mg-form-label" style={{ marginBottom: '10px' }}>Quantity</label>
+                <div style={{ display: 'flex', alignItems: 'center', border: '1.5px solid #e2e8f0', borderRadius: '10px', width: '110px', height: '40px', overflow: 'hidden' }}>
+                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))} style={{ width: '36px', height: '100%', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#374151' }}>
+                    <Minus size={14} />
+                  </button>
+                  <span style={{ flex: 1, textAlign: 'center', fontSize: '14px', fontWeight: '700', color: '#1a2332' }}>{quantity}</span>
+                  <button onClick={() => setQuantity(Math.min(realProduct.stock || 100, quantity + 1))} disabled={quantity >= (realProduct.stock || 100)} style={{ width: '36px', height: '100%', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#374151' }}>
+                    <Plus size={14} />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '28px' }}>
+              {realProduct.stock <= 0 ? (
+                <button
+                  onClick={handleNotifyMe}
+                  disabled={notifyLoading}
+                  className="btn-mg-primary"
+                  style={{ flex: 1, justifyContent: 'center', padding: '14px' }}
+                >
+                  {notifyLoading ? 'Subscribing...' : 'Notify Me When Available'}
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={handleAddToCart}
+                    className="btn-mg-outline"
+                    style={{ flex: 1, justifyContent: 'center', padding: '14px' }}
+                  >
+                    Add To Cart
+                  </button>
+                  <button
+                    onClick={handleBuyNow}
+                    className="btn-mg-green"
+                    style={{ flex: 1, justifyContent: 'center', padding: '14px' }}
+                  >
+                    Buy It Now
+                  </button>
+                </>
+              )}
+              <button
+                onClick={() => dispatch(toggleWishlist(realProduct))}
+                style={{
+                  width: '48px', borderRadius: '12px', border: '1.5px solid #e2e8f0', background: 'white',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <Heart size={20} fill={isInWishlist ? '#ef4444' : 'none'} color={isInWishlist ? '#ef4444' : '#64748b'} />
+              </button>
+            </div>
+
+            {/* Pincode & Info */}
+            <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '20px' }}>
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                <input
+                  type="text"
+                  placeholder="Enter Pincode"
+                  className="mg-input"
+                  value={pincode}
+                  onChange={(e) => setPincode(e.target.value)}
+                  style={{ padding: '8px 14px', borderRadius: '8px', maxWidth: '180px' }}
+                />
+                <button className="btn-mg-outline" style={{ padding: '8px 16px', fontSize: '13px' }}>Check Delivery</button>
+              </div>
+              <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: '#64748b' }}>
+                <span>🚚 Free Shipping above ₹999</span>
+                <span>💵 Cash on Delivery Available</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* Description & Review Tabs */}
+        <div className="glass" style={{ borderRadius: '24px', padding: '32px', background: 'white', marginTop: '40px' }}>
+          <div style={{ display: 'flex', gap: '20px', borderBottom: '1px solid #e2e8f0', marginBottom: '24px', overflowX: 'auto' }}>
+            {['description', 'ingredients', 'benefits', 'additional info', 'reviews'].map((tab) => (
+              <button
+                key={tab}
+                className={`mg-tab ${activeTab === tab ? 'active' : ''}`}
+                onClick={() => setActiveTab(tab)}
+              >
+                {tab === 'reviews' ? `Reviews (${reviews.length})` : tab}
+              </button>
             ))}
           </div>
 
-          <div className="d-flex justify-content-between text-center px-3 border-top pt-4">
-             <div>
-                <Image src="/icon_heart.png" alt="Healthy" width={30} height={30} className="mb-2" />
-                <p style={{ fontSize: '11px', color: '#666' }}>100% Healthy</p>
-             </div>
-             <div>
-                <Image src="/icon_gluten.png" alt="Gluten Free" width={30} height={30} className="mb-2" />
-                <p style={{ fontSize: '11px', color: '#666' }}>Gluten Free</p>
-             </div>
-             <div>
-                <Image src="/icon_nutrition.png" alt="Nutrition" width={30} height={30} className="mb-2" />
-                <p style={{ fontSize: '11px', color: '#666' }}>Powerful Nutrition</p>
-             </div>
-             <div>
-                <Image src="/icon_cholesterol.png" alt="Cholesterol" width={30} height={30} className="mb-2" />
-                <p style={{ fontSize: '11px', color: '#666' }}>Cholesterol Free</p>
-             </div>
-          </div>
-        </div>
-
-        {/* Right Side: Details */}
-        <div className="col-lg-7 ps-lg-5">
-          <div className="d-flex justify-content-between align-items-start mb-2">
-            <h1 className="fw-bold mb-2" style={{ fontSize: '24px', color: '#333', maxWidth: '80%' }}>{realProduct.name}</h1>
-            <i className="fas fa-share-alt" style={{ fontSize: '20px', cursor: 'pointer', color: '#666' }}></i>
-          </div>
-          
-          <div className="d-flex align-items-center gap-2 mb-3 pb-3 border-bottom">
-            <div className="d-flex text-warning">
-              {[...Array(5).keys()].map(x => (
-                <Star key={x} fill={x < Math.round(realProduct.rating || 5) ? "#F59E0B" : "none"} color="#F59E0B" size={14} />
-              ))}
-            </div>
-            <span className="badge bg-success text-white">{realProduct.rating || '5.0'}</span>
-            <span className="text-muted" style={{ fontSize: '13px' }}>{reviews.length} reviews</span>
-          </div>
-
-          <div className="d-flex align-items-center gap-3 mb-1">
-            <span className="fw-bold" style={{ fontSize: '32px', color: '#005B6E' }}>₹{finalPrice}</span>
-            {realProduct.discount > 0 && (
-              <>
-                <span className="badge bg-danger">{realProduct.discount}% OFF</span>
-              </>
+          {/* Tab Contents */}
+          <div style={{ minHeight: '120px' }}>
+            {activeTab === 'description' && (
+              <p style={{ fontSize: '14px', color: '#4a5568', lineHeight: '1.8' }}>{realProduct.description}</p>
             )}
-          </div>
-          <p className="text-muted mb-4" style={{ fontSize: '14px' }}>MRP: <del>₹{realProduct.price}</del> <span style={{ fontSize: '12px' }}>(MRP inclusive of all taxes)</span></p>
-
-          <div className="row mb-4">
-             <div className="col-md-3">
-                 <p className="fw-bold mb-2" style={{ fontSize: '14px' }}>Quantity</p>
-                 <div className="d-flex align-items-center border rounded justify-content-between p-1" style={{ width: '100px' }}>
-                    <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="btn btn-sm border-0"><Minus size={12} /></button>
-                    <span className="fw-bold">{quantity}</span>
-                    <button onClick={() => setQuantity(Math.min(realProduct.stock || 100, quantity + 1))} className="btn btn-sm border-0" disabled={quantity >= (realProduct.stock || 100)}><Plus size={12} /></button>
-                 </div>
-             </div>
-              <div className="col-md-9">
-                 <p className="fw-bold mb-2" style={{ fontSize: '14px' }}>Select Pack Size</p>
-                 <div className="d-flex gap-3 flex-wrap">
-                      <div onClick={() => setSelectedPack(defaultPackName)} className={`border rounded p-2 text-center cursor-pointer ${selectedPack === defaultPackName ? 'border-primary border-2' : ''}`} style={{ minWidth: '120px' }}>
-                         <div style={{ fontSize: '13px', fontWeight: 'bold' }}>{defaultPackName}</div>
-                         <div style={{ fontSize: '12px', color: '#005B6E' }}>₹{realProduct.discountedPrice || realProduct.price}</div>
-                      </div>
-                      
-                      {realProduct.packSizes && realProduct.packSizes.map((pack, i) => {
-                         const pName = `${pack.weight} ${pack.unit}`;
-                         let pPrice = pack.price;
-                         if (realProduct.discount > 0) {
-                           if (realProduct.discountType === 'Percent') {
-                             pPrice = Math.round(pack.price * (1 - realProduct.discount / 100));
-                           } else {
-                             pPrice = Math.max(0, pack.price - realProduct.discount);
-                           }
-                         }
-                         return (
-                           <div key={i} onClick={() => setSelectedPack(pName)} className={`border rounded p-2 text-center cursor-pointer ${selectedPack === pName ? 'border-primary border-2' : ''}`} style={{ minWidth: '120px' }}>
-                             <div style={{ fontSize: '13px', fontWeight: 'bold' }}>{pName}</div>
-                             <div style={{ fontSize: '12px', color: '#005B6E' }}>₹{pPrice}</div>
-                           </div>
-                         );
-                      })}
-                 </div>
+            {activeTab === 'ingredients' && (
+              <p style={{ fontSize: '14px', color: '#4a5568', lineHeight: '1.8' }}>
+                {realProduct.ingredients?.length > 0 ? realProduct.ingredients.join(', ') : 'No ingredients specified.'}
+              </p>
+            )}
+            {activeTab === 'benefits' && (
+              <p style={{ fontSize: '14px', color: '#4a5568', lineHeight: '1.8' }}>
+                {realProduct.benefits?.length > 0 ? realProduct.benefits.join(', ') : 'No benefits specified.'}
+              </p>
+            )}
+            {activeTab === 'additional info' && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', fontSize: '14px', color: '#4a5568' }}>
+                <div><strong>SKU:</strong> {realProduct.sku || 'N/A'}</div>
+                <div><strong>Category:</strong> {realProduct.category || 'N/A'}</div>
+                {realProduct.subCategory && <div><strong>Sub Category:</strong> {realProduct.subCategory}</div>}
+                {realProduct.brand && <div><strong>Brand:</strong> {realProduct.brand}</div>}
+                <div><strong>Product Type:</strong> {realProduct.productType || 'Physical'}</div>
+                {realProduct.expiryDate && <div><strong>Expiry Date:</strong> {new Date(realProduct.expiryDate).toLocaleDateString()}</div>}
               </div>
-          </div>
-
-          <div className="d-flex gap-3 mb-4">
-             {realProduct.stock <= 0 ? (
-               <button onClick={handleNotifyMe} className="btn w-100 py-3 fw-bold" style={{ backgroundColor: '#6c757d', color: 'white' }} disabled={notifyLoading}>
-                 {notifyLoading ? 'Subscribing...' : 'Notify Me When Available'}
-               </button>
-             ) : (
-               <>
-                 <button onClick={handleAddToCart} className="btn w-50 py-3 fw-bold" style={{ backgroundColor: '#005B6E', color: 'white' }}>
-                   Add To Cart
-                 </button>
-                 <button onClick={handleBuyNow} className="btn btn-outline-dark w-50 py-3 fw-bold">Buy It Now</button>
-               </>
-             )}
-             <button onClick={() => dispatch(toggleWishlist(realProduct))} className="btn btn-outline-dark px-3"><Heart size={20} fill={isInWishlist ? 'var(--accent-color)' : 'none'} color={isInWishlist ? 'var(--accent-color)' : 'currentColor'} /></button>
-          </div>
-
-          <div className="mb-4 pt-2">
-             <div className="d-flex">
-                <input type="text" className="form-control rounded-start rounded-0 py-2 border-dark" value={pincode} onChange={(e) => setPincode(e.target.value)} style={{ maxWidth: '250px' }} />
-                <button className="btn btn-dark rounded-end rounded-0 px-4">Check Now</button>
-             </div>
-             <div className="d-flex align-items-center gap-3 mt-3">
-                <div style={{ fontSize: '13px' }}><i className="fas fa-truck text-muted me-1"></i> Estimate Delivery Date</div>
-                <div style={{ fontSize: '13px' }}><i className="fas fa-wallet text-muted me-1"></i> COD AVAILABLE</div>
-             </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="border-top pt-5 mb-5 text-center px-4" style={{ maxWidth: '1000px', margin: '0 auto' }}>
-        <div className="d-flex justify-content-center gap-5 border-bottom mb-4">
-           {['description', 'ingredients', 'benefits', 'additional info', 'reviews'].map((tab) => (
-             <button 
-                key={tab} 
-                className={`btn border-0 text-capitalize fw-bold pb-3 rounded-0 ${activeTab === tab ? 'border-bottom border-dark border-2' : 'text-muted'}`}
-                onClick={() => setActiveTab(tab)}
-                style={{ fontSize: '14px' }}
-             >
-                {tab === 'reviews' ? `Reviews (${reviews.length})` : tab}
-             </button>
-           ))}
-        </div>
-        
-        {activeTab === 'description' && (
-           <p className="text-muted" style={{ fontSize: '14px', lineHeight: '1.8' }}>
-             {realProduct.description}
-           </p>
-        )}
-        {activeTab === 'ingredients' && (
-           <p className="text-muted" style={{ fontSize: '14px', lineHeight: '1.8' }}>
-             {realProduct.ingredients?.length > 0 ? realProduct.ingredients.join(', ') : 'No ingredients specified.'}
-           </p>
-        )}
-        {activeTab === 'benefits' && (
-           <p className="text-muted" style={{ fontSize: '14px', lineHeight: '1.8' }}>
-             {realProduct.benefits?.length > 0 ? realProduct.benefits.join(', ') : 'No benefits specified.'}
-           </p>
-        )}
-        {activeTab === 'additional info' && (
-           <div className="text-muted text-start px-3" style={{ fontSize: '14px', lineHeight: '1.8' }}>
-             <ul className="list-unstyled">
-                <li><strong>SKU:</strong> {realProduct.sku || 'N/A'}</li>
-                <li><strong>Category:</strong> {realProduct.category || 'N/A'}</li>
-                {realProduct.subCategory && <li><strong>Sub Category:</strong> {realProduct.subCategory}</li>}
-                {realProduct.subSubCategory && <li><strong>Sub Sub Category:</strong> {realProduct.subSubCategory}</li>}
-                {realProduct.brand && <li><strong>Brand:</strong> {realProduct.brand}</li>}
-                <li><strong>Product Type:</strong> {realProduct.productType || 'Physical'}</li>
-                {realProduct.batchNumber && <li><strong>Batch Number:</strong> {realProduct.batchNumber}</li>}
-                {realProduct.expiryDate && <li><strong>Expiry Date:</strong> {new Date(realProduct.expiryDate).toLocaleDateString()}</li>}
-             </ul>
-           </div>
-        )}
-        {activeTab === 'reviews' && (
-          <div className="text-start animate-fade-in">
-            <div className="row g-4">
-              
-              {/* Reviews List */}
-              <div className="col-lg-7">
-                <h5 className="fw-bold mb-4">Customer Feedback</h5>
-                
-                {reviewsLoading ? (
-                  <p className="text-muted">Loading reviews...</p>
-                ) : reviews.length === 0 ? (
-                  <p className="text-muted">No reviews yet for this product. Be the first to write a review!</p>
-                ) : (
-                  <div className="d-flex flex-column gap-3">
-                    {reviews.map((rev) => (
-                      <div key={rev._id} className="border-bottom pb-3">
-                        <div className="d-flex align-items-center justify-content-between mb-2">
-                          <h6 className="fw-bold m-0">{rev.user?.name || 'Anonymous User'}</h6>
-                          <small className="text-muted">{new Date(rev.createdAt).toLocaleDateString()}</small>
-                        </div>
-                        
-                        <div className="d-flex align-items-center gap-2 mb-2">
-                          <div className="d-flex text-warning">
-                            {[...Array(rev.rating).keys()].map(x => <Star key={x} fill="#F59E0B" color="#F59E0B" size={14} />)}
+            )}
+            {activeTab === 'reviews' && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '40px' }}>
+                {/* Review List */}
+                <div>
+                  <h3 style={{ fontFamily: 'var(--font-outfit)', fontSize: '16px', fontWeight: '700', color: '#1a2332', marginBottom: '16px' }}>Customer Feedback</h3>
+                  {reviewsLoading ? (
+                    <div style={{ color: '#94a3b8', fontSize: '13px' }}>Loading reviews...</div>
+                  ) : reviews.length === 0 ? (
+                    <div style={{ color: '#64748b', fontSize: '13px' }}>No reviews yet for this product. Be the first to write a review!</div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {reviews.map((rev) => (
+                        <div key={rev._id} style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '16px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                            <div style={{ fontWeight: '700', fontSize: '13px', color: '#1a2332' }}>{rev.user?.name || 'Anonymous User'}</div>
+                            <span style={{ fontSize: '11px', color: '#94a3b8' }}>{new Date(rev.createdAt).toLocaleDateString()}</span>
                           </div>
-                          {rev.isVerifiedPurchase && (
-                            <span className="badge bg-success-subtle text-success fs-8">Verified Purchase</span>
-                          )}
+                          <div style={{ display: 'flex', gap: '2px', marginBottom: '6px' }}>
+                            {[...Array(rev.rating)].map((_, i) => <Star key={i} size={12} fill="#f59e0b" color="#f59e0b" />)}
+                          </div>
+                          <p style={{ fontSize: '13px', color: '#4a5568', margin: 0 }}>{rev.comment}</p>
                         </div>
-                        <p className="text-muted m-0 fs-7">{rev.comment}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
-              {/* Write a Review Form */}
-              <div className="col-lg-5">
-                <div className="bg-light p-4 rounded-3 border">
-                  <h5 className="fw-bold mb-3">Write a Review</h5>
-                  
+                {/* Submit Review */}
+                <div style={{ background: '#F7FBFD', border: '1px solid rgba(221,244,255,0.8)', borderRadius: '16px', padding: '24px' }}>
+                  <h3 style={{ fontFamily: 'var(--font-outfit)', fontSize: '16px', fontWeight: '700', color: '#1a2332', marginBottom: '16px' }}>Write a Review</h3>
                   {user ? (
-                    <form onSubmit={handleReviewSubmit}>
-                      <div className="mb-3">
-                        <label className="fw-medium mb-1">Rating</label>
-                        <select 
-                          className="form-select"
-                          value={rating}
-                          onChange={(e) => setRating(Number(e.target.value))}
-                        >
+                    <form onSubmit={handleReviewSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <div>
+                        <label className="mg-form-label">Rating</label>
+                        <select className="mg-select" value={rating} onChange={(e) => setRating(Number(e.target.value))}>
                           <option value="5">5 Stars (Excellent)</option>
                           <option value="4">4 Stars (Good)</option>
                           <option value="3">3 Stars (Average)</option>
@@ -457,37 +522,29 @@ function ShopDetailsContent() {
                           <option value="1">1 Star (Very Poor)</option>
                         </select>
                       </div>
-
-                      <div className="mb-3">
-                        <label className="fw-medium mb-1">Your Comment</label>
-                        <textarea
-                          rows="4"
-                          className="form-control"
-                          value={comment}
-                          onChange={(e) => setComment(e.target.value)}
-                        ></textarea>
+                      <div>
+                        <label className="mg-form-label">Comment</label>
+                        <textarea rows="4" className="mg-input" value={comment} onChange={(e) => setComment(e.target.value)} style={{ resize: 'vertical' }} />
                       </div>
-
-                      {reviewError && <div className="alert alert-danger p-2 fs-7 mb-3">{reviewError}</div>}
-                      {reviewSuccess && <div className="alert alert-success p-2 fs-7 mb-3">{reviewSuccess}</div>}
-
-                      <button type="submit" className="btn btn-brand w-100 py-2" style={{ backgroundColor: '#005B6E', border: '1px solid #005B6E', color: 'white' }}>
+                      {reviewError && <div style={{ fontSize: '12px', color: '#ef4444' }}>{reviewError}</div>}
+                      {reviewSuccess && <div style={{ fontSize: '12px', color: '#3BAE56' }}>{reviewSuccess}</div>}
+                      <button type="submit" className="btn-mg-green" style={{ width: '100%', justifyContent: 'center', fontSize: '14px', padding: '10px' }}>
                         Submit Review
                       </button>
                     </form>
                   ) : (
-                    <div className="text-center py-3">
-                      <MessageCircle className="text-muted mb-2" size={32} />
-                      <p className="text-muted fs-7 mb-3">You must be logged in to review products.</p>
-                      <Link href="/login" className="btn btn-brand btn-sm">Log In</Link>
+                    <div style={{ textAlign: 'center', padding: '20px' }}>
+                      <MessageCircle size={28} color="#94a3b8" style={{ marginBottom: '8px' }} />
+                      <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '16px' }}>Please log in to write a product review.</p>
+                      <Link href="/login" className="btn-mg-primary" style={{ padding: '10px 24px', fontSize: '13px' }}>Log In</Link>
                     </div>
                   )}
                 </div>
               </div>
-
-            </div>
+            )}
           </div>
-        )}
+        </div>
+
       </div>
     </div>
   );
@@ -495,7 +552,11 @@ function ShopDetailsContent() {
 
 export default function ShopDetailsPage() {
   return (
-    <Suspense fallback={<div className="container py-5 text-center">Loading product details...</div>}>
+    <Suspense fallback={
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+        <div style={{ width: '40px', height: '40px', border: '4px solid #f3f3f3', borderTop: '4px solid #3BAE56', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+      </div>
+    }>
       <ShopDetailsContent />
     </Suspense>
   );

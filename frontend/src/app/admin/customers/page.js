@@ -1,8 +1,10 @@
-'use client';
+"use client";
+
+
 
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchAdminOrders } from '../../../store/adminSlice.js';
+import { fetchAdminOrders } from '../../../store/adminSlice';
 import { Users, Mail, MapPin, Eye } from 'lucide-react';
 
 export default function AdminCustomersPage() {

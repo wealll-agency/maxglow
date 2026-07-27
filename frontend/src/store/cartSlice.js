@@ -75,7 +75,7 @@ const cartSlice = createSlice({
       }
 
       if (typeof window !== 'undefined') {
-        localStorage.setItem('sweettree_cart', JSON.stringify(state.items));
+        localStorage.setItem('maxglow_cart', JSON.stringify(state.items));
       }
 
       const totals = calculateTotals(state.items, state.discountPercentage, state.applicableProducts, state.isCombo);
@@ -86,7 +86,7 @@ const cartSlice = createSlice({
       state.items = state.items.filter(item => !(item.product === product && item.size === size));
 
       if (typeof window !== 'undefined') {
-        localStorage.setItem('sweettree_cart', JSON.stringify(state.items));
+        localStorage.setItem('maxglow_cart', JSON.stringify(state.items));
       }
 
       const totals = calculateTotals(state.items, state.discountPercentage, state.applicableProducts, state.isCombo);
@@ -100,7 +100,7 @@ const cartSlice = createSlice({
       }
 
       if (typeof window !== 'undefined') {
-        localStorage.setItem('sweettree_cart', JSON.stringify(state.items));
+        localStorage.setItem('maxglow_cart', JSON.stringify(state.items));
       }
 
       const totals = calculateTotals(state.items, state.discountPercentage, state.applicableProducts, state.isCombo);
@@ -123,7 +123,7 @@ const cartSlice = createSlice({
       state.applicableProducts = [];
       state.isCombo = false;
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('sweettree_cart');
+        localStorage.removeItem('maxglow_cart');
       }
       const totals = calculateTotals([], 0, [], false);
       Object.assign(state, totals);

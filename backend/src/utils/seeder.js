@@ -15,8 +15,8 @@ dotenv.config({ path: '../.env' }); // Load from monorepo root or sibling
 // Herbal products data
 const productsData = [
   {
-    name: "Sweettree Anmol Premium Medjool Dates 500gm (Khajur/Khajoor)",
-    brand: "Sweettree ANMOL",
+    name: "MaxGlow Anmol Premium Medjool Dates 500gm (Khajur/Khajoor)",
+    brand: "MaxGlow ANMOL",
     category: "Top Selling Products",
     price: 1578,
     discount: 50,
@@ -33,8 +33,8 @@ const productsData = [
     stock: 150
   },
   {
-    name: "Sweettree Anmol Premium Walnut Kernel (Jumbo Size - Rare Crop)",
-    brand: "Sweettree ANMOL",
+    name: "MaxGlow Anmol Premium Walnut Kernel (Jumbo Size - Rare Crop)",
+    brand: "MaxGlow ANMOL",
     category: "Top Selling Products",
     price: 1499,
     discount: 35,
@@ -51,8 +51,8 @@ const productsData = [
     stock: 200
   },
   {
-    name: "Sweettree For Good Nutty Date Bites 180g",
-    brand: "Sweettree",
+    name: "MaxGlow For Good Nutty Date Bites 180g",
+    brand: "MaxGlow",
     category: "Healthy Snacking",
     price: 699,
     discount: 36,
@@ -69,8 +69,8 @@ const productsData = [
     stock: 120
   },
   {
-    name: "Sweettree Snackrite Roasted Makhana Pudina Chatka 70g",
-    brand: "Sweettree SNACKRITE",
+    name: "MaxGlow Snackrite Roasted Makhana Pudina Chatka 70g",
+    brand: "MaxGlow SNACKRITE",
     category: "Healthy Snacking",
     price: 556,
     discount: 54,
@@ -87,8 +87,8 @@ const productsData = [
     stock: 80
   },
   {
-    name: "Sweettree Whole Spices 400g Combo Pack",
-    brand: "Sweettree",
+    name: "MaxGlow Whole Spices 400g Combo Pack",
+    brand: "MaxGlow",
     category: "Whole Spices",
     price: 240,
     discount: 0,
@@ -109,7 +109,7 @@ const productsData = [
 const seedData = async () => {
   try {
     // Determine MONGODB_URI local fallback if not defined in process.env
-    const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/sweettree';
+    const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/maxglow';
     console.log(`Seeding database at: ${uri}`);
     
     await mongoose.connect(uri);
@@ -129,29 +129,29 @@ const seedData = async () => {
     // 1. Seed Users
     const users = await User.create([
       {
-        name: 'Sweettree Admin',
-        email: 'sweettree2026@gmail.com',
-        password: 'SweetTree@2026', // gets hashed automatically in pre-save
+        name: 'MaxGlow Admin',
+        email: 'maxglow2026@gmail.com',
+        password: 'MaxGlow@2026', // gets hashed automatically in pre-save
         phone: '9999999999',
         role: 'Super Admin'
       },
       {
         name: 'Product Manager',
-        email: 'manager@sweettree.com',
+        email: 'manager@maxglow.com',
         password: 'manager123',
         phone: '8888888888',
         role: 'Manager'
       },
       {
         name: 'Staff Member',
-        email: 'staff@sweettree.com',
+        email: 'staff@maxglow.com',
         password: 'staff123',
         phone: '7777777777',
         role: 'Staff'
       },
       {
         name: 'Rahul Sharma',
-        email: 'customer@sweettree.com',
+        email: 'customer@maxglow.com',
         password: 'customer123',
         phone: '9876543210',
         role: 'Customer',

@@ -1,12 +1,14 @@
-'use client';
+"use client";
+
+import Image from 'next/image';
+
 
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchAdminProducts } from '../../../store/adminSlice.js';
+import { fetchAdminProducts } from '../../../store/adminSlice';
 import { Save, AlertCircle } from 'lucide-react';
 import { useNotification } from '../../../context/NotificationContext';
-import Image from 'next/image';
-import api from '../../../utils/axiosConfig.js';
+import api from '../../../utils/axiosConfig';
 
 export default function HomepageProductsPage() {
   const dispatch = useDispatch();

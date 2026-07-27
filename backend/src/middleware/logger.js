@@ -3,7 +3,7 @@ import Log from '../models/Log.js';
 export const logActivity = async (userId, action, details, req) => {
   try {
     let userName = 'System';
-    let userEmail = 'system@sweettree.com';
+    let userEmail = 'system@maxglow.com';
     let role = 'System';
 
     if (userId) {

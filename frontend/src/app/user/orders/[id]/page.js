@@ -1,13 +1,18 @@
-'use client';
+"use client";
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+
+
+import Image from 'next/image';
+
 
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchOrderDetails, trackDelhiveryShipment, createRefundRequest } from '../../../../store/ordersSlice.js';
-import { clearCart } from '../../../../store/cartSlice.js';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
+import { fetchOrderDetails, trackDelhiveryShipment, createRefundRequest } from '../../../../store/ordersSlice';
+import { clearCart } from '../../../../store/cartSlice';
+
+
 import { ShieldCheck, MapPin, Truck, Check, Calendar, ArrowLeft, ShoppingBag } from 'lucide-react';
-import Image from 'next/image';
 import { useNotification } from '../../../../context/NotificationContext';
 
 export default function OrderTrackingPage() {
@@ -42,7 +47,7 @@ export default function OrderTrackingPage() {
 
     const fetchGlobalSettings = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://www.sweettreeon.com/api';
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://www.maxglowon.com/api';
         const res = await fetch(`${apiUrl}/auth/settings?t=${Date.now()}`);
         const data = await res.json();
         if (data.success) {
@@ -246,7 +251,7 @@ export default function OrderTrackingPage() {
                       )}
                     </div>
                     <div className="flex-grow-1">
-                      <span className="brand-text d-block mb-1 text-uppercase">SWEETTREE</span>
+                      <span className="brand-text d-block mb-1 text-uppercase">MAXGLOW</span>
                       <h3 className="product-name m-0" style={{ fontSize: '14px', lineHeight: '1.4' }}>{item.name}</h3>
                       <div className="product-pricing mt-1">
                         <span className="current-price fs-6">₹{item.price}</span> <span className="text-muted fs-7">x {item.quantity}</span>

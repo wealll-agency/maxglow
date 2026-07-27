@@ -1,8 +1,10 @@
-'use client';
+"use client";
+
+
 
 import { useState, useEffect } from 'react';
 import { Shield, Save, Check, RefreshCw, AlertCircle, ShoppingBag, RotateCcw } from 'lucide-react';
-import api from '../../../utils/axiosConfig.js';
+import api from '../../../utils/axiosConfig';
 
 export default function CustomerAccessPage() {
   const [settings, setSettings] = useState({ cod: true, refund: true });

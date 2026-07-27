@@ -1,8 +1,8 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/products` : 'https://www.sweettreeon.com/api/products';
-const REVIEWS_URL = process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/reviews` : 'https://www.sweettreeon.com/api/reviews';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/products` : 'https://www.maxglowon.com/api/products';
+const REVIEWS_URL = process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/reviews` : 'https://www.maxglowon.com/api/reviews';
 
 export const fetchProducts = createAsyncThunk(
   'products/fetchAll',
@@ -81,10 +81,10 @@ const productsSlice = createSlice({
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload.products;
-        state.total = action.payload.total;
-        state.pages = action.payload.pages;
-        state.currentPage = action.payload.currentPage;
+        state.items = action.payload?.products || [];
+        state.total = action.payload?.total || 0;
+        state.pages = action.payload?.pages || 1;
+        state.currentPage = action.payload?.currentPage || 1;
       })
       .addCase(fetchProducts.rejected, (state, action) => {
         state.loading = false;
