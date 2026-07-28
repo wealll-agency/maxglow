@@ -419,20 +419,9 @@ function ShopDetailsContent() {
               </button>
             </div>
 
-            {/* Pincode & Info */}
+            {/* Delivery Info */}
             <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '20px' }}>
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-                <input
-                  type="text"
-                  placeholder="Enter Pincode"
-                  className="mg-input"
-                  value={pincode}
-                  onChange={(e) => setPincode(e.target.value)}
-                  style={{ padding: '8px 14px', borderRadius: '8px', maxWidth: '180px' }}
-                />
-                <button className="btn-mg-outline" style={{ padding: '8px 16px', fontSize: '13px' }}>Check Delivery</button>
-              </div>
-              <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: '#64748b' }}>
+              <div style={{ display: 'flex', gap: '16px', fontSize: '13px', color: '#64748b', fontWeight: '500' }}>
                 <span>🚚 Free Shipping above ₹999</span>
                 <span>💵 Cash on Delivery Available</span>
               </div>

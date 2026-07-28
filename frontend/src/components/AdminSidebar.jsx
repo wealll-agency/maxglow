@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../store/authSlice';
 import { clearCart } from '../store/cartSlice';
-import { LayoutDashboard, ShoppingBag, ClipboardList, ShoppingCart, Users, Receipt, LogOut, Tag, ChevronLeft, ChevronRight, RotateCcw, ChevronDown, ChevronUp, MessageSquare, MapPin, Package, Shield } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, ClipboardList, ShoppingCart, Users, Receipt, LogOut, Tag, ChevronLeft, ChevronRight, RotateCcw, ChevronDown, ChevronUp, MessageSquare, MapPin, Package, Shield, Image as ImageIcon } from 'lucide-react';
 import api from '../utils/axiosConfig';
 
 export default function AdminSidebar() {
@@ -56,6 +56,7 @@ export default function AdminSidebar() {
   // Sidebar link definitions
   const navItems = [
     { label: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard size={20} /> },
+    { label: 'Media Manager', path: '/admin/media', icon: <ImageIcon size={20} /> },
     { label: 'Product Manager', path: '/admin/products', icon: <ShoppingBag size={20} /> },
     { label: 'Homepage Products', path: '/admin/homepage-products', icon: <LayoutDashboard size={20} /> },
     { label: 'Warehouses', path: '/admin/warehouses', icon: <MapPin size={20} /> },
@@ -85,9 +86,11 @@ export default function AdminSidebar() {
 
   return (
     <aside 
-      className="sidebar d-flex flex-column justify-content-between py-4 position-relative" 
+      className="sidebar d-flex flex-column py-4" 
       style={{ 
-        minHeight: '100vh', 
+        height: '100vh',
+        position: 'sticky',
+        top: 0,
         width: sidebarWidth, 
         minWidth: sidebarWidth, 
         flexShrink: 0, 
@@ -116,159 +119,161 @@ export default function AdminSidebar() {
         {isCollapsed ? <ChevronRight size={18} color="#162C18" /> : <ChevronLeft size={18} color="#162C18" />}
       </button>
 
-      <div>
-        {/* Brand label */}
-        <div className={`px-3 mb-5 ${isCollapsed ? 'text-center' : 'px-4'}`} style={{ display: 'flex', flexDirection: 'column', alignItems: isCollapsed ? 'center' : 'flex-start' }}>
-          {!isCollapsed ? (
-            <>
-              <div style={{ width: '130px', height: '36px', overflow: 'hidden', position: 'relative' }}>
-                <img
-                  src="/logo.png"
-                  alt="MaxGlow"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scale(2.3)', filter: 'brightness(0) invert(1)' }}
-                />
-              </div>
-              <div className="badge bg-success bg-opacity-25 text-success border border-success border-opacity-20 mt-2 fs-8">
-                {user.role} System
-              </div>
-            </>
-          ) : (
-            <span className="fs-3 fw-bold display-font text-white" style={{ fontFamily: 'var(--font-outfit)', letterSpacing: '-0.05em' }}>MG</span>
-          )}
-        </div>
+      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', scrollbarWidth: 'none' }}>
+        <div>
+          {/* Brand label */}
+          <div className={`px-3 mb-5 ${isCollapsed ? 'text-center' : 'px-4'}`} style={{ display: 'flex', flexDirection: 'column', alignItems: isCollapsed ? 'center' : 'flex-start' }}>
+            {!isCollapsed ? (
+              <>
+                <div style={{ width: '130px', height: '36px', overflow: 'hidden', position: 'relative' }}>
+                  <img
+                    src="/logo.png"
+                    alt="MaxGlow"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scale(2.3)', filter: 'brightness(0) invert(1)' }}
+                  />
+                </div>
+                <div className="badge bg-success bg-opacity-25 text-success border border-success border-opacity-20 mt-2 fs-8">
+                  {user.role} System
+                </div>
+              </>
+            ) : (
+              <span className="fs-3 fw-bold display-font text-white" style={{ fontFamily: 'var(--font-outfit)', letterSpacing: '-0.05em' }}>MG</span>
+            )}
+          </div>
 
-        {/* Navigation list */}
-        <nav className="d-flex flex-column gap-2 px-3">
-          {navItems.map((item) => {
-            // Role enforcement rules
-            const isManagerOnly = ['Inventory Manager', 'Reports Center', 'Coupon Manager'].includes(item.label) && user.role === 'Staff';
-            const isProductCrud = item.label === 'Product Manager' && user.role === 'Staff';
-            if (isManagerOnly || isProductCrud) return null;
+          {/* Navigation list */}
+          <nav className="d-flex flex-column gap-2 px-3">
+            {navItems.map((item) => {
+              // Role enforcement rules
+              const isManagerOnly = ['Inventory Manager', 'Reports Center', 'Coupon Manager'].includes(item.label) && user.role === 'Staff';
+              const isProductCrud = item.label === 'Product Manager' && user.role === 'Staff';
+              if (isManagerOnly || isProductCrud) return null;
 
-            if (item.isSubmenu) {
-              const isSubActive = item.subItems.some(sub => pathname.startsWith(sub.path));
-              return (
-                <div key={item.label} className="d-flex flex-column">
-                  <div
-                    onClick={() => {
-                      if (!isCollapsed) setIsRefundOpen(!isRefundOpen);
-                    }}
-                    className={`sidebar-nav-link ${isSubActive && !isRefundOpen ? 'active' : ''}`}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      color: isSubActive ? '#FFFFFF' : 'rgba(250, 249, 246, 0.75)',
-                      backgroundColor: isSubActive && !isRefundOpen ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-                      padding: isCollapsed ? '12px' : '12px 20px',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    <div className="d-flex align-items-center gap-2" style={{ justifyContent: isCollapsed ? 'center' : 'flex-start', width: '100%' }}>
-                      {item.icon}
-                      {!isCollapsed && <span>{item.label}</span>}
-                      {!isCollapsed && item.badge > 0 && (
-                        <span className="badge bg-danger ms-2 rounded-pill" style={{ fontSize: '11px' }}>{item.badge}</span>
+              if (item.isSubmenu) {
+                const isSubActive = item.subItems.some(sub => pathname.startsWith(sub.path));
+                return (
+                  <div key={item.label} className="d-flex flex-column">
+                    <div
+                      onClick={() => {
+                        if (!isCollapsed) setIsRefundOpen(!isRefundOpen);
+                      }}
+                      className={`sidebar-nav-link ${isSubActive && !isRefundOpen ? 'active' : ''}`}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        color: isSubActive ? '#FFFFFF' : 'rgba(250, 249, 246, 0.75)',
+                        backgroundColor: isSubActive && !isRefundOpen ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                        padding: isCollapsed ? '12px' : '12px 20px',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      <div className="d-flex align-items-center gap-2" style={{ justifyContent: isCollapsed ? 'center' : 'flex-start', width: '100%' }}>
+                        {item.icon}
+                        {!isCollapsed && <span>{item.label}</span>}
+                        {!isCollapsed && item.badge > 0 && (
+                          <span className="badge bg-danger ms-2 rounded-pill" style={{ fontSize: '11px' }}>{item.badge}</span>
+                        )}
+                      </div>
+                      {!isCollapsed && (
+                        <div className="d-flex align-items-center gap-1">
+                          {isRefundOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                        </div>
                       )}
                     </div>
+                    
                     {!isCollapsed && (
-                      <div className="d-flex align-items-center gap-1">
-                        {isRefundOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                      <div 
+                        className="d-flex flex-column gap-1 ms-4 ps-2 border-start border-white border-opacity-25"
+                        style={{
+                          maxHeight: isRefundOpen ? '300px' : '0px',
+                          overflow: 'hidden',
+                          transition: 'all 0.3s ease-in-out',
+                          opacity: isRefundOpen ? 1 : 0,
+                          marginTop: isRefundOpen ? '4px' : '0px',
+                          visibility: isRefundOpen ? 'visible' : 'hidden'
+                        }}
+                      >
+                        {item.subItems.map(subItem => {
+                          const isActive = pathname === subItem.path;
+                          return (
+                            <Link
+                              key={subItem.label}
+                              href={subItem.path}
+                              className={`sidebar-nav-link ${isActive ? 'active' : ''}`}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                color: isActive ? '#FFFFFF' : 'rgba(250, 249, 246, 0.65)',
+                                backgroundColor: isActive ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                                textDecoration: 'none',
+                                padding: '8px 16px',
+                                borderRadius: '6px',
+                                fontSize: '0.9rem',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              <span className="me-2" style={{ fontSize: '10px' }}>•</span>
+                              {subItem.label}
+                            </Link>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
-                  
-                  {!isCollapsed && (
-                    <div 
-                      className="d-flex flex-column gap-1 ms-4 ps-2 border-start border-white border-opacity-25"
-                      style={{
-                        maxHeight: isRefundOpen ? '300px' : '0px',
-                        overflow: 'hidden',
-                        transition: 'all 0.3s ease-in-out',
-                        opacity: isRefundOpen ? 1 : 0,
-                        marginTop: isRefundOpen ? '4px' : '0px',
-                        visibility: isRefundOpen ? 'visible' : 'hidden'
-                      }}
-                    >
-                      {item.subItems.map(subItem => {
-                        const isActive = pathname === subItem.path;
-                        return (
-                          <Link
-                            key={subItem.label}
-                            href={subItem.path}
-                            className={`sidebar-nav-link ${isActive ? 'active' : ''}`}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              color: isActive ? '#FFFFFF' : 'rgba(250, 249, 246, 0.65)',
-                              backgroundColor: isActive ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-                              textDecoration: 'none',
-                              padding: '8px 16px',
-                              borderRadius: '6px',
-                              fontSize: '0.9rem',
-                              whiteSpace: 'nowrap'
-                            }}
-                          >
-                            <span className="me-2" style={{ fontSize: '10px' }}>•</span>
-                            {subItem.label}
-                          </Link>
-                        );
-                      })}
-                    </div>
+                );
+              }
+
+              const isActive = pathname.startsWith(item.path);
+              return (
+                <Link
+                  key={item.label}
+                  href={item.path}
+                  className={`sidebar-nav-link ${isActive ? 'active' : ''}`}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    color: isActive ? '#FFFFFF' : 'rgba(250, 249, 246, 0.75)',
+                    backgroundColor: isActive ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                    textDecoration: 'none',
+                    padding: isCollapsed ? '12px' : '12px 20px',
+                    justifyContent: isCollapsed ? 'center' : 'flex-start',
+                    borderRadius: '8px',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  {item.icon}
+                  {!isCollapsed && <span>{item.label}</span>}
+                  {!isCollapsed && item.badge > 0 && (
+                    <span className="badge bg-danger ms-auto rounded-pill" style={{ fontSize: '11px' }}>{item.badge}</span>
                   )}
-                </div>
+                </Link>
               );
-            }
+            })}
+          </nav>
+        </div>
 
-            const isActive = pathname.startsWith(item.path);
-            return (
-              <Link
-                key={item.label}
-                href={item.path}
-                className={`sidebar-nav-link ${isActive ? 'active' : ''}`}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  color: isActive ? '#FFFFFF' : 'rgba(250, 249, 246, 0.75)',
-                  backgroundColor: isActive ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-                  textDecoration: 'none',
-                  padding: isCollapsed ? '12px' : '12px 20px',
-                  justifyContent: isCollapsed ? 'center' : 'flex-start',
-                  borderRadius: '8px',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                {item.icon}
-                {!isCollapsed && <span>{item.label}</span>}
-                {!isCollapsed && item.badge > 0 && (
-                  <span className="badge bg-danger ms-auto rounded-pill" style={{ fontSize: '11px' }}>{item.badge}</span>
-                )}
-              </Link>
-            );
-          })}
-        </nav>
-      </div>
-
-      {/* User profile logout */}
-      <div className={`px-3 border-top pt-4 border-white border-opacity-10 ${isCollapsed ? 'text-center' : ''}`}>
-        {!isCollapsed && (
-          <div className="px-3 mb-3">
-            <h6 className="m-0 fw-bold text-white fs-7 text-truncate">{user.name}</h6>
-            <small className="text-white text-opacity-50 fs-8">{user.email}</small>
-          </div>
-        )}
-        <button 
-          onClick={handleLogout}
-          aria-label="Sign Out"
-          className={`w-100 sidebar-nav-link text-danger border-0 bg-transparent d-flex align-items-center gap-2 hover-light-red ${isCollapsed ? 'justify-content-center p-2' : 'text-start'}`}
-          style={{ textDecoration: 'none', padding: isCollapsed ? '12px' : '12px 20px' }}
-        >
-          <LogOut size={20} />
-          {!isCollapsed && <span>Sign Out</span>}
-        </button>
+        {/* User profile logout */}
+        <div className={`px-3 border-top pt-4 mt-4 border-white border-opacity-10 ${isCollapsed ? 'text-center' : ''}`}>
+          {!isCollapsed && (
+            <div className="px-3 mb-3">
+              <h6 className="m-0 fw-bold text-white fs-7 text-truncate">{user.name}</h6>
+              <small className="text-white text-opacity-50 fs-8">{user.email}</small>
+            </div>
+          )}
+          <button 
+            onClick={handleLogout}
+            aria-label="Sign Out"
+            className={`w-100 sidebar-nav-link text-danger border-0 bg-transparent d-flex align-items-center gap-2 hover-light-red ${isCollapsed ? 'justify-content-center p-2' : 'text-start'}`}
+            style={{ textDecoration: 'none', padding: isCollapsed ? '12px' : '12px 20px' }}
+          >
+            <LogOut size={20} />
+            {!isCollapsed && <span>Sign Out</span>}
+          </button>
+        </div>
       </div>
     </aside>
   );

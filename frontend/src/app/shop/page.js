@@ -127,38 +127,95 @@ function ShopContent() {
 
   const isAnyFilterActive = priceFrom || priceTo || selectedStock || selectedBrand || selectedDiscount || selectedCategory;
 
+  const [customCategoryBanner, setCustomCategoryBanner] = useState('');
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await api.get('/auth/settings');
+        if (res.data.success && res.data.settings?.media_category_banner) {
+          if (res.data.settings.media_category_banner.trim() !== '') {
+            setCustomCategoryBanner(res.data.settings.media_category_banner);
+          }
+        }
+      } catch (err) {}
+    };
+    fetchSettings();
+  }, []);
+
   return (
     <>
       {/* Shop Banner */}
-      <section style={{
-        position: 'relative',
-        overflow: 'hidden',
-        minHeight: '200px',
-        display: 'flex',
-        alignItems: 'center',
-        backgroundImage: 'url("/trending_banner.png")',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}>
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'linear-gradient(90deg, rgba(234, 248, 255, 0.92) 0%, rgba(221, 247, 227, 0.8) 50%, rgba(255, 255, 255, 0.15) 100%)',
-          zIndex: 1,
-        }} />
-        <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '40px 20px', width: '100%', position: 'relative', zIndex: 2 }}>
-          <nav style={{ fontSize: '13px', color: '#64748b', marginBottom: '8px' }}>
-            <Link href="/" style={{ textDecoration: 'none', color: '#64748b' }}>Home</Link> &gt; 
-            <span style={{ color: '#1a2332', fontWeight: '600', marginLeft: '6px' }}>Shop</span>
-          </nav>
-          <h1 style={{ fontFamily: 'var(--font-outfit)', fontSize: '36px', fontWeight: '800', color: '#1a2332', margin: 0 }}>
-            MaxGlow Herbal Shop
-          </h1>
-          <p style={{ fontSize: '14px', color: '#334155', marginTop: '8px', maxWidth: '600px', fontWeight: '500' }}>
-            Explore our curated range of premium natural wellness products. Clean formulas, botanical actives, and natural care.
-          </p>
-        </div>
-      </section>
+      {(() => {
+        const cat = selectedCategory || categoryQuery;
+        let bgImg = '/trending_banner.png';
+        let title = 'MaxGlow Herbal Shop';
+        let desc = 'Explore our curated range of premium natural wellness products. Clean formulas, botanical actives, and natural care.';
+        
+        if (cat) {
+          const c = cat.toLowerCase().trim();
+          if (c.includes('skin') || c.includes('face')) {
+            bgImg = '/banner_skin_care.png';
+            title = 'Premium Skin Care';
+            desc = 'Reveal your natural glow with our deeply nourishing, botanical-rich face care formulations.';
+          } else if (c.includes('hair')) {
+            bgImg = '/banner_hair_care.png';
+            title = 'Luxury Hair Care';
+            desc = 'Transform your hair with our salon-quality, natural herbal blends for strength and shine.';
+          } else if (c.includes('body')) {
+            bgImg = '/banner_body_care.png';
+            title = 'Nourishing Body Care';
+            desc = 'Indulge in our luxurious spa-grade body lotions and scrubs for smooth, radiant skin.';
+          } else if (c.includes('wellness')) {
+            bgImg = '/banner_wellness.png';
+            title = 'Holistic Wellness';
+            desc = 'Find your balance with our peaceful aromatherapy and natural wellness essentials.';
+          } else {
+            title = `${cat} Products`;
+          }
+        }
+
+        if (customCategoryBanner) {
+          bgImg = customCategoryBanner;
+        }
+
+        return (
+          <section style={{
+            position: 'relative',
+            overflow: 'hidden',
+            minHeight: '220px',
+            display: 'flex',
+            alignItems: 'center',
+            backgroundImage: `url("${bgImg}")`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            borderRadius: '24px',
+            margin: '20px auto 0',
+            maxWidth: '1400px',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.08)'
+          }}>
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'linear-gradient(90deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.8) 45%, rgba(255, 255, 255, 0.1) 100%)',
+              zIndex: 1,
+            }} />
+            <div style={{ maxWidth: '1440px', margin: '0', padding: '40px 40px', width: '100%', position: 'relative', zIndex: 2 }}>
+              <nav style={{ fontSize: '13px', color: '#64748b', marginBottom: '12px', fontWeight: '500' }}>
+                <Link href="/" style={{ textDecoration: 'none', color: '#64748b' }}>Home</Link> &gt; 
+                <span style={{ color: '#1a2332', fontWeight: '700', marginLeft: '6px' }}>Shop</span>
+                {cat && <span style={{ color: '#1a2332', fontWeight: '700', marginLeft: '6px' }}>&gt; {cat}</span>}
+              </nav>
+              <h1 style={{ fontFamily: 'var(--font-outfit)', fontSize: '42px', fontWeight: '800', color: '#0f172a', margin: 0, letterSpacing: '-0.5px' }}>
+                {title}
+              </h1>
+              <p style={{ fontSize: '16px', color: '#334155', marginTop: '12px', maxWidth: '500px', fontWeight: '500', lineHeight: '1.6' }}>
+                {desc}
+              </p>
+            </div>
+          </section>
+        );
+      })()}
 
       {/* Main Grid */}
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '40px 20px' }}>

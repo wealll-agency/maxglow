@@ -127,8 +127,19 @@ function ShopContent() {
       {/* Shop Banner */}
       <section className="shop-banner">
         <div className="container">
-          <div className="shop_banner_image">
-            <Image src="/shop_banner.jpg" alt="Shop Banner" width={1920} height={300} priority={true} style={{ width: '100%', height: 'auto', display: 'block' }} />
+          <div className="shop_banner_image" style={{ borderRadius: '15px', overflow: 'hidden', boxShadow: '0 8px 25px rgba(0,0,0,0.08)', margin: '15px 0' }}>
+            {(() => {
+               const cat = selectedCategory || categoryQuery;
+               let bannerSrc = '/shop_banner.jpg';
+               if (cat) {
+                 const c = cat.toLowerCase().trim();
+                 if (c.includes('skin care') || c.includes('face care')) bannerSrc = '/banner_skin_care.png';
+                 else if (c.includes('hair care')) bannerSrc = '/banner_hair_care.png';
+                 else if (c.includes('body care')) bannerSrc = '/banner_body_care.png';
+                 else if (c.includes('wellness')) bannerSrc = '/banner_wellness.png';
+               }
+               return <Image src={bannerSrc} alt={`${cat || 'Shop'} Banner`} width={1920} height={400} priority={true} style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'cover', maxHeight: '400px' }} />;
+            })()}
           </div>
         </div>
       </section>

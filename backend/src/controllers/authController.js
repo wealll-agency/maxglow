@@ -346,13 +346,23 @@ export const getSystemSettings = async (req, res, next) => {
     const codSetting = await SystemSetting.findOne({ key: 'cod' });
     const refundSetting = await SystemSetting.findOne({ key: 'refund' });
     const topSellingSetting = await SystemSetting.findOne({ key: 'topSellingSource' });
+    const mediaHero = await SystemSetting.findOne({ key: 'media_hero' });
+    const mediaNewArrivals = await SystemSetting.findOne({ key: 'media_new_arrivals' });
+    const mediaOffers = await SystemSetting.findOne({ key: 'media_offers' });
+    const mediaCategoryBanner = await SystemSetting.findOne({ key: 'media_category_banner' });
+    const mediaReels = await SystemSetting.findOne({ key: 'media_reels' });
 
     res.json({
       success: true,
       settings: {
         cod: codSetting ? codSetting.value : true,
         refund: refundSetting ? refundSetting.value : true,
-        topSellingSource: topSellingSetting ? topSellingSetting.value : 'automatic'
+        topSellingSource: topSellingSetting ? topSellingSetting.value : 'automatic',
+        media_hero: mediaHero ? mediaHero.value : null,
+        media_new_arrivals: mediaNewArrivals ? mediaNewArrivals.value : null,
+        media_offers: mediaOffers ? mediaOffers.value : null,
+        media_category_banner: mediaCategoryBanner ? mediaCategoryBanner.value : null,
+        media_reels: mediaReels ? mediaReels.value : null,
       }
     });
   } catch (error) {
@@ -369,43 +379,38 @@ export const updateSystemSettings = async (req, res, next) => {
 
   try {
     if (settings && typeof settings === 'object') {
-      if (settings.cod !== undefined) {
-        await SystemSetting.findOneAndUpdate(
-          { key: 'cod' },
-          { value: Boolean(settings.cod) },
-          { upsert: true, new: true }
-        );
-      }
-      if (settings.refund !== undefined) {
-        await SystemSetting.findOneAndUpdate(
-          { key: 'refund' },
-          { value: Boolean(settings.refund) },
-          { upsert: true, new: true }
-        );
-      }
-      if (settings.topSellingSource !== undefined) {
-        await SystemSetting.findOneAndUpdate(
-          { key: 'topSellingSource' },
-          { value: String(settings.topSellingSource) },
-          { upsert: true, new: true }
-        );
+      const keysToUpdate = [
+        { key: 'cod', type: 'boolean' },
+        { key: 'refund', type: 'boolean' },
+        { key: 'topSellingSource', type: 'string' },
+        { key: 'media_hero', type: 'array' },
+        { key: 'media_new_arrivals', type: 'string' },
+        { key: 'media_offers', type: 'array' },
+        { key: 'media_category_banner', type: 'string' },
+        { key: 'media_reels', type: 'array' }
+      ];
+
+      for (const field of keysToUpdate) {
+        if (settings[field.key] !== undefined) {
+          let valueToSave = settings[field.key];
+          if (field.type === 'boolean') valueToSave = Boolean(settings[field.key]);
+          if (field.type === 'string') valueToSave = String(settings[field.key]);
+          if (field.type === 'array') valueToSave = Array.isArray(settings[field.key]) ? settings[field.key] : [];
+
+          await SystemSetting.findOneAndUpdate(
+            { key: field.key },
+            { value: valueToSave },
+            { upsert: true, new: true }
+          );
+        }
       }
     }
 
     await logActivity(req.user._id, 'UPDATE_SYSTEM_SETTINGS', `Updated global access settings`, req);
 
-    const codSetting = await SystemSetting.findOne({ key: 'cod' });
-    const refundSetting = await SystemSetting.findOne({ key: 'refund' });
-    const topSellingSetting = await SystemSetting.findOne({ key: 'topSellingSource' });
-
     res.json({
       success: true,
-      message: 'System settings updated successfully',
-      settings: {
-        cod: codSetting ? codSetting.value : true,
-        refund: refundSetting ? refundSetting.value : true,
-        topSellingSource: topSellingSetting ? topSellingSetting.value : 'automatic'
-      }
+      message: 'System settings updated successfully'
     });
   } catch (error) {
     next(error);

@@ -10,11 +10,32 @@ import { useState } from 'react';
    HERBAL OFFER BANNERS SLIDER
    ═══════════════════════════════════════════ */
 export const NuttyDelightOffers = () => {
-  const offers = [
+  const [offersState, setOffersState] = useState([
     { img: '/mg-offer1.jpg', title: 'Herbal Glow Sale', badge: '40% OFF', color: '#DDF4FF' },
     { img: '/mg-offer2.jpg', title: 'Wellness Special', badge: '30% OFF', color: '#DDF7E3' },
     { img: '/mg-offer3.jpg', title: 'Combo Deals', badge: '50% OFF', color: '#FEF9E7' },
-  ];
+  ]);
+
+  useEffect(() => {
+    const fetchOffers = async () => {
+      try {
+        const { default: api } = await import('../utils/axiosConfig');
+        const res = await api.get('/auth/settings');
+        if (res.data.success && res.data.settings?.media_offers?.length > 0) {
+          const customOffers = res.data.settings.media_offers;
+          setOffersState(prev => prev.map((offer, idx) => {
+            if (customOffers[idx] && customOffers[idx].trim() !== '') {
+              return { ...offer, img: customOffers[idx] };
+            }
+            return offer;
+          }));
+        }
+      } catch (err) {}
+    };
+    fetchOffers();
+  }, []);
+
+  const offers = offersState;
 
   return (
     <section style={{ background: '#F7FBFD', padding: '60px 0' }}>
@@ -71,7 +92,7 @@ export const ShopByCategoryCards = () => {
     {
       name: 'Face Care',
       discount: 'UPTO 40% OFF',
-      image: '/category1.png',
+      image: '/category_face_care_v2.png',
       query: 'Skin Care',
       bg: '#EAF8FF',
       accent: '#4A90E2',
@@ -79,7 +100,7 @@ export const ShopByCategoryCards = () => {
     {
       name: 'Hair Care',
       discount: 'UPTO 40% OFF',
-      image: '/category2.png',
+      image: '/category_hair_care_v2.png',
       query: 'Hair Care',
       bg: '#DDF7E3',
       accent: '#3BAE56',
@@ -87,7 +108,7 @@ export const ShopByCategoryCards = () => {
     {
       name: 'Body Care',
       discount: 'UPTO 40% OFF',
-      image: '/category3.png',
+      image: '/category_body_care_v2.png',
       query: 'Body Care',
       bg: '#FEF9E7',
       accent: '#f59e0b',
@@ -95,7 +116,7 @@ export const ShopByCategoryCards = () => {
     {
       name: 'Wellness',
       discount: 'UPTO 50% OFF',
-      image: '/category4.png',
+      image: '/category_wellness_v2.png',
       query: 'Wellness',
       bg: '#F0E6FF',
       accent: '#8b5cf6',
@@ -152,13 +173,13 @@ export const ShopByCategoryCards = () => {
                 </div>
 
                 {/* Product Image */}
-                <div style={{ width: '90px', height: '90px', flexShrink: 0, position: 'relative' }}>
+                <div style={{ width: '90px', height: '90px', flexShrink: 0, position: 'relative', mixBlendMode: 'multiply' }}>
                   <Image
                     src={cat.image}
                     alt={cat.name}
                     fill
                     sizes="90px"
-                    style={{ objectFit: 'contain' }}
+                    style={{ objectFit: 'cover', borderRadius: '50%' }}
                   />
                 </div>
               </div>

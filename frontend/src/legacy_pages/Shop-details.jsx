@@ -108,6 +108,10 @@ function ShopDetailsContent() {
     );
   }
 
+  const averageRating = reviews && reviews.length > 0 
+    ? (reviews.reduce((acc, rev) => acc + (Number(rev.rating) || 0), 0) / reviews.length).toFixed(1) 
+    : (realProduct.rating ? Number(realProduct.rating).toFixed(1) : '5.0');
+
   const handleAddToCart = () => {
     const mockProduct = {
       _id: realProduct._id,
@@ -278,10 +282,10 @@ function ShopDetailsContent() {
           <div className="d-flex align-items-center gap-2 mb-3 pb-3 border-bottom">
             <div className="d-flex text-warning">
               {[...Array(5).keys()].map(x => (
-                <Star key={x} fill={x < Math.round(realProduct.rating || 5) ? "#F59E0B" : "none"} color="#F59E0B" size={14} />
+                <Star key={x} fill={x < Math.round(Number(averageRating)) ? "#F59E0B" : "none"} color="#F59E0B" size={14} />
               ))}
             </div>
-            <span className="badge bg-success text-white">{realProduct.rating || '5.0'}</span>
+            <span className="badge bg-success text-white">{averageRating}</span>
             <span className="text-muted" style={{ fontSize: '13px' }}>{reviews.length} reviews</span>
           </div>
 

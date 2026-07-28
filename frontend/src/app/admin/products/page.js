@@ -559,7 +559,7 @@ export default function AdminProductsPage() {
                   </div>
 
                   <div className="col-12">
-                    <label className="fw-medium mb-1 fs-7">Search Tags</label>
+                    <label className="fw-medium mb-1 fs-7">Product Tag (Badge on Card)</label>
                     <input type="text" className="form-control" value={searchTags} onChange={(e) => setSearchTags(e.target.value)} />
                   </div>
 

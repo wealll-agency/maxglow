@@ -22,17 +22,20 @@ import {
 export default function Home() {
   const [topSellingProducts, setTopSellingProducts] = useState([]);
   const [healthyProducts, setHealthyProducts] = useState([]);
+  const [newArrivalProducts, setNewArrivalProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchHomepageProducts = async () => {
       try {
-        const [topRes, newRes] = await Promise.all([
+        const [topRes, healthyRes, arrivalRes] = await Promise.all([
           api.get(`/products?topSelling=true&limit=8&inStock=true`),
           api.get(`/products?healthyProduct=true&limit=8&inStock=true`),
+          api.get(`/products?newArrival=true&limit=8&inStock=true`),
         ]);
         if (topRes.data.success) setTopSellingProducts(topRes.data.products || []);
-        if (newRes.data.success) setHealthyProducts(newRes.data.products || []);
+        if (healthyRes.data.success) setHealthyProducts(healthyRes.data.products || []);
+        if (arrivalRes.data.success) setNewArrivalProducts(arrivalRes.data.products || []);
       } catch (error) {
         console.error("Error fetching homepage products:", error);
       } finally {
@@ -70,6 +73,11 @@ export default function Home() {
 
       {/* New Arrival Ad Banner */}
       <NewArrivalBanner />
+
+      {/* New Arrivals Product Carousel */}
+      {newArrivalProducts.length > 0 && (
+        <ProductCarouselSection title="New Arrivals" products={newArrivalProducts} />
+      )}
 
       {/* Shop By Purpose */}
       <ShopByPurpose />

@@ -168,19 +168,54 @@ const ReelCard = ({ reel }) => {
 
 /* ── Main Section ── */
 const ReelsSection = () => {
+  const [reelsState, setReelsState] = useState(reels);
+
+  useEffect(() => {
+    const fetchReels = async () => {
+      try {
+        const { default: api } = await import('../utils/axiosConfig');
+        const res = await api.get('/auth/settings');
+        if (res.data.success && res.data.settings?.media_reels?.length > 0) {
+          const customReels = res.data.settings.media_reels;
+          setReelsState(prev => prev.map((reel, idx) => {
+            if (customReels[idx] && customReels[idx].trim() !== '') {
+              return { ...reel, video: customReels[idx] };
+            }
+            return reel;
+          }));
+        }
+      } catch (err) {}
+    };
+    fetchReels();
+  }, []);
+
   return (
     <section className="reels-section">
-      <div className="container">
-        <div className="d-flex justify-content-between align-items-end mb-4">
+      <div className="container" style={{ padding: '0 20px', maxWidth: '1440px', margin: '0 auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <h2 className="nykaa-section-title" style={{ fontSize: '24px' }}>
-              Watch <span>and Buy</span>
+            <h2 style={{
+              fontFamily: 'var(--font-outfit), sans-serif',
+              fontSize: '24px', fontWeight: '800', color: '#1a2332', margin: 0,
+            }}>
+              Watch and Buy
             </h2>
-            <p style={{ color: 'var(--text-mid)', fontSize: '14px', marginTop: '4px', marginBottom: 0 }}>
+            <div style={{ height: '3px', width: '48px', background: 'linear-gradient(90deg, #4A90E2, #3BAE56)', borderRadius: '9999px', marginTop: '8px' }} />
+            <p style={{ color: 'var(--text-mid)', fontSize: '14px', marginTop: '8px', marginBottom: 0 }}>
               Watch quick herbal beauty tips &amp; product tutorials
             </p>
           </div>
-          <a href="/shop" className="nykaa-view-all d-none d-md-inline">View All</a>
+          <a href="/shop" style={{
+            display: 'inline-flex', alignItems: 'center', gap: '6px',
+            color: '#3BAE56', fontWeight: '700', fontSize: '14px', textDecoration: 'none',
+            padding: '8px 16px', border: '1.5px solid #3BAE56', borderRadius: '9999px',
+            transition: 'all 0.2s ease',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#3BAE56'; e.currentTarget.style.color = 'white'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#3BAE56'; }}
+          >
+            View All <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </a>
         </div>
       </div>
 
@@ -205,7 +240,7 @@ const ReelsSection = () => {
           }}
           className="reels-swiper"
         >
-          {reels.map((reel) => (
+          {reelsState.map((reel) => (
             <SwiperSlide key={reel.id} style={{ width: 'auto' }}>
               <ReelCard reel={reel} />
             </SwiperSlide>

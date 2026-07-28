@@ -1,8 +1,25 @@
 "use client";
 import Link from 'next/link';
-import React, { memo } from 'react';
+import React, { memo, useState, useEffect } from 'react';
+import api from '../utils/axiosConfig';
 
 const NewArrivalBanner = () => {
+  const [bgImage, setBgImage] = useState('/new_arrival_banner.png');
+
+  useEffect(() => {
+    const fetchImage = async () => {
+      try {
+        const res = await api.get('/auth/settings');
+        if (res.data.success && res.data.settings?.media_new_arrivals) {
+          if (res.data.settings.media_new_arrivals.trim() !== '') {
+            setBgImage(res.data.settings.media_new_arrivals);
+          }
+        }
+      } catch (err) {}
+    };
+    fetchImage();
+  }, []);
+
   return (
     <section style={{ padding: '40px 0', background: 'white' }}>
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
@@ -15,7 +32,7 @@ const NewArrivalBanner = () => {
           aspectRatio: '16/3.2',
           minHeight: '180px',
           boxShadow: '0 10px 30px rgba(0,0,0,0.06)',
-          backgroundImage: 'url("/new_arrival_banner.png")',
+          backgroundImage: `url("${bgImage}")`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           display: 'flex',

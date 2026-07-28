@@ -122,7 +122,7 @@ const ProductCard = ({ product }) => {
         <button
           onClick={handleToggleWishlist}
           style={{
-            position: 'absolute', top: '12px', right: '12px', zIndex: 10,
+            position: 'absolute', bottom: '12px', right: '12px', zIndex: 10,
             width: '34px', height: '34px', borderRadius: '50%',
             background: isWishlisted ? '#fff0f0' : 'rgba(255,255,255,0.9)',
             border: `1.5px solid ${isWishlisted ? '#fecaca' : 'rgba(221,244,255,0.8)'}`,
@@ -135,7 +135,7 @@ const ProductCard = ({ product }) => {
         </button>
 
         {/* Discount Badge */}
-        {discountLabel && (
+          {discountLabel && (
           <div style={{
             position: 'absolute', top: '12px', left: '12px', zIndex: 10,
             background: 'linear-gradient(135deg, #3BAE56, #61C454)',
@@ -147,6 +147,30 @@ const ProductCard = ({ product }) => {
             {discountLabel}
           </div>
         )}
+
+        {(() => {
+          const rawTags = resolvedProduct.searchTags;
+          const customTag = Array.isArray(rawTags) && rawTags.length > 0 && rawTags[0].trim() !== '' 
+            ? rawTags[0] 
+            : (typeof rawTags === 'string' && rawTags.trim() !== '' ? rawTags : null);
+            
+          if (customTag) {
+            return (
+              <div style={{
+                position: 'absolute', top: '12px', right: '12px', zIndex: 10,
+                background: 'linear-gradient(135deg, #f59e0b, #fbbf24)',
+                color: 'white', fontSize: '11px', fontWeight: '800',
+                padding: '4px 10px', borderRadius: '9999px',
+                boxShadow: '0 2px 8px rgba(245,158,11,0.3)',
+                letterSpacing: '0.03em',
+                textTransform: 'uppercase'
+              }}>
+                {customTag}
+              </div>
+            );
+          }
+          return null;
+        })()}
 
         {/* Out of stock overlay */}
         {resolvedProduct.stock <= 0 && (
