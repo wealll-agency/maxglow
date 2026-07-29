@@ -28,7 +28,8 @@ const userSchema = new mongoose.Schema({
     enum: ['Customer', 'Staff', 'Manager', 'Super Admin'],
     default: 'Customer'
   },
-  addresses: [addressSchema]
+  addresses: [addressSchema],
+  fcmTokens: [{ type: String }]
 }, {
   timestamps: true
 });

@@ -43,11 +43,11 @@ const Footer = () => {
 
             {/* Brand */}
             <div style={{ gridColumn: 'span 1' }}>
-              <Link href="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', marginBottom: '16px', width: '180px', height: '50px', overflow: 'hidden', position: 'relative' }}>
+              <Link href="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', marginBottom: '16px', height: '40px' }}>
                 <img
                   src="/logo.png"
                   alt="MaxGlow"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scale(2.3)', filter: 'brightness(0) invert(1)' }}
+                  style={{ height: '100%', width: 'auto', objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
                 />
               </Link>
               <p style={{ fontSize: '14px', color: '#94a3b8', lineHeight: '1.7', marginBottom: '20px', maxWidth: '280px' }}>
@@ -92,7 +92,6 @@ const Footer = () => {
                   { label: 'Shop All', href: '/shop' },
                   { label: 'Bestsellers', href: '/shop?sort=bestselling' },
                   { label: 'Combo Boxes', href: '/build-combo' },
-                  { label: 'Blog', href: '/blog' },
                   { label: 'About Us', href: '/about' },
                   { label: 'Contact', href: '/contact' },
                 ].map((link, idx) => (
@@ -202,8 +201,8 @@ const Footer = () => {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '12px' }}>
               Made with <span style={{ color: '#ef4444' }}>♥</span> by{' '}
-              <a href="https://wealll.com/" target="_blank" rel="noopener noreferrer" style={{ color: '#61C454', textDecoration: 'none', fontWeight: '700' }}>
-                We All
+              <a href="https://wealll.com/" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center' }}>
+                <img src="/wealll-logo.png" alt="We All Logo" style={{ height: '18px', width: 'auto', objectFit: 'contain' }} />
               </a>
             </div>
           </div>

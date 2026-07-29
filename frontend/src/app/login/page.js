@@ -49,9 +49,9 @@ function LoginContent() {
 
   return (
     <div style={{
-      minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      minHeight: 'calc(100vh - 120px)', display: 'flex', alignItems: 'center', justifyContent: 'center',
       background: 'linear-gradient(135deg, #EAF8FF 0%, #F7FBFD 40%, #DDF7E3 100%)',
-      padding: '40px 20px',
+      padding: '20px',
       position: 'relative', overflow: 'hidden',
     }}>
       {/* Decorative blobs */}
@@ -60,30 +60,29 @@ function LoginContent() {
 
       <div style={{ width: '100%', maxWidth: '440px', position: 'relative', zIndex: 1 }}>
         {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <Link href="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ width: '40px', height: '40px', background: 'linear-gradient(135deg, #4A90E2, #3BAE56)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Leaf size={22} color="white" />
-            </div>
-            <span style={{ fontFamily: 'var(--font-outfit)', fontSize: '26px', fontWeight: '800', color: '#1a2332', letterSpacing: '-0.03em' }}>
-              Max<span style={{ color: '#3BAE56' }}>Glow</span>
-            </span>
+        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+          <Link href="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', height: '40px' }}>
+            <img
+              src="/logo.png"
+              alt="MaxGlow"
+              style={{ height: '100%', width: 'auto', objectFit: 'contain' }}
+            />
           </Link>
         </div>
 
         {/* Card */}
         <div className="glass" style={{
-          borderRadius: '24px', padding: '40px 36px',
+          borderRadius: '24px', padding: '30px 32px',
           boxShadow: '0 20px 60px rgba(74,144,226,0.12)',
         }}>
           <h1 style={{ fontFamily: 'var(--font-outfit)', fontSize: '24px', fontWeight: '800', color: '#1a2332', marginBottom: '6px', textAlign: 'center' }}>
             Welcome Back
           </h1>
-          <p style={{ fontSize: '14px', color: '#64748b', textAlign: 'center', marginBottom: '28px' }}>
+          <p style={{ fontSize: '14px', color: '#64748b', textAlign: 'center', marginBottom: '16px' }}>
             Sign in to your MaxGlow account
           </p>
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {/* Email */}
             <div>
               <label className="mg-form-label">Email Address</label>
@@ -142,14 +141,14 @@ function LoginContent() {
               type="submit"
               disabled={isSubmitting || loading}
               className="btn-mg-green"
-              style={{ width: '100%', justifyContent: 'center', fontSize: '15px', padding: '14px', marginTop: '4px', opacity: isSubmitting ? 0.7 : 1 }}
+              style={{ width: '100%', justifyContent: 'center', fontSize: '15px', padding: '12px', marginTop: '4px', opacity: isSubmitting ? 0.7 : 1 }}
             >
               <FiLogIn size={16} />
               {isSubmitting ? 'Logging In...' : 'Log In'}
             </button>
           </form>
 
-          <p style={{ textAlign: 'center', fontSize: '14px', color: '#64748b', marginTop: '20px', marginBottom: 0 }}>
+          <p style={{ textAlign: 'center', fontSize: '14px', color: '#64748b', marginTop: '16px', marginBottom: 0 }}>
             Don't have an account?{' '}
             <Link href={`/register${redirect ? `?redirect=${redirect}` : ''}`} style={{ color: '#3BAE56', fontWeight: '700', textDecoration: 'none' }}>
               Sign Up

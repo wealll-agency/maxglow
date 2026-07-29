@@ -39,23 +39,39 @@ dotenv.config({ path: path.join(__dirname, '../../.env') });
 
 const app = express();
 
-// Connect to MongoDB
-connectDB();
-
-// Initialize Cron Jobs
-import { initCronJobs } from './utils/cronJobs.js';
-initCronJobs();
+// Validate critical environment variables
+const requiredGlobalKeys = ['MONGODB_URI', 'JWT_SECRET'];
+const missingGlobalKeys = requiredGlobalKeys.filter(key => !process.env[key]);
+if (missingGlobalKeys.length > 0) {
+  console.error(`\n[FATAL ERROR] Missing required environment variables: ${missingGlobalKeys.join(', ')}`);
+  console.error('Shutting down server to prevent unpredictable behavior. Please provide these in your environment variables.\n');
+  process.exit(1);
+}
 
 // Validate critical payment environment variables
 if (process.env.NODE_ENV === 'production') {
-  const requiredKeys = ['RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET'];
+  const requiredKeys = ['RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET', 'CLIENT_URL'];
   const missingKeys = requiredKeys.filter(key => !process.env[key]);
   if (missingKeys.length > 0) {
-    console.error(`\n[FATAL ERROR] Missing Razorpay Payment Keys in production: ${missingKeys.join(', ')}`);
+    console.error(`\n[FATAL ERROR] Missing Production Environment Variables: ${missingKeys.join(', ')}`);
     console.error('Shutting down server to prevent silent checkout failures. Please provide these in your environment variables.\n');
     process.exit(1);
   }
 }
+
+// Connect to MongoDB
+try {
+  console.log('Attempting to connect to MongoDB...');
+  await connectDB();
+} catch (error) {
+  console.error('\n[FATAL ERROR] Server startup aborted because MongoDB connection failed.');
+  console.error('Please verify your MONGODB_URI and database availability.\n');
+  process.exit(1);
+}
+
+// Initialize Cron Jobs
+import { initCronJobs } from './utils/cronJobs.js';
+initCronJobs();
 
 // Middlewares
 app.use(helmet({

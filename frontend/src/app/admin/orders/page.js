@@ -543,37 +543,7 @@ function AdminOrdersContent() {
                   )}
                 </div>
 
-                {/* Status flow advances */}
-                <h6 className="fw-bold text-muted uppercase fs-8 mb-2">Administrative Status Control</h6>
-                <div className="d-flex flex-wrap gap-2 mb-3">
-                  {selectedOrder.orderStatus === 'Placed' && (
-                    <button onClick={() => handleStatusChange(selectedOrder._id, 'Confirmed')} className="btn btn-sm btn-success">Confirm Order</button>
-                  )}
-                  {selectedOrder.orderStatus === 'Confirmed' && (
-                    <button onClick={() => handleStatusChange(selectedOrder._id, 'Packed')} className="btn btn-sm btn-primary">Pack Order</button>
-                  )}
-                  {selectedOrder.orderStatus === 'Packed' && (
-                    <div className="d-flex gap-2 w-100">
-                      <input
-                        type="text"
-                        required
-                        className="form-control form-control-sm"
-                        value={trackingNumber}
-                        onChange={(e) => setTrackingNumber(e.target.value)}
-                        style={{ maxWidth: '240px' }}
-                      />
-                      <button 
-                        onClick={() => handleStatusChange(selectedOrder._id, 'Shipped')} 
-                        disabled={!trackingNumber}
-                        className="btn btn-sm btn-info"
-                      >
-                        Ship Order
-                      </button>
-                    </div>
-                  )}
-                  {selectedOrder.orderStatus === 'Shipped' && (
-                    <button onClick={() => handleStatusChange(selectedOrder._id, 'Delivered')} className="btn btn-sm btn-success">Mark Delivered</button>
-                  )}
+                  
                   
                   {/* Cancel / Refund */}
                   {selectedOrder.orderStatus !== 'Delivered' && selectedOrder.orderStatus !== 'Cancelled' && user.role === 'Super Admin' && (
@@ -590,8 +560,6 @@ function AdminOrdersContent() {
                       {selectedOrder.paymentStatus === 'Paid' ? 'Cancel & Refund Order' : 'Cancel Order'}
                     </button>
                   )}
-                </div>
-
                 <div className="fs-8 text-muted border-top pt-3 mt-3">
                   <div className="mb-2">
                     Current Status: <strong className="text-dark">{selectedOrder.orderStatus}</strong> | Payment Status: <strong className="text-dark">{selectedOrder.paymentStatus}</strong>

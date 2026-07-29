@@ -58,13 +58,6 @@ const MobileMenu = () => {
               <Info size={18} className="text-muted" />ABOUT
             </Link>
           </li>
-          {/*
-          <li className="list-group-item">
-            <Link href="/blog" className="d-flex align-items-center py-2 text-dark text-decoration-none fw-bold gap-2" onClick={closeMenu}>
-              <BookOpen size={18} className="text-muted" />BLOG
-            </Link>
-          </li>
-          */}
           <li className="list-group-item">
             <Link href="/contact" className="d-flex align-items-center py-2 text-dark text-decoration-none fw-bold gap-2" onClick={closeMenu}>
               <Phone size={18} className="text-muted" />CONTACT

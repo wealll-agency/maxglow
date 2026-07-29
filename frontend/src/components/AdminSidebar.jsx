@@ -125,11 +125,11 @@ export default function AdminSidebar() {
           <div className={`px-3 mb-5 ${isCollapsed ? 'text-center' : 'px-4'}`} style={{ display: 'flex', flexDirection: 'column', alignItems: isCollapsed ? 'center' : 'flex-start' }}>
             {!isCollapsed ? (
               <>
-                <div style={{ width: '130px', height: '36px', overflow: 'hidden', position: 'relative' }}>
+                <div style={{ height: '36px' }}>
                   <img
                     src="/logo.png"
                     alt="MaxGlow"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scale(2.3)', filter: 'brightness(0) invert(1)' }}
+                    style={{ height: '100%', width: 'auto', objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
                   />
                 </div>
                 <div className="badge bg-success bg-opacity-25 text-success border border-success border-opacity-20 mt-2 fs-8">

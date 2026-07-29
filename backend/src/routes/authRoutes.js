@@ -10,7 +10,8 @@ import {
   updateAddress,
   deleteAddress,
   getSystemSettings,
-  updateSystemSettings
+  updateSystemSettings,
+  updateFcmToken
 } from '../controllers/authController.js';
 import { protect, authorizeRoles } from '../middleware/auth.js';
 import { authLimiter } from '../middleware/rateLimiter.js';
@@ -21,6 +22,7 @@ router.post('/register', authLimiter, registerUser);
 router.post('/login', authLimiter, loginUser);
 router.post('/logout', protect, logoutUser);
 router.post('/refresh', refreshTokenUser);
+router.post('/fcm-token', protect, updateFcmToken);
 router.route('/profile')
   .get(protect, getUserProfile)
   .put(protect, updateUserProfile);

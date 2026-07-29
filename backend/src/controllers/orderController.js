@@ -7,6 +7,8 @@ import Product from '../models/Product.js';
 import Inventory from '../models/Inventory.js';
 import Payment from '../models/Payment.js';
 import Coupon from '../models/Coupon.js';
+import User from '../models/User.js';
+import admin from '../config/firebaseAdmin.js';
 import { logActivity } from '../middleware/logger.js';
 
 // CCAvenue configuration will be drawn directly from environment variables
@@ -428,6 +430,34 @@ export const updateOrderStatus = async (req, res, next) => {
 
     const updatedOrder = await Order.findByIdAndUpdate(req.params.id, updateQuery, { new: true });
     await logActivity(req.user._id, 'UPDATE_ORDER_STATUS', `Updated order ID ${order._id} status to: ${status}`, req);
+
+    // --- Firebase Push Notification ---
+    try {
+      if (admin && admin.messaging) {
+        const orderUser = await User.findById(updatedOrder.user);
+        if (orderUser && orderUser.fcmTokens && orderUser.fcmTokens.length > 0) {
+          let emoji = "📦";
+          if (status === 'Shipped') emoji = "🚚";
+          if (status === 'Delivered') emoji = "🎉";
+          if (status === 'Cancelled') emoji = "❌";
+
+          const payload = {
+            notification: {
+              title: `Order ${status} ${emoji}`,
+              body: `Your MaxGlow order #${updatedOrder._id.toString().slice(-6).toUpperCase()} is now ${status}.`
+            }
+          };
+
+          await admin.messaging().sendEachForMulticast({
+            tokens: orderUser.fcmTokens,
+            notification: payload.notification
+          });
+        }
+      }
+    } catch (fcmError) {
+      console.error('FCM Notification failed:', fcmError);
+    }
+    // -----------------------------------
 
     res.json({ success: true, order: updatedOrder });
   } catch (error) {

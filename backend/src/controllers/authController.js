@@ -230,6 +230,29 @@ export const updateUserProfile = async (req, res, next) => {
   }
 };
 
+// @desc    Update FCM Token for Push Notifications
+// @route   POST /api/auth/fcm-token
+// @access  Private
+export const updateFcmToken = async (req, res, next) => {
+  try {
+    const { token } = req.body;
+    if (!token) return res.status(400).json({ success: false, message: 'Token is required' });
+
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    if (!user.fcmTokens) user.fcmTokens = [];
+    if (!user.fcmTokens.includes(token)) {
+      user.fcmTokens.push(token);
+      await user.save();
+    }
+
+    res.json({ success: true, message: 'FCM Token registered' });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Add address to profile
 // @route   POST /api/auth/addresses
 // @access  Private

@@ -4,12 +4,18 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const connectDB = async () => {
+  if (!process.env.MONGODB_URI) {
+    throw new Error('[FATAL ERROR] MONGODB_URI is missing from environment variables. Server cannot start.');
+  }
+
   const options = {
     maxPoolSize: 50,
     minPoolSize: 10,
     serverSelectionTimeoutMS: 15000, 
-    socketTimeoutMS: 45000,
+    socketTimeoutMS: 65000, // Increased to prevent silent drops by load balancers
     connectTimeoutMS: 15000,
+    keepAlive: true, // Crucial for preventing disconnects in deployed environments
+    keepAliveInitialDelay: 300000,
   };
 
   mongoose.connection.on('disconnected', () => {
@@ -25,14 +31,12 @@ const connectDB = async () => {
   });
 
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/maxglow', options);
+    const conn = await mongoose.connect(process.env.MONGODB_URI, options);
     console.log(`MongoDB Connected: ${conn.connection.host}`);
+    return conn;
   } catch (error) {
     console.error(`MongoDB connection error during startup: ${error.message}`);
-    // Delay exit slightly to ensure logs flush
-    setTimeout(() => {
-      process.exit(1);
-    }, 1000);
+    throw error; // Rethrow to be caught by server.js
   }
 };
 

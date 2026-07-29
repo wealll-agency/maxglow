@@ -75,22 +75,42 @@ function BuildComboContent() {
 
   return (
     <div className="container py-5">
-      <nav aria-label="breadcrumb">
-        <ol className="breadcrumb mb-4" style={{ fontSize: '0.9rem' }}>
-          <li className="breadcrumb-item"><Link href="/" className="text-muted text-decoration-none">Home</Link></li>
-          <li className="breadcrumb-item active fw-bold text-dark" aria-current="page">Build Your Own Combo</li>
-        </ol>
-      </nav>
-
-      <div className="mb-5 text-center">
-        <span className="d-inline-block px-4 py-2 rounded-pill mb-3 fw-bold shadow-sm" style={{ backgroundColor: '#eef6ff', color: '#1c72b9', fontSize: '0.9rem', letterSpacing: '1px' }}>
-          GIFTING & BUNDLES
-        </span>
-        <h2 className="display-5 fw-bold text-dark mb-3">Build Your Custom Combo</h2>
-        <p className="text-secondary fs-5 mx-auto" style={{ maxWidth: '700px', lineHeight: '1.6' }}>
-          Select your favorite products to create a personalized gift box. Apply our special Combo Coupons at checkout to unlock amazing discounts!
-        </p>
-      </div>
+      <section style={{
+        position: 'relative',
+        overflow: 'hidden',
+        minHeight: '220px',
+        display: 'flex',
+        alignItems: 'center',
+        backgroundImage: `url("/trending_banner.png")`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        borderRadius: '24px',
+        margin: '20px auto 40px',
+        maxWidth: '1400px',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.08)'
+      }}>
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(90deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.8) 45%, rgba(255, 255, 255, 0.1) 100%)',
+          zIndex: 1,
+        }} />
+        <div style={{ maxWidth: '1440px', margin: '0', padding: '40px 40px', width: '100%', position: 'relative', zIndex: 2 }}>
+          <nav style={{ fontSize: '13px', color: '#64748b', marginBottom: '12px', fontWeight: '500' }}>
+            <Link href="/" style={{ textDecoration: 'none', color: '#64748b' }}>Home</Link> &gt; 
+            <span style={{ color: '#1a2332', fontWeight: '700', marginLeft: '6px' }}>Build Combo</span>
+          </nav>
+          <span className="d-inline-block px-3 py-1 rounded-pill mb-2 fw-bold" style={{ backgroundColor: '#eef6ff', color: '#1c72b9', fontSize: '0.75rem', letterSpacing: '1px' }}>
+            GIFTING & BUNDLES
+          </span>
+          <h1 style={{ fontFamily: 'var(--font-outfit)', fontSize: '42px', fontWeight: '800', color: '#0f172a', margin: 0, letterSpacing: '-0.5px' }}>
+            Build Your Custom Combo
+          </h1>
+          <p style={{ fontSize: '16px', color: '#334155', marginTop: '12px', maxWidth: '500px', fontWeight: '500', lineHeight: '1.6' }}>
+            Select your favorite products to create a personalized gift box. Apply our special Combo Coupons at checkout to unlock amazing discounts!
+          </p>
+        </div>
+      </section>
 
       <div className="row g-4">
         {/* Left Side: Product Grid */}

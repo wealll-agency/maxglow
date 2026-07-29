@@ -25,6 +25,7 @@ function RegisterContent() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { user, loading, error } = useSelector((state) => state.auth);
 
@@ -35,10 +36,12 @@ function RegisterContent() {
     dispatch(clearError());
   }, [user, redirect, router, dispatch]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name || !email || !password) return;
-    dispatch(registerUser({ name, email, password, phone }));
+    setIsSubmitting(true);
+    await dispatch(registerUser({ name, email, password, phone }));
+    setIsSubmitting(false);
   };
 
   const inputFields = [
@@ -50,9 +53,9 @@ function RegisterContent() {
 
   return (
     <div style={{
-      minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      minHeight: 'calc(100vh - 120px)', display: 'flex', alignItems: 'center', justifyContent: 'center',
       background: 'linear-gradient(135deg, #EAF8FF 0%, #F7FBFD 40%, #DDF7E3 100%)',
-      padding: '40px 20px',
+      padding: '20px',
       position: 'relative', overflow: 'hidden',
     }}>
       <div style={{ position: 'absolute', top: '-100px', right: '-100px', width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(93,174,255,0.15) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
@@ -60,27 +63,26 @@ function RegisterContent() {
 
       <div style={{ width: '100%', maxWidth: '460px', position: 'relative', zIndex: 1 }}>
         {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <Link href="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ width: '40px', height: '40px', background: 'linear-gradient(135deg, #4A90E2, #3BAE56)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Leaf size={22} color="white" />
-            </div>
-            <span style={{ fontFamily: 'var(--font-outfit)', fontSize: '26px', fontWeight: '800', color: '#1a2332', letterSpacing: '-0.03em' }}>
-              Max<span style={{ color: '#3BAE56' }}>Glow</span>
-            </span>
+        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+          <Link href="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', height: '40px' }}>
+            <img
+              src="/logo.png"
+              alt="MaxGlow"
+              style={{ height: '100%', width: 'auto', objectFit: 'contain' }}
+            />
           </Link>
         </div>
 
         {/* Card */}
-        <div className="glass" style={{ borderRadius: '24px', padding: '40px 36px', boxShadow: '0 20px 60px rgba(74,144,226,0.12)' }}>
+        <div className="glass" style={{ borderRadius: '24px', padding: '24px 32px', boxShadow: '0 20px 60px rgba(74,144,226,0.12)' }}>
           <h1 style={{ fontFamily: 'var(--font-outfit)', fontSize: '24px', fontWeight: '800', color: '#1a2332', marginBottom: '6px', textAlign: 'center' }}>
             Create Account
           </h1>
-          <p style={{ fontSize: '14px', color: '#64748b', textAlign: 'center', marginBottom: '28px' }}>
+          <p style={{ fontSize: '14px', color: '#64748b', textAlign: 'center', marginBottom: '16px' }}>
             Join MaxGlow — start your wellness journey
           </p>
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {inputFields.map((field, idx) => (
               <div key={idx}>
                 <label className="mg-form-label">{field.label}</label>
@@ -108,16 +110,16 @@ function RegisterContent() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={isSubmitting || loading}
               className="btn-mg-green"
-              style={{ width: '100%', justifyContent: 'center', fontSize: '15px', padding: '14px', marginTop: '4px', opacity: loading ? 0.7 : 1 }}
+              style={{ width: '100%', justifyContent: 'center', fontSize: '15px', padding: '12px', marginTop: '4px', opacity: isSubmitting ? 0.7 : 1 }}
             >
               <FiUserPlus size={16} />
-              {loading ? 'Creating Account...' : 'Create Account'}
+              {isSubmitting ? 'Creating Account...' : 'Create Account'}
             </button>
           </form>
 
-          <p style={{ textAlign: 'center', fontSize: '14px', color: '#64748b', marginTop: '20px', marginBottom: 0 }}>
+          <p style={{ textAlign: 'center', fontSize: '14px', color: '#64748b', marginTop: '16px', marginBottom: 0 }}>
             Already have an account?{' '}
             <Link href={`/login${redirect ? `?redirect=${redirect}` : ''}`} style={{ color: '#3BAE56', fontWeight: '700', textDecoration: 'none' }}>
               Log In

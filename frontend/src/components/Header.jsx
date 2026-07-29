@@ -71,7 +71,6 @@ const Header = () => {
     { href: '/shop', label: 'Categories' },
     { href: '/shop?sort=bestselling', label: 'Bestsellers' },
     { href: '/build-combo', label: 'Combos' },
-    { href: '/blog', label: 'Blog' },
     { href: '/about', label: 'About' },
   ];
 
@@ -94,11 +93,11 @@ const Header = () => {
           <div style={{ display: 'flex', alignItems: 'center', height: '64px', gap: '24px' }}>
 
             {/* Logo */}
-            <Link href="/" style={{ textDecoration: 'none', flexShrink: 0, display: 'flex', alignItems: 'center', width: '180px', height: '50px', overflow: 'hidden', position: 'relative' }}>
+            <Link href="/" style={{ textDecoration: 'none', flexShrink: 0, display: 'flex', alignItems: 'center', height: '40px' }}>
               <img
                 src="/logo.png"
                 alt="MaxGlow"
-                style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scale(2.3)' }}
+                style={{ height: '100%', width: 'auto', objectFit: 'contain' }}
               />
             </Link>
 

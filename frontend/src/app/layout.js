@@ -8,6 +8,8 @@ import ConditionalFooter from '../components/ConditionalFooter';
 import ScrollToTop from '../components/ScrollToTop';
 import { NotificationProvider } from '../context/NotificationContext';
 
+import FCMProvider from '../components/FCMProvider';
+
 const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-inter' });
 const outfit = Outfit({ subsets: ['latin'], display: 'swap', variable: '--font-outfit' });
 
@@ -44,14 +46,16 @@ export default function RootLayout({ children }) {
       <body className={`${inter.variable} ${outfit.variable} ${inter.className}`}>
         <ReduxProvider>
           <NotificationProvider>
-            <Suspense fallback={null}>
-              <ScrollToTop />
-            </Suspense>
+            <FCMProvider>
+              <Suspense fallback={null}>
+                <ScrollToTop />
+              </Suspense>
             <ConditionalHeader />
             <main>
               {children}
             </main>
             <ConditionalFooter />
+            </FCMProvider>
           </NotificationProvider>
         </ReduxProvider>
         <Script 
