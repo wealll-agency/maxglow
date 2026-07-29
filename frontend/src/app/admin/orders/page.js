@@ -154,13 +154,13 @@ function AdminOrdersContent() {
   };
 
   const handleRefund = async (id) => {
-    const confirmed = await showConfirm('Are you sure you want to cancel this order and record it as refunded? (You must initiate the actual refund in your CCAvenue Dashboard)');
+    const confirmed = await showConfirm('Are you sure you want to cancel this order and record it as refunded? (You must initiate the actual refund in your Razorpay Dashboard)');
     if (confirmed) {
       setActionSuccess('');
       dispatch(refundOrder(id))
         .unwrap()
         .then((updatedOrder) => {
-          setActionSuccess('Order cancelled and refund recorded. Please process actual refund via CCAvenue.');
+          setActionSuccess('Order cancelled and refund recorded. Please process actual refund via Razorpay.');
           setSelectedOrder(updatedOrder);
           dispatch(fetchAdminOrders());
         })
@@ -577,7 +577,18 @@ function AdminOrdersContent() {
                   
                   {/* Cancel / Refund */}
                   {selectedOrder.orderStatus !== 'Delivered' && selectedOrder.orderStatus !== 'Cancelled' && user.role === 'Super Admin' && (
-                    <button onClick={() => handleRefund(selectedOrder._id)} className="btn btn-sm btn-danger">Cancel & Refund Order</button>
+                    <button 
+                      onClick={() => {
+                        if (selectedOrder.paymentStatus === 'Paid') {
+                          handleRefund(selectedOrder._id);
+                        } else {
+                          handleStatusChange(selectedOrder._id, 'Cancelled');
+                        }
+                      }} 
+                      className="btn btn-sm btn-danger"
+                    >
+                      {selectedOrder.paymentStatus === 'Paid' ? 'Cancel & Refund Order' : 'Cancel Order'}
+                    </button>
                   )}
                 </div>
 
@@ -585,26 +596,20 @@ function AdminOrdersContent() {
                   <div className="mb-2">
                     Current Status: <strong className="text-dark">{selectedOrder.orderStatus}</strong> | Payment Status: <strong className="text-dark">{selectedOrder.paymentStatus}</strong>
                   </div>
-                  {(selectedOrder.ccavenueTrackingId || selectedOrder.ccavenueBankRefNo) && (
-                    <div className="bg-light p-3 rounded border">
+                  {(selectedOrder.razorpayOrderId || selectedOrder.razorpayPaymentId) && (
+                    <div className="bg-light p-3 rounded border mt-3">
                       <h6 className="fw-bold text-dark fs-8 mb-2 text-uppercase">Transaction Details</h6>
                       <div className="d-flex flex-column gap-1">
-                        {selectedOrder.ccavenueTrackingId && (
+                        {selectedOrder.razorpayOrderId && (
                           <div className="d-flex justify-content-between">
-                            <span>CCAvenue Tracking ID:</span>
-                            <span className="text-dark fw-medium font-monospace">{selectedOrder.ccavenueTrackingId}</span>
+                            <span>Razorpay Order ID:</span>
+                            <span className="text-dark fw-medium font-monospace">{selectedOrder.razorpayOrderId}</span>
                           </div>
                         )}
-                        {selectedOrder.ccavenueBankRefNo && (
+                        {selectedOrder.razorpayPaymentId && (
                           <div className="d-flex justify-content-between">
-                            <span>Bank Reference Number:</span>
-                            <span className="text-dark fw-medium font-monospace">{selectedOrder.ccavenueBankRefNo}</span>
-                          </div>
-                        )}
-                        {selectedOrder.paymentMode && (
-                          <div className="d-flex justify-content-between">
-                            <span>Payment Mode:</span>
-                            <span className="text-dark fw-medium font-monospace">{selectedOrder.paymentMode}</span>
+                            <span>Razorpay Payment ID:</span>
+                            <span className="text-dark fw-medium font-monospace">{selectedOrder.razorpayPaymentId}</span>
                           </div>
                         )}
                         {selectedOrder.paymentStatus === 'Paid' && (
