@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
-
 import React from 'react';
+import MgCard from '../../components/ui/MgCard';
 
 export default function AboutPage() {
   return (
@@ -12,56 +12,65 @@ export default function AboutPage() {
         </marquee>
       </div>
 
-      {/* Breadcrumb Banner */}
-      <section className="breadcrumb-banner position-relative about-hero-banner">
-        <div className="position-absolute top-0 start-0 w-100 h-100 about-hero-overlay"></div>
-        <div className="container position-relative h-100 d-flex flex-column justify-content-center text-center about-hero-content">
-          <h1 className="text-white fw-bold mb-3 about-hero-title">About MaxGlow</h1>
+      {/* Premium Hero Banner */}
+      <section className="position-relative py-5 d-flex align-items-center" style={{ minHeight: '350px' }}>
+        <Image src="/hero_final_1.png" alt="About MaxGlow Banner" fill style={{ objectFit: 'cover', objectPosition: 'center' }} priority />
+        <div className="position-absolute w-100 h-100" style={{ top: 0, left: 0, background: 'rgba(0, 0, 0, 0.25)' }}></div>
+        <div className="container position-relative z-1 text-center mt-4">
+          <h1 className="text-white fw-bold display-4 mb-3" style={{ textShadow: '0 4px 15px rgba(0,0,0,0.8)' }}>About MaxGlow</h1>
           <nav aria-label="breadcrumb">
-            <ol className="breadcrumb justify-content-center mb-0 about-breadcrumb">
-              <li className="breadcrumb-item"><Link href="/" className="text-white text-decoration-none">Home</Link></li>
-              <li className="breadcrumb-item active text-warning fw-bold" aria-current="page">About Us</li>
+            <ol className="breadcrumb justify-content-center mb-0" style={{ fontSize: '1.1rem' }}>
+              <li className="breadcrumb-item"><Link href="/" className="text-white text-opacity-75 text-decoration-none" style={{ textShadow: '0 2px 5px rgba(0,0,0,0.8)' }}>Home</Link></li>
+              <li className="breadcrumb-item active text-white fw-bold" aria-current="page" style={{ textShadow: '0 2px 5px rgba(0,0,0,0.8)' }}>About Us</li>
             </ol>
           </nav>
         </div>
       </section>
 
       {/* Our Story Section */}
-      <section className="our-story py-5 mt-md-4 mb-md-2">
+      <section className="py-5 my-md-5">
         <div className="container">
           <div className="row align-items-center gy-5">
-            <div className="col-lg-6 position-relative">
-              <div className="position-relative about-story-img-wrap">
-                <Image src="/maxglow-hero-products.png" alt="MaxGlow Store" width={800} height={600} style={{ width: '100%', height: 'auto' }} className="img-fluid rounded-4 shadow-lg w-100 about-story-img" />
+            <div className="col-lg-6">
+              <div className="position-relative">
+                <Image 
+                  src="/maxglow-hero-products.png" 
+                  alt="MaxGlow Store" 
+                  width={800} height={600} 
+                  style={{ width: '100%', height: 'auto', objectFit: 'cover' }} 
+                  className="img-fluid rounded-5 shadow-lg" 
+                />
               </div>
-              <div className="position-absolute rounded-4 d-none d-lg-block about-story-bg-shape"></div>
             </div>
-            <div className="col-lg-6 ps-lg-5 text-center text-lg-start mt-5 mt-lg-0">
-              <span className="d-inline-block px-3 py-1 rounded-pill mb-3 fw-bold shadow-sm about-story-badge">OUR STORY</span>
-              <h2 className="fw-bold mb-4 about-story-title">A Legacy of Premium Herbal Wellness & Cosmetics</h2>
-              <p className="text-muted about-story-text">
+            <div className="col-lg-6 ps-lg-5 text-center text-lg-start">
+              <span className="d-inline-block px-4 py-2 rounded-pill mb-3 fw-bold shadow-sm" style={{ backgroundColor: '#eef6ff', color: '#1c72b9', fontSize: '0.9rem', letterSpacing: '1px' }}>
+                OUR STORY
+              </span>
+              <h2 className="display-5 fw-bold mb-4" style={{ color: '#1e293b' }}>A Legacy of Premium Herbal Wellness & Cosmetics</h2>
+              <p className="text-secondary fs-5 mb-4" style={{ lineHeight: '1.8' }}>
                 At MaxGlow, we believe in delivering the pure bounty of nature to your personal care routine. Our journey started with a simple vision: to bridge the gap between premium organic ingredients and skin-conscious consumers. Over the years, we have mastered the art of formulating the most exquisite herbal face serums, oils, and body care items using botanical extracts sourced from the finest organic gardens.
               </p>
-              <p className="text-muted about-story-text">
+              <p className="text-secondary fs-5 mb-5" style={{ lineHeight: '1.8' }}>
                 Every product in our collection is carefully formulated, rigorously tested, and meticulously crafted to preserve the natural active ingredients and therapeutic value. With a deep commitment to excellence, MaxGlow isn't just a cosmetics brand—it's a promise of purity, radiant beauty, and holistic well-being.
               </p>
-              <div className="d-flex align-items-center mt-4 gap-4 justify-content-center justify-content-lg-start">
-                <div className="d-flex align-items-center gap-3 text-start">
-                  <div className="rounded-circle d-flex align-items-center justify-content-center text-white about-feature-icon-wrapper">
-                    <i className="fas fa-check"></i>
+              
+              <div className="d-flex align-items-center gap-5 justify-content-center justify-content-lg-start">
+                <div className="d-flex align-items-center gap-3">
+                  <div className="rounded-circle d-flex align-items-center justify-content-center text-white shadow-sm" style={{ width: '50px', height: '50px', backgroundColor: '#1c72b9' }}>
+                    <i className="fas fa-check fs-5"></i>
                   </div>
-                  <div>
-                    <h6 className="mb-0 fw-bold about-feature-title">100% Natural</h6>
-                    <small className="text-muted about-feature-subtitle">No Preservatives</small>
+                  <div className="text-start">
+                    <h5 className="mb-1 fw-bold text-dark">100% Natural</h5>
+                    <span className="text-muted">No Preservatives</span>
                   </div>
                 </div>
-                <div className="d-flex align-items-center gap-3 text-start">
-                  <div className="rounded-circle d-flex align-items-center justify-content-center text-white about-feature-icon-wrapper">
-                    <i className="fas fa-leaf"></i>
+                <div className="d-flex align-items-center gap-3">
+                  <div className="rounded-circle d-flex align-items-center justify-content-center text-white shadow-sm" style={{ width: '50px', height: '50px', backgroundColor: '#10b981' }}>
+                    <i className="fas fa-leaf fs-5"></i>
                   </div>
-                  <div>
-                    <h6 className="mb-0 fw-bold about-feature-title">Farm Fresh</h6>
-                    <small className="text-muted about-feature-subtitle">Sourced Locally</small>
+                  <div className="text-start">
+                    <h5 className="mb-1 fw-bold text-dark">Farm Fresh</h5>
+                    <span className="text-muted">Sourced Locally</span>
                   </div>
                 </div>
               </div>
@@ -70,81 +79,85 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Why Choose Us */}
-      <section className="why-choose-us py-5" style={{ backgroundColor: '#fcfaf8' }}>
-        <div className="container py-4">
-          <div className="text-center mb-5">
-            <span className="d-inline-block px-3 py-1 rounded-pill mb-2 fw-bold about-advantage-badge">WHY CHOOSE MAXGLOW</span>
-            <h2 className="fw-bold about-advantage-title">The MaxGlow Advantage</h2>
+      {/* Why Choose Us using MgCard */}
+      <section className="py-5" style={{ backgroundColor: '#f8fafc' }}>
+        <div className="container py-5">
+          <div className="text-center mb-5 pb-3">
+            <span className="d-inline-block px-4 py-2 rounded-pill mb-3 fw-bold shadow-sm" style={{ backgroundColor: '#fff', color: '#10b981', fontSize: '0.9rem', letterSpacing: '1px' }}>
+              WHY CHOOSE MAXGLOW
+            </span>
+            <h2 className="display-5 fw-bold text-dark">The MaxGlow Advantage</h2>
           </div>
+          
           <div className="row g-4 justify-content-center">
-            <div className="col-lg-3 col-md-6 col-sm-6">
-              <div className="card border-0 h-100 text-center p-4 rounded-4 shadow-sm about-advantage-card">
-                <div className="mx-auto mb-4 mt-2 about-advantage-icon-box">
-                  <Image src="/icon_nutrition.png" alt="Nutrition" width={60} height={60} className="about-advantage-icon" />
+            <div className="col-lg-3 col-md-6">
+              <MgCard className="text-center h-100 p-4">
+                <div className="mx-auto mb-4 d-flex justify-content-center align-items-center rounded-circle" style={{ width: '80px', height: '80px', backgroundColor: '#f0fdf4' }}>
+                  <Image src="/icon_nutrition.png" alt="Organic" width={48} height={48} style={{ objectFit: 'contain' }} />
                 </div>
-                <h5 className="fw-bold mb-2 about-advantage-card-title">100% Organic</h5>
-                <p className="text-muted mb-0 about-advantage-card-text">Carefully formulated using certified organic botanical extracts.</p>
-              </div>
+                <h4 className="fw-bold mb-3 text-dark">100% Organic</h4>
+                <p className="text-secondary mb-0" style={{ fontSize: '1.05rem', lineHeight: '1.6' }}>Carefully formulated using certified organic botanical extracts.</p>
+              </MgCard>
             </div>
-            <div className="col-lg-3 col-md-6 col-sm-6">
-              <div className="card border-0 h-100 text-center p-4 rounded-4 shadow-sm about-advantage-card">
-                <div className="mx-auto mb-4 mt-2 about-advantage-icon-box">
-                  <Image src="/icon_heart.png" alt="Heart Healthy" width={60} height={60} className="about-advantage-icon" />
+            <div className="col-lg-3 col-md-6">
+              <MgCard className="text-center h-100 p-4">
+                <div className="mx-auto mb-4 d-flex justify-content-center align-items-center rounded-circle" style={{ width: '80px', height: '80px', backgroundColor: '#fff1f2' }}>
+                  <Image src="/icon_heart.png" alt="Cruelty Free" width={48} height={48} style={{ objectFit: 'contain' }} />
                 </div>
-                <h5 className="fw-bold mb-2 about-advantage-card-title">Cruelty Free</h5>
-                <p className="text-muted mb-0 about-advantage-card-text">Ethically formulated and never tested on animals.</p>
-              </div>
+                <h4 className="fw-bold mb-3 text-dark">Cruelty Free</h4>
+                <p className="text-secondary mb-0" style={{ fontSize: '1.05rem', lineHeight: '1.6' }}>Ethically formulated and never tested on animals.</p>
+              </MgCard>
             </div>
-            <div className="col-lg-3 col-md-6 col-sm-6">
-              <div className="card border-0 h-100 text-center p-4 rounded-4 shadow-sm about-advantage-card">
-                <div className="mx-auto mb-4 mt-2 about-advantage-icon-box">
-                  <Image src="/icon_gluten.png" alt="Gluten Free" width={60} height={60} className="about-advantage-icon" />
+            <div className="col-lg-3 col-md-6">
+              <MgCard className="text-center h-100 p-4">
+                <div className="mx-auto mb-4 d-flex justify-content-center align-items-center rounded-circle" style={{ width: '80px', height: '80px', backgroundColor: '#fdf4ff' }}>
+                  <Image src="/icon_gluten.png" alt="Toxin Free" width={48} height={48} style={{ objectFit: 'contain' }} />
                 </div>
-                <h5 className="fw-bold mb-2 about-advantage-card-title">Toxin Free</h5>
-                <p className="text-muted mb-0 about-advantage-card-text">Completely free of parabens, sulfates, and harmful artificial chemicals.</p>
-              </div>
+                <h4 className="fw-bold mb-3 text-dark">Toxin Free</h4>
+                <p className="text-secondary mb-0" style={{ fontSize: '1.05rem', lineHeight: '1.6' }}>Completely free of parabens, sulfates, and harmful artificial chemicals.</p>
+              </MgCard>
             </div>
-            <div className="col-lg-3 col-md-6 col-sm-6">
-              <div className="card border-0 h-100 text-center p-4 rounded-4 shadow-sm about-advantage-card">
-                <div className="mx-auto mb-4 mt-2 about-advantage-icon-box">
-                  <Image src="/icon_cholesterol.png" alt="Cholesterol Free" width={60} height={60} className="about-advantage-icon" />
+            <div className="col-lg-3 col-md-6">
+              <MgCard className="text-center h-100 p-4">
+                <div className="mx-auto mb-4 d-flex justify-content-center align-items-center rounded-circle" style={{ width: '80px', height: '80px', backgroundColor: '#e0f2fe' }}>
+                  <Image src="/icon_cholesterol.png" alt="Tested" width={48} height={48} style={{ objectFit: 'contain' }} />
                 </div>
-                <h5 className="fw-bold mb-2 about-advantage-card-title">Dermatologically Tested</h5>
-                <p className="text-muted mb-0 about-advantage-card-text">Clinically evaluated to be safe and gentle on all skin types.</p>
-              </div>
+                <h4 className="fw-bold mb-3 text-dark">Dermatologically Tested</h4>
+                <p className="text-secondary mb-0" style={{ fontSize: '1.05rem', lineHeight: '1.6' }}>Clinically evaluated to be safe and gentle on all skin types.</p>
+              </MgCard>
             </div>
           </div>
         </div>
       </section>
 
       {/* Mission & Vision Section */}
-      <section className="about-mission-section py-5 my-md-2" style={{ backgroundColor: '#fff' }}>
-        <div className="container py-3">
-          <div className="row align-items-center mb-5 pb-lg-4">
-            <div className="col-lg-6 order-lg-2 position-relative mb-4 mb-lg-0">
-              <div className="about-mission-img-wrap">
-                <Image src="/mg-offer1.jpg" alt="Our Mission" width={800} height={600} style={{ width: '100%', height: 'auto' }} className="img-fluid w-100 about-mission-img" />
-              </div>
+      <section className="py-5 my-md-5 bg-white">
+        <div className="container py-4">
+          <div className="row align-items-center mb-5 pb-5">
+            <div className="col-lg-6 order-lg-2 mb-4 mb-lg-0">
+              <Image src="/mg-offer1.jpg" alt="Our Mission" width={800} height={600} style={{ width: '100%', height: 'auto', objectFit: 'cover' }} className="img-fluid rounded-5 shadow-lg" />
             </div>
             <div className="col-lg-6 order-lg-1 pe-lg-5 text-center text-lg-start">
-              <span className="d-inline-block px-3 py-1 rounded-pill mb-3 fw-bold about-mission-badge">OUR MISSION</span>
-              <h2 className="fw-bold mb-3 about-mission-title">Bringing Nature's Purest to Your Skincare</h2>
-              <p className="text-muted mb-0 about-mission-text">
+              <span className="d-inline-block px-4 py-2 rounded-pill mb-3 fw-bold shadow-sm" style={{ backgroundColor: '#fff7ed', color: '#ea580c', fontSize: '0.9rem', letterSpacing: '1px' }}>
+                OUR MISSION
+              </span>
+              <h2 className="display-6 fw-bold mb-4 text-dark">Bringing Nature's Purest to Your Skincare</h2>
+              <p className="text-secondary fs-5 mb-0" style={{ lineHeight: '1.8' }}>
                 Our mission is to establish a robust and ethical extraction process that empowers local herb farmers while delivering uncompromised quality skincare globally. We are dedicated to making botanical excellence and natural glow seamlessly accessible to everyone, ensuring every drop is as wholesome as nature intended.
               </p>
             </div>
           </div>
-          <div className="row align-items-center">
-            <div className="col-lg-6 position-relative mb-4 mb-lg-0">
-              <div className="about-vision-img-wrap">
-                <Image src="/mg-offer2.jpg" alt="Our Vision" width={800} height={600} style={{ width: '100%', height: 'auto' }} className="img-fluid w-100 about-vision-img" />
-              </div>
+          
+          <div className="row align-items-center pt-5">
+            <div className="col-lg-6 mb-4 mb-lg-0">
+              <Image src="/mg-offer2.jpg" alt="Our Vision" width={800} height={600} style={{ width: '100%', height: 'auto', objectFit: 'cover' }} className="img-fluid rounded-5 shadow-lg" />
             </div>
             <div className="col-lg-6 ps-lg-5 text-center text-lg-start">
-              <span className="d-inline-block px-3 py-1 rounded-pill mb-3 fw-bold about-vision-badge">OUR VISION</span>
-              <h2 className="fw-bold mb-3 about-mission-title">Redefining Premium Natural Beauty</h2>
-              <p className="text-muted mb-0 about-mission-text">
+              <span className="d-inline-block px-4 py-2 rounded-pill mb-3 fw-bold shadow-sm" style={{ backgroundColor: '#f5f3ff', color: '#7c3aed', fontSize: '0.9rem', letterSpacing: '1px' }}>
+                OUR VISION
+              </span>
+              <h2 className="display-6 fw-bold mb-4 text-dark">Redefining Premium Natural Beauty</h2>
+              <p className="text-secondary fs-5 mb-0" style={{ lineHeight: '1.8' }}>
                 We envision a world where wholesome, natural skincare universally replaces chemical and processed alternatives. By continuously innovating and expanding our sustainably sourced offerings, we strive to become the leading symbol of purity, enriching skin health and fostering a globally beauty-conscious community.
               </p>
             </div>
@@ -152,74 +165,39 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Wholesale / CTA Banner */}
-      <section className="cta-banner my-5 py-md-3">
-        <div className="container">
-          <div className="position-relative overflow-hidden rounded-4 shadow-sm text-center text-md-start about-cta-container">
-            <Image src="/cta_banner.png" alt="Wholesale" fill style={{ objectFit: 'cover' }} className="position-absolute about-cta-bg-img" />
-            <div className="position-absolute w-100 h-100 about-cta-bg-overlay"></div>
-            <div className="position-relative py-5 px-4 px-md-5 d-flex flex-column justify-content-center h-100 about-cta-content">
-              <div className="col-md-9 col-lg-7">
-                <span className="text-white fw-bold mb-3 d-inline-block px-3 py-1 rounded-pill about-cta-badge">BULK SUPPLIES & SPA PACKAGES</span>
-                <h2 className="text-white fw-bold mb-4 about-cta-title">Premium Spa Gifting & Wholesale Supplies</h2>
-                <p className="text-light mb-4 about-cta-text">
-                  Looking to enchant your clients or source top-tier quality cosmetics for your business? We offer flexible bulk solutions, beautifully crafted custom wellness packages tailored for every occasion, and a seamless B2B sourcing experience.
-                </p>
-                <div className="d-flex flex-wrap gap-3 mt-2 justify-content-center justify-content-md-start">
-                  <a href="#" className="btn fw-bold px-4 py-2 rounded-pill shadow about-cta-btn-primary">Contact Us Today <i className="fas fa-arrow-right ms-2"></i></a>
-                  <a href="#" className="btn btn-outline-light fw-bold px-4 py-2 rounded-pill about-cta-btn-outline">Download Catalog <i className="fas fa-file-pdf ms-2"></i></a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* FAQ Section */}
-      <section className="faq-section bg-white pt-3 pb-5">
-        <div className="container" style={{ maxWidth: '900px' }}>
-          <h2 className="main-title mb-5" style={{ fontWeight: 800, fontSize: '38px' }}>FAQs</h2>
-          <div className="accordion custom-accordion" id="faqAccordion">
-            <div className="accordion-item">
+      <section className="py-5" style={{ backgroundColor: '#f8fafc' }}>
+        <div className="container py-4" style={{ maxWidth: '900px' }}>
+          <div className="text-center mb-5">
+            <h2 className="display-6 fw-bold text-dark">Frequently Asked Questions</h2>
+            <p className="text-muted fs-5">Everything you need to know about MaxGlow.</p>
+          </div>
+          <div className="accordion" id="faqAccordion">
+            <div className="accordion-item border-0 shadow-sm rounded-4 mb-3 overflow-hidden">
               <h2 className="accordion-header" id="headingOne">
-                <button className="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                <button className="accordion-button fw-bold fs-5 p-4 bg-white text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne" style={{ boxShadow: 'none' }}>
                   1. How often should I apply the Vitamin C Face Serum?
                 </button>
               </h2>
               <div id="collapseOne" className="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
-                <div className="accordion-body">
+                <div className="accordion-body p-4 pt-0 text-secondary fs-5" style={{ backgroundColor: '#fff' }}>
                   For best results, apply 3-5 drops of the Vitamin C Face Serum once daily during your morning skincare routine, followed by a broad-spectrum sunscreen.
                 </div>
               </div>
             </div>
-            <div className="accordion-item">
+            
+            <div className="accordion-item border-0 shadow-sm rounded-4 mb-3 overflow-hidden">
               <h2 className="accordion-header" id="headingTwo">
-                <button className="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                <button className="accordion-button collapsed fw-bold fs-5 p-4 bg-white text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo" style={{ boxShadow: 'none' }}>
                   2. Are MaxGlow products safe for sensitive skin types?
                 </button>
               </h2>
               <div id="collapseTwo" className="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
-                <div className="accordion-body">
+                <div className="accordion-body p-4 pt-0 text-secondary fs-5" style={{ backgroundColor: '#fff' }}>
                   Yes, all MaxGlow products are dermatologically tested, hypoallergenic, and formulated with soothing botanicals like chamomile and aloe vera to be gentle on sensitive skin.
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* People Are Also Looking For Section */}
-      <section className="tags-section bg-white py-5">
-        <div className="container py-3">
-          <h3 className="mb-4 text-start" style={{ fontSize: '24px', color: '#333' }}>People Are Also Looking For</h3>
-          <div className="d-flex flex-wrap gap-2">
-            <a href="#" className="search-tag-pill">Brightening Cream</a>
-            <a href="#" className="search-tag-pill">Anti-Acne Serum</a>
-            <a href="#" className="search-tag-pill">Rose Water Toner</a>
-            <a href="#" className="search-tag-pill">Herbal Shampoo</a>
-            <a href="#" className="search-tag-pill">Hydrating Lotion</a>
-            <a href="#" className="search-tag-pill">Organic Cleanser</a>
-            <a href="#" className="search-tag-pill">Vitamin C Serum</a>
           </div>
         </div>
       </section>

@@ -4,7 +4,7 @@ import Image from 'next/image';
 import React, { memo } from 'react';
 import { FiArrowRight, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 /* ═══════════════════════════════════════════
    HERBAL OFFER BANNERS SLIDER

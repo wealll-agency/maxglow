@@ -5,14 +5,14 @@ import Image from 'next/image';
 
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchAdminProducts, addProduct, editProduct, removeProduct, toggleProductState, fetchWarehouses } from '../../../store/adminSlice';
+import { fetchAdminProducts, addProduct, editProduct, removeProduct, toggleProductState, fetchWarehouses, fetchCategories, createCategory, addSubCategory } from '../../../store/adminSlice';
 import { Plus, Edit, Trash2, X, Eye, Download, Search, LayoutGrid } from 'lucide-react';
 import { useNotification } from '../../../context/NotificationContext';
 
 export default function AdminProductsPage() {
   const dispatch = useDispatch();
   
-  const { products, productsLoading, warehouses } = useSelector((state) => state.admin);
+  const { products, productsLoading, warehouses, categories } = useSelector((state) => state.admin);
   const { user } = useSelector((state) => state.auth);
   const { showAlert, showConfirm } = useNotification();
 
@@ -30,6 +30,13 @@ export default function AdminProductsPage() {
   const [showLimitedStockOnly, setShowLimitedStockOnly] = useState(false);
   const [viewingProduct, setViewingProduct] = useState(null);
   const [viewingBarcode, setViewingBarcode] = useState(null);
+
+  // Category Management States
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [showSubCategoryModal, setShowSubCategoryModal] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [newSubCategoryName, setNewSubCategoryName] = useState('');
+  const [parentCategoryId, setParentCategoryId] = useState('');
 
   // Form fields
   const [name, setName] = useState('');
@@ -97,7 +104,10 @@ export default function AdminProductsPage() {
   useEffect(() => {
     dispatch(fetchAdminProducts({}));
     dispatch(fetchWarehouses());
-  }, [dispatch]);
+    if (!categories || categories.length === 0) {
+      dispatch(fetchCategories());
+    }
+  }, [dispatch, categories]);
 
   const handleToggle = (id, field, value) => {
     dispatch(toggleProductState({ id, field, value }));
@@ -130,7 +140,7 @@ export default function AdminProductsPage() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', 'sweettree_products.csv');
+    link.setAttribute('download', 'maxglow_products.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -221,6 +231,33 @@ export default function AdminProductsPage() {
     const confirmed = await showConfirm('Are you sure you want to delete this product? Corresponding inventory records will be wiped.');
     if (confirmed) {
       dispatch(removeProduct(id));
+    }
+  };
+
+  const handleAddCategorySubmit = async () => {
+    if (!newCategoryName.trim()) return showAlert("Category name is required", "error");
+    try {
+      await dispatch(createCategory({ name: newCategoryName })).unwrap();
+      setNewCategoryName('');
+      setShowCategoryModal(false);
+      showAlert("Category added successfully!", "success");
+    } catch (err) {
+      showAlert(err || "Failed to add category", "error");
+    }
+  };
+
+  const handleAddSubCategorySubmit = async () => {
+    if (!parentCategoryId) return showAlert("Please select a parent category", "error");
+    if (!newSubCategoryName.trim()) return showAlert("Sub-category name is required", "error");
+    
+    try {
+      await dispatch(addSubCategory({ categoryId: parentCategoryId, subCategoryData: { subCategory: newSubCategoryName } })).unwrap();
+      setNewSubCategoryName('');
+      setParentCategoryId('');
+      setShowSubCategoryModal(false);
+      showAlert("Sub-category added successfully!", "success");
+    } catch (err) {
+      showAlert(err || "Failed to add sub-category", "error");
     }
   };
 
@@ -403,24 +440,23 @@ export default function AdminProductsPage() {
               </div>
               <div className="col-md-3">
                 <label className="fw-medium mb-1 fs-7">Category</label>
-                <select className="form-select" value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
+                <select className="form-select" value={filterCategory} onChange={(e) => {
+                  setFilterCategory(e.target.value);
+                  setFilterSubCategory('Select Sub Category');
+                }}>
                   <option value="Select category">Select category</option>
-                  <option value="Skin Care">Skin Care</option>
-                  <option value="Hair Care">Hair Care</option>
-                  <option value="Body Care">Body Care</option>
-                  <option value="Wellness">Wellness</option>
-                  <option value="Baby Care">Baby Care</option>
-                  <option value="Combos">Combos</option>
+                  {categories && categories.map(cat => (
+                    <option key={cat._id} value={cat.name}>{cat.name}</option>
+                  ))}
                 </select>
               </div>
               <div className="col-md-3">
                 <label className="fw-medium mb-1 fs-7">Sub Category</label>
                 <select className="form-select" value={filterSubCategory} onChange={(e) => setFilterSubCategory(e.target.value)}>
                   <option value="Select Sub Category">Select Sub Category</option>
-                  <option value="Serums">Serums</option>
-                  <option value="Lotions">Lotions</option>
-                  <option value="Creams">Creams</option>
-                  <option value="Oils">Oils</option>
+                  {categories && categories.find(c => c.name === filterCategory)?.subCategories.map((sub, idx) => (
+                    <option key={idx} value={sub}>{sub}</option>
+                  ))}
                 </select>
               </div>
               <div className="col-md-3">
@@ -474,6 +510,12 @@ export default function AdminProductsPage() {
               <button onClick={() => setShowLimitedStockOnly(!showLimitedStockOnly)} className="btn d-flex align-items-center" style={{ backgroundColor: showLimitedStockOnly ? '#00b8b8' : '#00d2d3', color: '#fff', border: 'none' }}>
                 Limited Sotcks {showLimitedStockOnly && '(Active)'}
               </button>
+              <button onClick={() => setShowCategoryModal(true)} className="btn btn-outline-brand d-flex align-items-center gap-2">
+                <Plus size={16} /> Add Category
+              </button>
+              <button onClick={() => setShowSubCategoryModal(true)} className="btn btn-outline-brand d-flex align-items-center gap-2">
+                <Plus size={16} /> Add Sub Category
+              </button>
               <button onClick={() => setShowForm(true)} className="btn btn-brand d-flex align-items-center gap-2">
                 <Plus size={16} /> Add new product
               </button>
@@ -519,18 +561,24 @@ export default function AdminProductsPage() {
                   
                   <div className="col-md-4">
                     <label className="fw-medium mb-1 fs-7">Category</label>
-                    <select className="form-select" value={category} onChange={(e) => setCategory(e.target.value)}>
-                      <option value="Skin Care">Skin Care</option>
-                      <option value="Hair Care">Hair Care</option>
-                      <option value="Body Care">Body Care</option>
-                      <option value="Wellness">Wellness</option>
-                      <option value="Baby Care">Baby Care</option>
-                      <option value="Combos">Combos</option>
+                    <select className="form-select" value={category} onChange={(e) => {
+                      setCategory(e.target.value);
+                      setSubCategory('');
+                    }}>
+                      <option value="">Select category</option>
+                      {categories && categories.map(cat => (
+                        <option key={cat._id} value={cat.name}>{cat.name}</option>
+                      ))}
                     </select>
                   </div>
                   <div className="col-md-4">
                     <label className="fw-medium mb-1 fs-7">Sub Category</label>
-                    <input type="text" className="form-control" value={subCategory} onChange={(e) => setSubCategory(e.target.value)} />
+                    <select className="form-select" value={subCategory} onChange={(e) => setSubCategory(e.target.value)}>
+                      <option value="">Select Sub Category</option>
+                      {categories && categories.find(c => c.name === category)?.subCategories.map((sub, idx) => (
+                        <option key={idx} value={sub}>{sub}</option>
+                      ))}
+                    </select>
                   </div>
                   <div className="col-md-4">
                     <label className="fw-medium mb-1 fs-7">Sub Sub Category</label>
@@ -549,10 +597,9 @@ export default function AdminProductsPage() {
                     <div className="input-group">
                       <input type="number" className="form-control" value={unitValue} onChange={(e) => setUnitValue(e.target.value)} />
                       <select className="form-select" style={{ maxWidth: '100px' }} value={unit} onChange={(e) => setUnit(e.target.value)}>
-                        <option value="kg">kg</option>
                         <option value="gm">gm</option>
+                        <option value="ml">ml</option>
                         <option value="pcs">pcs</option>
-                        <option value="ltr">ltr</option>
                         <option value="pack">pack</option>
                       </select>
                     </div>
@@ -661,10 +708,9 @@ export default function AdminProductsPage() {
                           newPacks[index].unit = e.target.value;
                           setPackSizes(newPacks);
                         }}>
-                          <option value="kg">kg</option>
-                          <option value="g">g</option>
+                          <option value="gm">gm</option>
+                          <option value="ml">ml</option>
                           <option value="pcs">pcs</option>
-                          <option value="ltr">ltr</option>
                           <option value="pack">pack</option>
                         </select>
                       </div>
@@ -863,6 +909,72 @@ export default function AdminProductsPage() {
         </div>
       )}
 
+      {/* Add Category Modal */}
+      {showCategoryModal && (
+        <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content border-0 shadow-lg rounded-4">
+              <div className="modal-header border-bottom-0 pb-0">
+                <h5 className="modal-title fw-bold text-dark">Add New Category</h5>
+                <button type="button" className="btn-close" onClick={() => setShowCategoryModal(false)}></button>
+              </div>
+              <div className="modal-body pt-3">
+                <label className="fw-medium mb-1 fs-7">Category Name</label>
+                <input 
+                  type="text" 
+                  className="form-control" 
+                  value={newCategoryName} 
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  placeholder="e.g. Skin Care"
+                />
+              </div>
+              <div className="modal-footer border-top-0 pt-0">
+                <button type="button" className="btn btn-light" onClick={() => setShowCategoryModal(false)}>Cancel</button>
+                <button type="button" className="btn btn-brand" onClick={handleAddCategorySubmit}>Add Category</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Sub Category Modal */}
+      {showSubCategoryModal && (
+        <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content border-0 shadow-lg rounded-4">
+              <div className="modal-header border-bottom-0 pb-0">
+                <h5 className="modal-title fw-bold text-dark">Add New Sub-Category</h5>
+                <button type="button" className="btn-close" onClick={() => setShowSubCategoryModal(false)}></button>
+              </div>
+              <div className="modal-body pt-3">
+                <div className="mb-3">
+                  <label className="fw-medium mb-1 fs-7">Select Parent Category</label>
+                  <select className="form-select" value={parentCategoryId} onChange={(e) => setParentCategoryId(e.target.value)}>
+                    <option value="">-- Select Category --</option>
+                    {categories && categories.map(cat => (
+                      <option key={cat._id} value={cat._id}>{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="fw-medium mb-1 fs-7">Sub-Category Name</label>
+                  <input 
+                    type="text" 
+                    className="form-control" 
+                    value={newSubCategoryName} 
+                    onChange={(e) => setNewSubCategoryName(e.target.value)}
+                    placeholder="e.g. Face Wash"
+                  />
+                </div>
+              </div>
+              <div className="modal-footer border-top-0 pt-0">
+                <button type="button" className="btn btn-light" onClick={() => setShowSubCategoryModal(false)}>Cancel</button>
+                <button type="button" className="btn btn-brand" onClick={handleAddSubCategorySubmit}>Add Sub-Category</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,5 +1,6 @@
-import React from 'react';
+'use client';
 
+import React from 'react';
 /**
  * MgButton — MaxGlow Premium Reusable Button Component
  * Supports variants: 'primary' (#58B368 gradient), 'secondary' (#8FD3C4), 'outline', 'ghost', 'danger'

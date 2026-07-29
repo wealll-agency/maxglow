@@ -120,7 +120,7 @@ function ShopContent() {
     <>
       <div className="marquee-wrapper">
         <marquee behavior="scroll" direction="left" scrollamount="5">
-          || 🥜 Sweettree Anmol Jumbo Nuts - Extra 10% OFF! 🥜 || 🎁 Nuts For Savings 🎁 || 🔥 PayDay Sale Is LIVE - Extra 15% OFF Sitewide! 🔥 ||
+          || 🥜 MaxGlow Anmol Jumbo Nuts - Extra 10% OFF! 🥜 || 🎁 Nuts For Savings 🎁 || 🔥 PayDay Sale Is LIVE - Extra 15% OFF Sitewide! 🔥 ||
         </marquee>
       </div>
 
@@ -153,7 +153,7 @@ function ShopContent() {
           </ol>
         </nav>
         <p className="mb-4" style={{ fontSize: '14px', color: '#555' }}>
-          Nutraj <strong>PAYDAY SALE is Live!</strong> ✨ Get up to <strong>60% Off + Extra 15% Off</strong> on premium Nuts & Dry Fruits. Shop now for healthy savings!
+          MaxGlow <strong>GLOW UP SALE is Live!</strong> ✨ Get up to <strong>60% Off + Extra 15% Off</strong> on premium Skincare & Wellness. Shop now for healthy skin!
         </p>
       </div>
 
@@ -244,7 +244,7 @@ function ShopContent() {
                 </div>
                 <div id="brandFilter" className="collapse show mt-3">
                   <div className="d-flex flex-wrap gap-2">
-                    {['Sweettree', 'Sweettree ANMOL', 'Sweettree SNACKRITE'].map((brand) => (
+                    {['MaxGlow', 'MaxGlow ANMOL', 'MaxGlow SNACKRITE'].map((brand) => (
                       <button
                         key={brand}
                         onClick={() => setSelectedBrand(selectedBrand === brand ? null : brand)}
@@ -374,7 +374,7 @@ function ShopContent() {
                           <div className="col-8 col-md-9 ps-3 ps-md-4">
                             <div className="d-flex justify-content-between align-items-start">
                               <div>
-                                <span className="badge bg-light text-dark border mb-1">{product.brand || 'Sweettree'}</span>
+                                <span className="badge bg-light text-dark border mb-1">{product.brand || 'MaxGlow'}</span>
                                 <h5 className="fw-bold text-dark mb-1">{product.name}</h5>
                                 <p className="text-muted fs-7 mb-2 text-truncate-2" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{product.description}</p>
                               </div>

@@ -8,10 +8,13 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useNotification } from '../../context/NotificationContext';
+import MgCard from '../../components/ui/MgCard';
+import MgButton from '../../components/ui/MgButton';
+import ProductCard from '../../components/ProductCard';
 
 export default function BuildComboPage() {
   return (
-    <Suspense fallback={<div className="text-center py-5">Loading combo builder...</div>}>
+    <Suspense fallback={<div className="text-center py-5 fs-4 text-muted">Loading combo builder...</div>}>
       <BuildComboContent />
     </Suspense>
   );
@@ -73,15 +76,20 @@ function BuildComboContent() {
   return (
     <div className="container py-5">
       <nav aria-label="breadcrumb">
-        <ol className="breadcrumb mb-4" style={{ fontSize: '13px' }}>
-          <li className="breadcrumb-item"><Link href="/" className="text-muted">Home</Link></li>
-          <li className="breadcrumb-item active text-dark fw-bold" aria-current="page">Build Your Own Combo</li>
+        <ol className="breadcrumb mb-4" style={{ fontSize: '0.9rem' }}>
+          <li className="breadcrumb-item"><Link href="/" className="text-muted text-decoration-none">Home</Link></li>
+          <li className="breadcrumb-item active fw-bold text-dark" aria-current="page">Build Your Own Combo</li>
         </ol>
       </nav>
 
-      <div className="mb-4 text-center">
-        <h2 className="main-title mb-2" style={{ color: '#203d74' }}>Build Your Own Custom Combo</h2>
-        <p className="text-muted mx-auto" style={{ maxWidth: '600px' }}>Select your favorite products to create a personalized gift box. Apply our special Combo Coupons at checkout to get amazing discounts!</p>
+      <div className="mb-5 text-center">
+        <span className="d-inline-block px-4 py-2 rounded-pill mb-3 fw-bold shadow-sm" style={{ backgroundColor: '#eef6ff', color: '#1c72b9', fontSize: '0.9rem', letterSpacing: '1px' }}>
+          GIFTING & BUNDLES
+        </span>
+        <h2 className="display-5 fw-bold text-dark mb-3">Build Your Custom Combo</h2>
+        <p className="text-secondary fs-5 mx-auto" style={{ maxWidth: '700px', lineHeight: '1.6' }}>
+          Select your favorite products to create a personalized gift box. Apply our special Combo Coupons at checkout to unlock amazing discounts!
+        </p>
       </div>
 
       <div className="row g-4">
@@ -92,7 +100,7 @@ function BuildComboContent() {
               {[1, 2, 3, 4, 5, 6].map(idx => (
                 <div key={idx} className="col-md-6 col-lg-4">
                   <div className="placeholder-glow">
-                    <div className="placeholder bg-light w-100 rounded mb-2" style={{ height: '260px' }}></div>
+                    <div className="placeholder bg-light w-100 rounded-4 mb-2" style={{ height: '320px' }}></div>
                   </div>
                 </div>
               ))}
@@ -101,80 +109,15 @@ function BuildComboContent() {
             <div className="row g-4" id="shopProductGrid">
               {products.map((product) => {
                 const isSelected = selectedProductIds.includes(product._id);
-                const activePrice = product.discountedPrice || (product.discount > 0 ? (product.discountType === 'Flat' ? Math.max(0, product.price - product.discount) : Math.max(0, product.price - (product.price * product.discount / 100))) : product.price);
-                const mrp = product.price;
                 
-                let image = '/placeholder.png';
-                if (product.images && product.images.length > 0) {
-                  image = product.images[0].replace('/assets/images/', '/');
-                } else if (product.image) {
-                  image = product.image.replace('/assets/images/', '/');
-                }
-                
-                const tagLeft = product.newArrival ? 'NEW ARRIVAL' : (product.tagLeft || (product.discount > 0 ? 'PREMIUM' : ''));
-                const tagLeftClass = product.newArrival ? 'bg-success' : (product.tagLeftClass || '');
-                const tagRight = product.tagRight || (product.discount > 0 ? (product.discountType === 'Flat' ? `₹${product.discount} OFF` : `${product.discount}% OFF`) : '');
-
                 return (
                   <div key={product._id} className="col-sm-6 col-md-4">
-                    <div className="item h-100 px-2 py-3" onClick={() => { if (product.stock > 0) toggleProductSelection(product._id); }} style={{ cursor: product.stock > 0 ? 'pointer' : 'not-allowed' }}>
-                      <div className={`maxglow-product-card position-relative transition-all ${isSelected ? 'border-primary shadow-sm' : ''}`} style={{ opacity: product.stock <= 0 ? 0.7 : 1 }}>
-                        
-                        {isSelected && (
-                          <div className="position-absolute top-0 end-0 m-2 rounded-circle d-flex align-items-center justify-content-center shadow" style={{ width: '28px', height: '28px', zIndex: 10, backgroundColor: '#1c72b9', color: 'white' }}>
-                            <i className="fas fa-check"></i>
-                          </div>
-                        )}
-
-                        <div className="product-tags d-flex justify-content-between">
-                          {tagLeft && <span className={`tag-left ${tagLeftClass}`}>{tagLeft}</span>}
-                          {tagRight && <span className="tag-right ms-auto">{tagRight}</span>}
-                        </div>
-                        
-                        <div style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
-                          <div className="product-img-box position-relative" style={{ minHeight: '200px' }}>
-                            {product.stock <= 0 && (
-                              <div className="position-absolute w-100 d-flex justify-content-center align-items-center" style={{ top: '40%', zIndex: 20 }}>
-                                <span className="badge bg-danger px-3 py-2 fs-6 shadow-sm">OUT OF STOCK</span>
-                              </div>
-                            )}
-                            <Image 
-                              src={image} 
-                              alt={product.name} 
-                              fill
-                              sizes="(max-width: 768px) 50vw, 33vw"
-                              style={{ objectFit: 'contain' }}
-                            />
-                          </div>
-                          <div className="card-divider"></div>
-                          
-                          <div className="product-meta d-flex justify-content-between align-items-center">
-                             <span className="brand-text">{product.brand || 'MaxGlow'}</span>
-                          </div>
-                          
-                          <h3 className="product-name" style={{ userSelect: 'none' }}>{product.name}</h3>
-                          
-                          <div className="product-pricing">
-                            {mrp > activePrice ? (
-                              <>
-                                MRP: <del>₹{mrp}</del> <span className="current-price">₹{activePrice}</span> 
-                              </>
-                            ) : (
-                              <span className="current-price">₹{activePrice}</span>
-                            )}
-                          </div>
-                        </div>
-
-                        <button 
-                          className={`maxglow-btn-cart w-100 mt-2`}
-                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (product.stock > 0) toggleProductSelection(product._id); }}
-                          style={product.stock <= 0 ? { opacity: 0.5, cursor: 'not-allowed', backgroundColor: '#6c757d', borderColor: '#6c757d' } : (isSelected ? { backgroundColor: '#1c72b9', color: 'white', borderColor: '#1c72b9' } : {})}
-                          disabled={product.stock <= 0}
-                        >
-                          {product.stock <= 0 ? 'Out of Stock' : (isSelected ? 'Remove from Combo' : 'Select for Combo')}
-                        </button>
-                      </div>
-                    </div>
+                    <ProductCard 
+                      product={product}
+                      isComboMode={true}
+                      isSelected={isSelected}
+                      onToggleSelect={() => toggleProductSelection(product._id)}
+                    />
                   </div>
                 );
               })}
@@ -183,50 +126,56 @@ function BuildComboContent() {
         </div>
 
         {/* Right Side: Combo Summary Sticky */}
-        <div className="col-lg-4 d-none d-lg-block">
-          <div className="shop-sidebar-filter card border-0 shadow-sm rounded-0 p-4 mb-4">
-            <div className="filter-header d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
-              <h5 className="fw-bold m-0 text-dark" style={{ fontSize: '16px' }}>
-                <i className="fas fa-shopping-bag me-2"></i> Combo Summary
-              </h5>
-            </div>
-            
-            <div className="d-flex justify-content-between text-muted mb-3 fs-7 border-bottom pb-2">
-              <span className="fw-bold" style={{ fontSize: '14px' }}>Items Selected:</span>
-              <span className="fw-bold text-dark">{selectedProductIds.length}</span>
-            </div>
+        <div className="col-lg-4">
+          <div className="position-sticky" style={{ top: '100px' }}>
+            <MgCard className="p-4 shadow-lg border-0" style={{ backgroundColor: '#f8fafc' }}>
+              <div className="d-flex align-items-center mb-4 pb-3 border-bottom border-light">
+                <div className="rounded-circle d-flex align-items-center justify-content-center text-white me-3" style={{ width: '40px', height: '40px', backgroundColor: '#1c72b9' }}>
+                  <i className="fas fa-shopping-bag"></i>
+                </div>
+                <h4 className="fw-bold m-0 text-dark">Combo Summary</h4>
+              </div>
+              
+              <div className="d-flex justify-content-between align-items-center text-secondary mb-4 p-3 rounded-3" style={{ backgroundColor: '#fff', border: '1px solid #e2e8f0' }}>
+                <span className="fw-medium fs-6">Items Selected</span>
+                <span className="badge bg-primary rounded-pill px-3 py-2 fs-6">{selectedProductIds.length}</span>
+              </div>
 
-            <div className="d-flex flex-column gap-2 mb-4" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-              {selectedProductIds.length === 0 ? (
-                <p className="text-muted fs-8 text-center py-4 fst-italic">No products selected yet. Click on products to add them to your combo.</p>
-              ) : (
-                selectedProductIds.map(id => {
-                  const p = products.find(prod => prod._id === id);
-                  if (!p) return null;
-                  const activePrice = p.discountedPrice || (p.discount > 0 ? (p.discountType === 'Flat' ? Math.max(0, p.price - p.discount) : Math.max(0, p.price - (p.price * p.discount / 100))) : p.price);
-                  return (
-                    <div key={id} className="d-flex justify-content-between align-items-center fs-7 bg-white p-2 rounded border-sm">
-                      <span className="text-truncate me-2" style={{ maxWidth: '150px' }}>{p.name}</span>
-                      <span className="fw-bold">₹{activePrice}</span>
-                    </div>
-                  );
-                })
-              )}
-            </div>
+              <div className="d-flex flex-column gap-3 mb-4 pe-2" style={{ maxHeight: '350px', overflowY: 'auto' }}>
+                {selectedProductIds.length === 0 ? (
+                  <div className="text-center py-5 text-muted">
+                    <i className="fas fa-box-open fs-1 mb-3 opacity-25"></i>
+                    <p className="fs-6 fst-italic m-0">No products selected yet.<br/>Click on products to add them to your combo.</p>
+                  </div>
+                ) : (
+                  selectedProductIds.map(id => {
+                    const p = products.find(prod => prod._id === id);
+                    if (!p) return null;
+                    const activePrice = p.discountedPrice || (p.discount > 0 ? (p.discountType === 'Flat' ? Math.max(0, p.price - p.discount) : Math.max(0, p.price - (p.price * p.discount / 100))) : p.price);
+                    return (
+                      <div key={id} className="d-flex justify-content-between align-items-center bg-white p-3 rounded-3 shadow-sm border-0">
+                        <span className="text-truncate fw-medium text-dark me-2" style={{ maxWidth: '180px' }}>{p.name}</span>
+                        <span className="fw-bold" style={{ color: '#1c72b9' }}>₹{activePrice}</span>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
 
-            <div className="d-flex justify-content-between fw-bold text-dark fs-5 mb-4 border-top pt-3">
-              <span>Combo Total</span>
-              <span>₹{comboSubtotal}</span>
-            </div>
+              <div className="d-flex justify-content-between align-items-center fw-bold text-dark mb-4 p-3 rounded-4" style={{ backgroundColor: '#e0f2fe' }}>
+                <span className="fs-5">Combo Total</span>
+                <span className="fs-4" style={{ color: '#0369a1' }}>₹{comboSubtotal}</span>
+              </div>
 
-            <button 
-              onClick={handleAddComboToCart}
-              disabled={selectedProductIds.length < 2}
-              className="maxglow-btn-cart w-100 mt-3"
-              style={selectedProductIds.length < 2 ? { backgroundColor: '#ccc', borderColor: '#ccc', cursor: 'not-allowed' } : {}}
-            >
-              {selectedProductIds.length < 2 ? 'Select at least 2 items' : 'Add Combo to Cart'}
-            </button>
+              <MgButton 
+                onClick={handleAddComboToCart}
+                disabled={selectedProductIds.length < 2}
+                variant={selectedProductIds.length < 2 ? 'secondary' : 'primary'}
+                className="w-100 rounded-pill py-3 fs-5 shadow-sm fw-bold"
+              >
+                {selectedProductIds.length < 2 ? 'Select at least 2 items' : 'Add Combo to Cart'}
+              </MgButton>
+            </MgCard>
           </div>
         </div>
 

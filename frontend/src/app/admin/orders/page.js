@@ -873,7 +873,7 @@ function AdminOrdersContent() {
               <div className="col-3 p-2 border-end d-flex flex-column align-items-center justify-content-center">
                 <div style={{ fontSize: '9px', fontWeight: 'bold', marginBottom: '4px' }}>Scan to Pay</div>
                 <Image 
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent('upi://pay?pa=sweettree2026@icici&pn=MaxGlow%20Enterprises&am=' + selectedOrder.totalAmount + '&cu=INR')}`} 
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent('upi://pay?pa=maxglow2026@icici&pn=MaxGlow%20Enterprises&am=' + selectedOrder.totalAmount + '&cu=INR')}`} 
                   alt="UPI QR Code" 
                   width={80}
                   height={80}

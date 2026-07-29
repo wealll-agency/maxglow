@@ -12,20 +12,10 @@ export default function HeroSlider() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [images, setImages] = useState(DEFAULT_IMAGES);
 
-  useEffect(() => {
-    const fetchHero = async () => {
-      try {
-        const res = await api.get('/auth/settings');
-        if (res.data.success && res.data.settings?.media_hero?.length > 0) {
-          const validImages = res.data.settings.media_hero.filter(img => img.trim() !== '');
-          if (validImages.length > 0) setImages(validImages);
-        }
-      } catch (err) {
-        console.error('Failed to load hero images', err);
-      }
-    };
-    fetchHero();
-  }, []);
+  // Hero images are now hardcoded as requested to prevent any automatic changes
+  // useEffect(() => {
+  //   const fetchHero = async () => { ... }
+  // }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -89,10 +79,10 @@ export default function HeroSlider() {
               flexShrink: 0,
               position: 'relative',
               aspectRatio: '2.5 / 1', // Industry standard wide panoramic ratio
-              minHeight: '350px' // fallback for mobile to ensure it doesn't get too thin
+              minHeight: '350px' // Hardcoded minimum height to prevent squishing on mobile
             }}>
             <img
-              src={src}
+              src={img}
               alt={`MaxGlow Premium Herbal Wellness ${idx + 1}`}
               style={{
                 width: '100%',
@@ -145,7 +135,7 @@ export default function HeroSlider() {
         gap: '12px',
         zIndex: 10
       }}>
-        {IMAGES.map((_, idx) => (
+        {images.map((_, idx) => (
           <button
             key={idx}
             onClick={(e) => { e.stopPropagation(); setCurrentIndex(idx); }}

@@ -1,7 +1,7 @@
 import express from 'express';
 import {
   createOrder,
-  ccavenueCallback,
+  verifyPayment,
   getMyOrders,
   getOrderById,
   getAllOrders,
@@ -25,7 +25,7 @@ router.route('/shipments')
 router.route('/shipments/:waybill')
   .get(protect, authorizeRoles('Super Admin', 'Manager', 'Staff'), getShipmentByWaybill);
 
-router.post('/ccavenue-callback', ccavenueCallback);
+router.post('/verify-payment', verifyPayment);
 router.get('/my-orders', protect, getMyOrders);
 
 router.route('/:id')

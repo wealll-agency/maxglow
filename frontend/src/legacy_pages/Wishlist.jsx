@@ -52,7 +52,7 @@ export default function WishlistPage() {
                 ...product,
                 image: product.images?.[0] || product.image,
                 mrp: product.purchasePrice || product.price,
-                brand: 'Sweettree'
+                brand: 'MaxGlow'
               }} 
             />
           </div>

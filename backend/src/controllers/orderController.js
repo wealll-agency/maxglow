@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import crypto from 'crypto';
-import { encrypt, decrypt } from '../utils/ccavenue.js';
+import Razorpay from 'razorpay';
 import Order from '../models/Order.js';
 import SystemSetting from '../models/SystemSetting.js';
 import Product from '../models/Product.js';
@@ -163,7 +163,7 @@ export const createOrder = async (req, res, next) => {
     if (paymentMode === 'COD') {
       await Payment.create({
         order: savedOrder._id,
-        ccavenueOrderId: `COD-${savedOrder._id}`,
+        razorpayOrderId: `COD-${savedOrder._id}`,
         amount: totalAmount,
         status: 'Created',
         paymentMode: 'COD'
@@ -178,197 +178,104 @@ export const createOrder = async (req, res, next) => {
       });
     }
 
-    // 3. Create Payment ledger record for CCAvenue
-    await Payment.create({
+    // 3. Create Payment ledger record for Razorpay
+    const payment = await Payment.create({
       order: savedOrder._id,
-      ccavenueOrderId: savedOrder._id.toString(),
+      razorpayOrderId: 'pending', // Will update below
       amount: totalAmount,
-      status: 'Created'
+      status: 'Created',
+      paymentMode: paymentMode
     });
 
-    // 4. Prepare CCAvenue Payload
-    const merchant_id = process.env.CCAVENUE_MERCHANT_ID || 'M_ID';
-    const access_code = process.env.CCAVENUE_ACCESS_CODE || 'A_CODE';
-    const working_key = process.env.CCAVENUE_WORKING_KEY || 'W_KEY';
-    const hostUrl = process.env.API_BASE_URL || `${req.protocol}://${req.get('host')}`;
-    const redirect_url = process.env.CCAVENUE_REDIRECT_URL || `${hostUrl}/api/orders/ccavenue-callback`;
-    const cancel_url = process.env.CCAVENUE_CANCEL_URL || `${hostUrl}/api/orders/ccavenue-callback`;
+    // 4. Prepare Razorpay Payload
+    const razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_mock',
+      key_secret: process.env.RAZORPAY_KEY_SECRET || 'rzp_secret_mock',
+    });
 
-    // Sanitize string inputs to prevent CCAvenue token parsing failures
-    const sanitize = (str) => {
-      if (!str) return '';
-      return String(str).replace(/[=&]/g, ' ').trim();
-    };
-
-    const merchantDataObj = {
-      merchant_id: merchant_id,
-      order_id: savedOrder._id.toString(),
+    const options = {
+      amount: Math.round(totalAmount * 100), // paise
       currency: 'INR',
-      amount: Number(totalAmount).toFixed(2),
-      redirect_url: redirect_url,
-      cancel_url: cancel_url,
-      language: 'EN',
-      billing_name: sanitize(mappedDeliveryAddress.name),
-      billing_address: sanitize(mappedDeliveryAddress.address),
-      billing_city: sanitize(mappedDeliveryAddress.city),
-      billing_state: sanitize(mappedDeliveryAddress.state),
-      billing_zip: sanitize(mappedDeliveryAddress.pincode),
-      billing_country: 'India',
-      billing_tel: sanitize(mappedDeliveryAddress.phone)
+      receipt: savedOrder._id.toString(),
+      payment_capture: 1
     };
 
-    let merchantData = '';
-    for (let key in merchantDataObj) {
-      merchantData += `${key}=${merchantDataObj[key]}&`;
-    }
-    // Remove the very last trailing ampersand to perfectly match standard URL encoded strings
-    merchantData = merchantData.slice(0, -1);
+    const rzpOrder = await razorpay.orders.create(options);
 
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('--- CCAvenue Plaintext Payload ---');
-      console.log(merchantData);
-    }
+    payment.razorpayOrderId = rzpOrder.id;
+    await payment.save();
 
-    const encRequest = encrypt(merchantData, working_key);
+    savedOrder.razorpayOrderId = rzpOrder.id;
+    await savedOrder.save();
 
-    await logActivity(req.user._id, 'CREATE_ORDER', `Created order ID: ${savedOrder._id}, initiating CCAvenue transaction`, req);
+    await logActivity(req.user._id, 'CREATE_ORDER', `Created order ID: ${savedOrder._id}, initiating Razorpay transaction`, req);
 
     res.status(201).json({
       success: true,
       order: savedOrder,
-      encRequest,
-      accessCode: access_code
+      razorpayOrderId: rzpOrder.id,
+      amount: options.amount,
+      currency: options.currency,
+      key: process.env.RAZORPAY_KEY_ID || 'rzp_test_mock'
     });
   } catch (error) {
     next(error);
   }
 };
 
-// @desc    Handle CCAvenue Callback (Server-to-Server form post)
-// @route   POST /api/orders/ccavenue-callback
+// @desc    Verify Razorpay Payment
+// @route   POST /api/orders/verify-payment
 // @access  Public
-export const ccavenueCallback = async (req, res, next) => {
+export const verifyPayment = async (req, res, next) => {
   try {
-    const { encResp } = req.body;
-    if (!encResp) {
-      return res.status(400).send('Invalid response from CCAvenue');
-    }
-
-    const working_key = process.env.CCAVENUE_WORKING_KEY || 'W_KEY';
-    let decryptedResp;
-    try {
-      decryptedResp = decrypt(encResp, working_key);
-    } catch (err) {
-      console.error('CCAvenue Decryption Error:', err);
-      return res.status(400).send('Failed to decrypt CCAvenue response');
-    }
-
-    const params = new URLSearchParams(decryptedResp);
-    const order_id = params.get('order_id');
-    const tracking_id = params.get('tracking_id');
-    const bank_ref_no = params.get('bank_ref_no');
-    const order_status = params.get('order_status'); 
-    const payment_mode = params.get('payment_mode');
-    const failure_message = params.get('failure_message');
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, order_id } = req.body;
 
     const order = await Order.findById(order_id);
     if (!order) {
-      return res.status(404).send('Order not found');
+      return res.status(404).json({ success: false, message: 'Order not found' });
     }
 
-    // Safely extract the primary frontend URL if comma-separated
-    let frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    if (frontendUrl.includes(',')) {
-      frontendUrl = frontendUrl.split(',')[0].trim();
-    }
-
-    // Idempotency: Prevent duplicate stock deductions or restorals on page refresh
     if (order.paymentStatus === 'Paid') {
-      return res.redirect(`${frontendUrl}/user/orders/${order._id}?success=true`);
-    }
-    if (order.paymentStatus === 'Failed' && order_status !== 'Success') {
-      return res.redirect(`${frontendUrl}/checkout?error=${encodeURIComponent(failure_message || 'Payment Failed')}`);
+      return res.status(200).json({ success: true, message: 'Order already paid' });
     }
 
-    const payment = await Payment.findOne({ ccavenueOrderId: order_id });
+    const secret = process.env.RAZORPAY_KEY_SECRET || 'rzp_secret_mock';
 
-    if (order_status === 'Success') {
-      const response_amount = params.get('amount') || params.get('mer_amount') || params.get('net_amount_debit');
-      
-      if (Number(response_amount) !== Number(order.totalAmount)) {
-        order.paymentStatus = 'Failed';
-        order.ccavenueTrackingId = tracking_id;
-        order.ccavenueBankRefNo = bank_ref_no;
-        order.paymentMode = payment_mode;
-        await order.save();
+    const generated_signature = crypto
+      .createHmac('sha256', secret)
+      .update(razorpay_order_id + '|' + razorpay_payment_id)
+      .digest('hex');
 
-        if (payment) {
-          payment.status = 'Failed';
-          payment.ccavenueTrackingId = tracking_id;
-          payment.ccavenueBankRefNo = bank_ref_no;
-          payment.paymentMode = payment_mode;
-          payment.failureMessage = `Amount mismatch (Paid: ${response_amount}, Expected: ${order.totalAmount})`;
-          payment.encResponse = encResp;
-          await payment.save();
-        }
+    const payment = await Payment.findOne({ razorpayOrderId: razorpay_order_id });
 
-        for (const item of order.items) {
-          await Product.findByIdAndUpdate(item.product, { $inc: { stock: item.quantity, totalSold: -item.quantity } }, { runValidators: true });
-          await Inventory.findOneAndUpdate(
-            { product: item.product },
-            { 
-              $inc: { stockQuantity: item.quantity },
-              $push: {
-                adjustments: {
-                  quantityChanged: item.quantity,
-                  type: 'AuditAdjustment',
-                  reason: `Amount Mismatch Stock Restoral (Order ID: ${order._id})`,
-                  adjustedBy: order.user
-                }
-              }
-            },
-            { runValidators: true }
-          );
-        }
-
-        return res.redirect(`${frontendUrl}/checkout?error=${encodeURIComponent('Payment failed due to amount mismatch. Please contact support.')}`);
-      }
-
+    if (generated_signature === razorpay_signature) {
       order.paymentStatus = 'Paid';
       order.orderStatus = 'Confirmed';
       order.confirmedAt = Date.now();
-      order.ccavenueTrackingId = tracking_id;
-      order.ccavenueBankRefNo = bank_ref_no;
-      order.paymentMode = payment_mode;
+      order.razorpayPaymentId = razorpay_payment_id;
+      order.razorpaySignature = razorpay_signature;
       await order.save();
 
       if (payment) {
         payment.status = 'Captured';
-        payment.ccavenueTrackingId = tracking_id;
-        payment.ccavenueBankRefNo = bank_ref_no;
-        payment.paymentMode = payment_mode;
-        payment.encResponse = encResp;
+        payment.razorpayPaymentId = razorpay_payment_id;
+        payment.razorpaySignature = razorpay_signature;
         await payment.save();
       }
 
-      return res.redirect(`${frontendUrl}/user/orders/${order._id}?success=true`);
+      return res.status(200).json({ success: true, message: 'Payment verified successfully' });
     } else {
+      // Payment Failed Signature Mismatch
       order.paymentStatus = 'Failed';
-      order.ccavenueTrackingId = tracking_id;
-      order.ccavenueBankRefNo = bank_ref_no;
-      order.paymentMode = payment_mode;
       await order.save();
 
       if (payment) {
         payment.status = 'Failed';
-        payment.ccavenueTrackingId = tracking_id;
-        payment.ccavenueBankRefNo = bank_ref_no;
-        payment.paymentMode = payment_mode;
-        payment.failureMessage = failure_message;
-        payment.encResponse = encResp;
+        payment.failureMessage = 'Signature mismatch';
         await payment.save();
       }
 
+      // Restore Stock
       for (const item of order.items) {
         await Product.findByIdAndUpdate(item.product, { $inc: { stock: item.quantity, totalSold: -item.quantity } }, { runValidators: true });
         await Inventory.findOneAndUpdate(
@@ -379,7 +286,7 @@ export const ccavenueCallback = async (req, res, next) => {
               adjustments: {
                 quantityChanged: item.quantity,
                 type: 'AuditAdjustment',
-                reason: `Payment Failure Stock Restoral (Order ID: ${order._id})`,
+                reason: `Payment Verification Failure Stock Restoral (Order ID: ${order._id})`,
                 adjustedBy: order.user
               }
             }
@@ -388,10 +295,10 @@ export const ccavenueCallback = async (req, res, next) => {
         );
       }
 
-      return res.redirect(`${frontendUrl}/checkout?error=${encodeURIComponent(failure_message || 'Payment Failed')}`);
+      return res.status(400).json({ success: false, message: 'Payment verification failed (Signature Mismatch)' });
     }
   } catch (error) {
-    console.error('CCAvenue Callback Error:', error);
+    console.error('Razorpay Verification Error:', error);
     next(error);
   }
 };

@@ -28,6 +28,7 @@ export default function AdminMedia() {
 
   useEffect(() => {
     fetchSettings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchSettings = async () => {
@@ -75,7 +76,7 @@ export default function AdminMedia() {
     showAlert('Uploading media... Please wait.', 'info');
 
     try {
-      const res = await api.post('/upload', formData, {
+      const res = await api.post('/uploads', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 

@@ -9,8 +9,25 @@ import api from '../../utils/axiosConfig.js';
 import { addAddress } from '../../store/authSlice.js';
 import Link from 'next/link';
 import Image from 'next/image';
+import { FaMapMarkerAlt, FaCreditCard, FaMoneyBillWave, FaShieldAlt } from 'react-icons/fa';
 import { MapPin, CreditCard, ShoppingBag, Plus } from 'lucide-react';
+import MgButton from '../../components/ui/MgButton';
+import MgCard from '../../components/ui/MgCard';
 import { useNotification } from '../../context/NotificationContext';
+
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
 
 export default function CheckoutPage() {
   const dispatch = useDispatch();
@@ -45,13 +62,13 @@ export default function CheckoutPage() {
   const [landmark, setLandmark] = useState('');
   const [altPhone, setAltPhone] = useState('');
   const [addressType, setAddressType] = useState('Home');
-    const [paymentMode, setPaymentMode] = useState('CCAvenue');
+    const [paymentMode, setPaymentMode] = useState('Razorpay');
   const [hasCodPermission, setHasCodPermission] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (!hasCodPermission && paymentMode === 'COD') {
-      setPaymentMode('CCAvenue');
+      setPaymentMode('Razorpay');
     }
   }, [hasCodPermission, paymentMode]);
 
@@ -117,7 +134,7 @@ export default function CheckoutPage() {
             setLandmark(state.landmark || '');
             setAltPhone(state.altPhone || '');
             setAddressType(state.addressType || 'Home');
-            setPaymentMode(state.paymentMode || 'CCAvenue');
+            setPaymentMode(state.paymentMode || 'Razorpay');
 
             // Automatically save this address to their profile
             dispatch(addAddress({ 
@@ -224,12 +241,11 @@ export default function CheckoutPage() {
 
     setIsSubmitting(true);
     try {
-      // 1. Create order on backend (returns local order and CCAvenue payload)
+      // 1. Create order on backend (returns local order and Razorpay payload)
       const orderResult = await dispatch(createOrder(orderData)).unwrap();
-      const { encRequest, accessCode } = orderResult;
       
-      // If COD, skip CCAvenue redirection and go to user profile
-      if (paymentMode === 'COD' || !encRequest) {
+      // If COD, skip Razorpay redirection and go to user profile
+      if (paymentMode === 'COD' || !orderResult.razorpayOrderId) {
         // Clear cart for COD immediately
         dispatch(clearCart());
         showAlert('Order placed successfully via Cash on Delivery!', 'success');
@@ -237,32 +253,72 @@ export default function CheckoutPage() {
         return;
       }
 
-      // 2. Redirect to CCAvenue via POST
-      const form = document.createElement('form');
-      form.method = 'POST';
-      
-      const ccavenueEnv = process.env.NEXT_PUBLIC_CCAVENUE_ENV || 'production';
-      form.action = ccavenueEnv.toLowerCase() === 'test' || ccavenueEnv.toLowerCase() === 'sandbox'
-        ? 'https://test.ccavenue.com/transaction/transaction.do?command=initiateTransaction'
-        : 'https://secure.ccavenue.com/transaction/transaction.do?command=initiateTransaction';
-      
-      const encInput = document.createElement('input');
-      encInput.type = 'hidden';
-      encInput.name = 'encRequest';
-      encInput.value = encRequest;
-      form.appendChild(encInput);
-      
-      const accessInput = document.createElement('input');
-      accessInput.type = 'hidden';
-      accessInput.name = 'access_code';
-      accessInput.value = accessCode;
-      form.appendChild(accessInput);
-      
-      document.body.appendChild(form);
-      form.submit();
+      // 2. Load Razorpay SDK
+      const res = await loadRazorpayScript();
+      if (!res) {
+        showAlert('Razorpay SDK failed to load. Check your connection.', 'error');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // 3. Open Razorpay Modal
+      const options = {
+        key: orderResult.key,
+        amount: orderResult.amount,
+        currency: orderResult.currency,
+        name: 'MaxGlow',
+        description: 'Premium Herbal Wellness',
+        order_id: orderResult.razorpayOrderId,
+        handler: async function (response) {
+          try {
+            // Send verification request to backend
+            const verifyRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/verify-payment`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${user.token}`
+              },
+              body: JSON.stringify({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+                order_id: orderResult.order._id
+              })
+            });
+            const verifyData = await verifyRes.json();
+            if (verifyData.success) {
+              dispatch(clearCart());
+              showAlert('Payment successful! Order confirmed.', 'success');
+              router.push(`/user/orders/${orderResult.order._id}?success=true`);
+            } else {
+              showAlert(verifyData.message || 'Payment verification failed', 'error');
+              setIsSubmitting(false);
+            }
+          } catch (error) {
+            showAlert('Payment verification error', 'error');
+            setIsSubmitting(false);
+          }
+        },
+        prefill: {
+          name: addressObj.name || user.name || '',
+          email: user.email || '',
+          contact: addressObj.phone || user.phone || ''
+        },
+        theme: {
+          color: '#1c72b9'
+        },
+        modal: {
+          ondismiss: function() {
+            showAlert('Payment cancelled', 'warning');
+            setIsSubmitting(false);
+          }
+        }
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open();
     } catch (err) {
       showAlert(err || 'Failed to place order', 'error');
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -519,13 +575,13 @@ export default function CheckoutPage() {
             </h5>
             <div className="d-flex flex-column gap-3">
               <div 
-                className={`p-3 rounded border cursor-pointer d-flex align-items-center gap-3 ${paymentMode === 'CCAvenue' ? 'border-success bg-light' : ''}`}
-                onClick={() => setPaymentMode('CCAvenue')}
+                className={`p-3 rounded border cursor-pointer d-flex align-items-center gap-3 ${paymentMode === 'Razorpay' ? 'border-success bg-light' : ''}`}
+                onClick={() => setPaymentMode('Razorpay')}
                 style={{ cursor: 'pointer' }}
               >
-                <input type="radio" checked={paymentMode === 'CCAvenue'} readOnly className="form-check-input mt-0" />
+                <input type="radio" checked={paymentMode === 'Razorpay'} readOnly className="form-check-input mt-0" />
                 <div>
-                  <h6 className="fw-bold m-0 text-dark">CCAvenue Secure Payment</h6>
+                  <h6 className="fw-bold m-0 text-dark">Razorpay Secure Payment</h6>
                   <small className="text-muted">Pay securely using Cards, Net Banking, UPI, or Wallets.</small>
                 </div>
               </div>

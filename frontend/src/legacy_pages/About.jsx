@@ -8,7 +8,7 @@ export default function AboutPage() {
     <>
       <div className="marquee-wrapper">
         <marquee behavior="scroll" direction="left" scrollamount="5">
-          || 🥜 Sweettree Anmol Jumbo Nuts - Extra 10% OFF! 🥜 || 🎁 Nuts For Savings 🎁 || 🔥 PayDay Sale Is LIVE - Extra 15% OFF Sitewide! 🔥 ||
+          || 🧴 MaxGlow Skincare - Glow Up Sale Is LIVE! 🧴 || 🎁 Beauty For Savings 🎁 || 🔥 Sitewide - Extra 15% OFF! 🔥 ||
         </marquee>
       </div>
 
@@ -16,7 +16,7 @@ export default function AboutPage() {
       <section className="breadcrumb-banner position-relative about-hero-banner">
         <div className="position-absolute top-0 start-0 w-100 h-100 about-hero-overlay"></div>
         <div className="container position-relative h-100 d-flex flex-column justify-content-center text-center about-hero-content">
-          <h1 className="text-white fw-bold mb-3 about-hero-title">About Sweettree</h1>
+          <h1 className="text-white fw-bold mb-3 about-hero-title">About MaxGlow</h1>
           <nav aria-label="breadcrumb">
             <ol className="breadcrumb justify-content-center mb-0 about-breadcrumb">
               <li className="breadcrumb-item"><Link href="/" className="text-white text-decoration-none">Home</Link></li>
@@ -32,18 +32,18 @@ export default function AboutPage() {
           <div className="row align-items-center gy-5">
             <div className="col-lg-6 position-relative">
               <div className="position-relative about-story-img-wrap">
-                <Image src="/banner_slider_image3.jpeg" alt="Sweettree Store" width={800} height={600} style={{ width: '100%', height: 'auto' }} className="img-fluid rounded-4 shadow-lg w-100 about-story-img" />
+                <Image src="/banner_slider_image3.jpeg" alt="MaxGlow Store" width={800} height={600} style={{ width: '100%', height: 'auto' }} className="img-fluid rounded-4 shadow-lg w-100 about-story-img" />
               </div>
               <div className="position-absolute rounded-4 d-none d-lg-block about-story-bg-shape"></div>
             </div>
             <div className="col-lg-6 ps-lg-5 text-center text-lg-start mt-5 mt-lg-0">
               <span className="d-inline-block px-3 py-1 rounded-pill mb-3 fw-bold shadow-sm about-story-badge">OUR STORY</span>
-              <h2 className="fw-bold mb-4 about-story-title">A Legacy of Premium Quality Dried Fruits & Nuts</h2>
+              <h2 className="fw-bold mb-4 about-story-title">A Legacy of Premium Skincare & Wellness</h2>
               <p className="text-muted about-story-text">
-                At Sweettree, we believe in delivering nothing but the best to your family. Our journey started with a simple vision: to bridge the gap between premium quality, farm-fresh nuts, and health-conscious consumers. Over the years, we have mastered the art of sourcing the most exquisite nuts, seeds, and dried fruits from the finest orchards around the world.
+                At MaxGlow, we believe in delivering nothing but the best to your family. Our journey started with a simple vision: to bridge the gap between premium quality, natural skincare, and health-conscious consumers. Over the years, we have mastered the art of sourcing the most exquisite ingredients from around the world.
               </p>
               <p className="text-muted about-story-text">
-                Every product in our collection is carefully handpicked, rigorously processed, and meticulously packed to preserve its natural crunch, flavor, and immense nutritional value. With a deep commitment to excellence, Sweettree isn't just a brand—it's a promise of purity, tradition, and well-being.
+                Every product in our collection is carefully formulated, rigorously tested, and meticulously packed to preserve its natural benefits and immense nourishing value. With a deep commitment to excellence, MaxGlow isn't just a brand—it's a promise of purity, tradition, and well-being.
               </p>
               <div className="d-flex align-items-center mt-4 gap-4 justify-content-center justify-content-lg-start">
                 <div className="d-flex align-items-center gap-3 text-start">
@@ -74,8 +74,8 @@ export default function AboutPage() {
       <section className="why-choose-us py-5" style={{ backgroundColor: '#fcfaf8' }}>
         <div className="container py-4">
           <div className="text-center mb-5">
-            <span className="d-inline-block px-3 py-1 rounded-pill mb-2 fw-bold about-advantage-badge">WHY CHOOSE SWEETTREE</span>
-            <h2 className="fw-bold about-advantage-title">The Sweettree Advantage</h2>
+            <span className="d-inline-block px-3 py-1 rounded-pill mb-2 fw-bold about-advantage-badge">WHY CHOOSE MAXGLOW</span>
+            <h2 className="fw-bold about-advantage-title">The MaxGlow Advantage</h2>
           </div>
           <div className="row g-4 justify-content-center">
             <div className="col-lg-3 col-md-6 col-sm-6">

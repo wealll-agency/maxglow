@@ -8,7 +8,7 @@ export default function BlogPage() {
     <>
       <div className="marquee-wrapper">
         <marquee behavior="scroll" direction="left" scrollamount="5">
-          || 🥜 Sweettree Anmol Jumbo Nuts - Extra 10% OFF! 🥜 || 🎁 Nuts For Savings 🎁 || 🔥 PayDay Sale Is LIVE - Extra 15% OFF Sitewide! 🔥 ||
+          || 🥜 MaxGlow Anmol Jumbo Nuts - Extra 10% OFF! 🥜 || 🎁 Nuts For Savings 🎁 || 🔥 PayDay Sale Is LIVE - Extra 15% OFF Sitewide! 🔥 ||
         </marquee>
       </div>
 
@@ -37,7 +37,7 @@ export default function BlogPage() {
                         <div className="d-flex align-items-center">
                           <div className="text-end me-2">
                             <h6 className="mb-0 fw-bold blog-meta-bold">Dried Apricots Benefits <i className="fas fa-file-alt blog-meta-icon"></i></h6>
-                            <span className="blog-meta-date">Sweettree <i className="fas fa-file-alt blog-meta-icon"></i></span>
+                            <span className="blog-meta-date">MaxGlow <i className="fas fa-file-alt blog-meta-icon"></i></span>
                           </div>
                           <i className="fas fa-share blog-meta-share"></i>
                         </div>
@@ -67,8 +67,8 @@ export default function BlogPage() {
                         </div>
                         <div className="d-flex align-items-center">
                           <div className="text-end me-2">
-                            <h6 className="mb-0 fw-bold blog-meta-bold text-muted fw-normal">Sweettree <i className="fas fa-file-alt blog-meta-icon"></i></h6>
-                            <span className="blog-meta-date">Sweettree Blog <i className="fas fa-file-alt blog-meta-icon"></i></span>
+                            <h6 className="mb-0 fw-bold blog-meta-bold text-muted fw-normal">MaxGlow <i className="fas fa-file-alt blog-meta-icon"></i></h6>
+                            <span className="blog-meta-date">MaxGlow Blog <i className="fas fa-file-alt blog-meta-icon"></i></span>
                           </div>
                           <i className="fas fa-share blog-meta-share"></i>
                         </div>
@@ -98,8 +98,8 @@ export default function BlogPage() {
                         </div>
                         <div className="d-flex align-items-center">
                           <div className="text-end me-2">
-                            <h6 className="mb-0 fw-bold blog-meta-bold text-muted fw-normal">Sweettree <i className="fas fa-file-alt blog-meta-icon"></i></h6>
-                            <span className="blog-meta-date">Sweettree Blog <i className="fas fa-file-alt blog-meta-icon"></i></span>
+                            <h6 className="mb-0 fw-bold blog-meta-bold text-muted fw-normal">MaxGlow <i className="fas fa-file-alt blog-meta-icon"></i></h6>
+                            <span className="blog-meta-date">MaxGlow Blog <i className="fas fa-file-alt blog-meta-icon"></i></span>
                           </div>
                           <i className="fas fa-share blog-meta-share"></i>
                         </div>
@@ -135,7 +135,7 @@ export default function BlogPage() {
                         </div>
                       </div>
                       <hr className="blog-hr" />
-                      <h4 className="blog-heading">What Makes Sweettree Dry Fruits a Preferred Choice for Quality-Conscious Buyers?</h4>
+                      <h4 className="blog-heading">What Makes MaxGlow Dry Fruits a Preferred Choice for Quality-Conscious Buyers?</h4>
                       <p className="blog-excerpt">In today's food industry, quality is no longer optional, it is expected. Consumers and businesses are becoming more aware of what they eat and use in their...</p>
                       <Link href="/blog-details" className="blog-read-more">Read More...</Link>
                     </div>

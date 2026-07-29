@@ -251,7 +251,7 @@ export default function OrderTrackingPage() {
                       )}
                     </div>
                     <div className="flex-grow-1">
-                      <span className="brand-text d-block mb-1 text-uppercase">SWEETTREE</span>
+                      <span className="brand-text d-block mb-1 text-uppercase">MAXGLOW</span>
                       <h3 className="product-name m-0" style={{ fontSize: '14px', lineHeight: '1.4' }}>{item.name}</h3>
                       <div className="product-pricing mt-1">
                         <span className="current-price fs-6">₹{item.price}</span> <span className="text-muted fs-7">x {item.quantity}</span>

@@ -1,5 +1,6 @@
-import React from 'react';
+'use client';
 
+import React from 'react';
 /**
  * MgCard — MaxGlow Premium Soft Floating Card
  * Radius: 18px, Background: White, Border: #E5EEF2, Soft Shadow

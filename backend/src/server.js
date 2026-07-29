@@ -30,6 +30,7 @@ import enquiryRoutes from './routes/enquiryRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import delhiveryRoutes from './routes/delhivery.routes.js';
 import warehouseRoutes from './routes/warehouse.routes.js';
+import categoryRoutes from './routes/categoryRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -47,10 +48,10 @@ initCronJobs();
 
 // Validate critical payment environment variables
 if (process.env.NODE_ENV === 'production') {
-  const requiredKeys = ['CCAVENUE_MERCHANT_ID', 'CCAVENUE_WORKING_KEY', 'CCAVENUE_ACCESS_CODE'];
+  const requiredKeys = ['RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET'];
   const missingKeys = requiredKeys.filter(key => !process.env[key]);
   if (missingKeys.length > 0) {
-    console.error(`\n[FATAL ERROR] Missing CCAvenue Payment Keys in production: ${missingKeys.join(', ')}`);
+    console.error(`\n[FATAL ERROR] Missing Razorpay Payment Keys in production: ${missingKeys.join(', ')}`);
     console.error('Shutting down server to prevent silent checkout failures. Please provide these in your environment variables.\n');
     process.exit(1);
   }
@@ -113,7 +114,7 @@ app.use('/api/enquiries', enquiryRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/delhivery', delhiveryRoutes);
 app.use('/api/warehouses', warehouseRoutes);
-
+app.use('/api/categories', categoryRoutes);
 // Root route
 app.get('/', (req, res) => {
   res.json({ success: true, message: 'MaxGlow Enterprise E-commerce API Active' });

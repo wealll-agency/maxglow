@@ -7,6 +7,7 @@ const REPORTS_URL = '/reports';
 const REFUNDS_URL = '/refunds';
 const DELHIVERY_URL = '/delhivery';
 const WAREHOUSES_URL = '/warehouses';
+const CATEGORIES_URL = '/categories';
 
 export const fetchDashboardStats = createAsyncThunk(
   'admin/fetchDashboardStats',
@@ -16,6 +17,42 @@ export const fetchDashboardStats = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch dashboard statistics');
+    }
+  }
+);
+
+export const fetchCategories = createAsyncThunk(
+  'admin/fetchCategories',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(CATEGORIES_URL);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch categories');
+    }
+  }
+);
+
+export const createCategory = createAsyncThunk(
+  'admin/createCategory',
+  async (categoryData, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(CATEGORIES_URL, categoryData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to create category');
+    }
+  }
+);
+
+export const addSubCategory = createAsyncThunk(
+  'admin/addSubCategory',
+  async ({ categoryId, subCategoryData }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(`${CATEGORIES_URL}/${categoryId}/subcategories`, subCategoryData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to add sub category');
     }
   }
 );
@@ -304,6 +341,7 @@ const adminSlice = createSlice({
     ordersLoading: false,
     productsLoading: false,
     refundsLoading: false,
+    categories: [],
     error: null
   },
   reducers: {
@@ -328,6 +366,24 @@ const adminSlice = createSlice({
       .addCase(fetchDashboardStats.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      // Categories
+      .addCase(fetchCategories.fulfilled, (state, action) => {
+        state.categories = action.payload.categories || [];
+      })
+      .addCase(createCategory.fulfilled, (state, action) => {
+        if (action.payload.category) {
+          state.categories.push(action.payload.category);
+        }
+      })
+      .addCase(addSubCategory.fulfilled, (state, action) => {
+        const updatedCat = action.payload.category;
+        if (updatedCat) {
+          const index = state.categories.findIndex(c => c._id === updatedCat._id);
+          if (index > -1) {
+            state.categories[index] = updatedCat;
+          }
+        }
       })
       // Admin products list
       .addCase(fetchAdminProducts.pending, (state) => {

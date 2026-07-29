@@ -130,7 +130,7 @@ export default function AdminProductsPage() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', 'sweettree_products.csv');
+    link.setAttribute('download', 'maxglow_products.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -398,7 +398,7 @@ export default function AdminProductsPage() {
                 <label className="fw-medium mb-1 fs-7">Brand</label>
                 <select className="form-select" value={filterBrand} onChange={(e) => setFilterBrand(e.target.value)}>
                   <option value="All Brands">All Brands</option>
-                  <option value="Sweettree">Sweettree</option>
+                  <option value="MaxGlow">MaxGlow</option>
                 </select>
               </div>
               <div className="col-md-3">
@@ -544,10 +544,9 @@ export default function AdminProductsPage() {
                     <div className="input-group">
                       <input type="number" className="form-control" value={unitValue} onChange={(e) => setUnitValue(e.target.value)} />
                       <select className="form-select" style={{ maxWidth: '100px' }} value={unit} onChange={(e) => setUnit(e.target.value)}>
-                        <option value="kg">kg</option>
                         <option value="gm">gm</option>
+                        <option value="ml">ml</option>
                         <option value="pcs">pcs</option>
-                        <option value="ltr">ltr</option>
                         <option value="pack">pack</option>
                       </select>
                     </div>
@@ -656,10 +655,9 @@ export default function AdminProductsPage() {
                           newPacks[index].unit = e.target.value;
                           setPackSizes(newPacks);
                         }}>
-                          <option value="kg">kg</option>
-                          <option value="g">g</option>
+                          <option value="gm">gm</option>
+                          <option value="ml">ml</option>
                           <option value="pcs">pcs</option>
-                          <option value="ltr">ltr</option>
                           <option value="pack">pack</option>
                         </select>
                       </div>
@@ -784,8 +782,15 @@ export default function AdminProductsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {displayedProducts.map((prod, index) => (
-                    <tr key={prod._id} className="border-bottom">
+                  {displayedProducts.length === 0 ? (
+                    <tr>
+                      <td colSpan="8" className="text-center py-4 text-muted">
+                        No products found matching your filters.
+                      </td>
+                    </tr>
+                  ) : (
+                    displayedProducts.map((prod, index) => (
+                      <tr key={prod._id} className="border-bottom">
                       <td className="text-muted">{index + 1}</td>
                       <td className="py-3">
                         <div className="d-flex align-items-center gap-2">
@@ -850,7 +855,7 @@ export default function AdminProductsPage() {
                         </td>
                       )}
                     </tr>
-                  ))}
+                  )))}
                 </tbody>
               </table>
             </div>

@@ -9,7 +9,7 @@ import { toggleWishlist } from '../store/wishlistSlice';
 import { fetchProducts } from '../store/productsSlice';
 import { FiHeart, FiShoppingCart, FiZap, FiStar } from 'react-icons/fi';
 
-const ProductCard = ({ product }) => {
+const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggleSelect = null }) => {
   const router = useRouter();
   const dispatch = useDispatch();
   const wishlistItems = useSelector((state) => state.wishlist?.items || []);
@@ -115,7 +115,18 @@ const ProductCard = ({ product }) => {
   const secondImage = allImages[1]?.replace('/assets/images/', '/') || primaryImage;
 
   return (
-    <div className="mg-product-card" style={{ height: '100%' }}>
+    <div className="mg-product-card" style={{ 
+      height: '100%', 
+      position: 'relative',
+      border: isComboMode && isSelected ? '2px solid #1c72b9' : '2px solid transparent',
+      borderRadius: '16px',
+      boxShadow: isComboMode && isSelected ? '0 8px 24px rgba(28, 114, 185, 0.15)' : undefined
+    }}>
+      {isComboMode && isSelected && (
+        <div style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 15, width: '28px', height: '28px', borderRadius: '50%', background: '#1c72b9', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
+          <i className="fas fa-check" style={{ fontSize: '14px' }}></i>
+        </div>
+      )}
       {/* Image area */}
       <div className="mg-product-image-wrap" style={{ position: 'relative', aspectRatio: '1 / 1', width: '100%', overflow: 'hidden' }}>
         {/* Wishlist button */}
@@ -240,7 +251,22 @@ const ProductCard = ({ product }) => {
 
         {/* Action Buttons */}
         <div style={{ marginTop: 'auto', display: 'flex', gap: '8px' }}>
-          {resolvedProduct.stock <= 0 ? (
+          {isComboMode ? (
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (resolvedProduct.stock > 0 && onToggleSelect) onToggleSelect(); }}
+              disabled={resolvedProduct.stock <= 0}
+              style={{
+                flex: 1, padding: '10px 0', border: isSelected ? 'none' : '1.5px solid #1c72b9', cursor: resolvedProduct.stock > 0 ? 'pointer' : 'not-allowed',
+                background: resolvedProduct.stock <= 0 ? '#64748b' : (isSelected ? '#1c72b9' : 'transparent'),
+                color: resolvedProduct.stock <= 0 ? 'white' : (isSelected ? 'white' : '#1c72b9'),
+                borderRadius: '9999px', fontSize: '13px', fontWeight: '700',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                transition: 'all 0.2s ease', letterSpacing: '0.03em', opacity: resolvedProduct.stock <= 0 ? 0.5 : 1
+              }}
+            >
+              {resolvedProduct.stock <= 0 ? 'Out of Stock' : (isSelected ? 'Remove from Combo' : 'Select for Combo')}
+            </button>
+          ) : resolvedProduct.stock <= 0 ? (
             <Link
               href={`/shop-details?name=${encodeURIComponent(resolvedProduct.name)}`}
               style={{
