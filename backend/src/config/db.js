@@ -12,10 +12,10 @@ const connectDB = async () => {
     maxPoolSize: 50,
     minPoolSize: 10,
     serverSelectionTimeoutMS: 15000, 
-    socketTimeoutMS: 65000, // Increased to prevent silent drops by load balancers
+    socketTimeoutMS: 65000, 
     connectTimeoutMS: 15000,
-    keepAlive: true, // Crucial for preventing disconnects in deployed environments
-    keepAliveInitialDelay: 300000,
+    keepAlive: true, 
+    keepAliveInitialDelay: 10000, // Reduced to 10 seconds to aggressively beat load balancer idle timeouts (Render/AWS drop at 60-100s)
   };
 
   mongoose.connection.on('disconnected', () => {
