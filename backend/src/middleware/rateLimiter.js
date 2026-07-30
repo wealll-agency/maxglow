@@ -13,7 +13,7 @@ export const authLimiter = rateLimit({
 
 export const apiLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 minutes
-  max: 300, // Limit each IP to 300 requests per 5 minutes
+  max: 5000, // Increased limit to prevent 429 errors on admin dashboard
   message: {
     success: false,
     message: 'Too many requests, please slow down.'

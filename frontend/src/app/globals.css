@@ -75,6 +75,20 @@ main {
    MaxGlow Utility Classes
    ═══════════════════════════════ */
 
+.mg-section-spacing {
+  padding: 60px 0;
+}
+@media (max-width: 768px) {
+  .mg-section-spacing {
+    padding: 40px 0;
+  }
+}
+@media (max-width: 576px) {
+  .mg-section-spacing {
+    padding: 24px 0;
+  }
+}
+
 /* Glass morphism */
 .glass {
   background: rgba(255, 255, 255, 0.8);
@@ -651,6 +665,19 @@ main {
 
 .hero-banner-section:hover .hero-banner-image {
   transform: scale(1.03);
+}
+
+.hero-category-spacer {
+  height: 40px;
+  width: 100%;
+  clear: both;
+  display: block;
+}
+
+@media (max-width: 991px) {
+  .hero-category-spacer {
+    height: 10px;
+  }
 }
 
 

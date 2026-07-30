@@ -12,7 +12,7 @@ const ProductCarouselSection = ({ title, products = [] }) => {
   if (!products || products.length === 0) return null;
 
   return (
-    <section style={{ background: 'white', padding: '60px 0', position: 'relative' }}>
+    <section className="mg-section-spacing" style={{ background: 'white', position: 'relative' }}>
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px', flexWrap: 'wrap', gap: '12px' }}>

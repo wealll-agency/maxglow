@@ -9,16 +9,45 @@ const Footer = () => {
     <footer>
       {/* Trust Strip */}
       <div className="trust-strip">
+        <style>{`
+          @media (max-width: 768px) {
+            .trust-grid {
+              grid-template-columns: repeat(4, 1fr) !important;
+              gap: 8px !important;
+              padding: 0 4px !important;
+            }
+            .trust-item {
+              flex-direction: column !important;
+              text-align: center !important;
+              gap: 6px !important;
+            }
+            .trust-icon {
+              width: 36px !important;
+              height: 36px !important;
+              font-size: 16px !important;
+              border-radius: 10px !important;
+              margin: 0 auto !important;
+            }
+            .trust-title {
+              font-size: 9.5px !important;
+              text-align: center !important;
+              line-height: 1.1 !important;
+            }
+            .trust-sub {
+              display: none !important;
+            }
+          }
+        `}</style>
         <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', textAlign: 'center' }}>
+          <div className="trust-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', textAlign: 'center' }}>
             {[
               { icon: '🚚', title: 'Free Shipping', sub: 'On orders above ₹999' },
               { icon: '↩️', title: 'Easy Returns', sub: '7-Day Return Policy' },
               { icon: '🌿', title: '100% Natural', sub: 'Toxin-free formulations' },
               { icon: '⭐', title: '50K+ Customers', sub: 'Trusted by families' },
             ].map((item, idx) => (
-              <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
-                <div style={{
+              <div key={idx} className="trust-item" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+                <div className="trust-icon" style={{
                   width: '44px', height: '44px', flexShrink: 0,
                   background: 'linear-gradient(135deg, #EAF8FF, #DDF7E3)',
                   borderRadius: '12px', display: 'flex', alignItems: 'center',
@@ -27,8 +56,8 @@ const Footer = () => {
                   {item.icon}
                 </div>
                 <div style={{ textAlign: 'left' }}>
-                  <div style={{ fontFamily: 'var(--font-outfit)', fontSize: '14px', fontWeight: '700', color: '#1a2332' }}>{item.title}</div>
-                  <div style={{ fontSize: '12px', color: '#64748b' }}>{item.sub}</div>
+                  <div className="trust-title" style={{ fontFamily: 'var(--font-outfit)', fontSize: '14px', fontWeight: '700', color: '#1a2332' }}>{item.title}</div>
+                  <div className="trust-sub" style={{ fontSize: '12px', color: '#64748b' }}>{item.sub}</div>
                 </div>
               </div>
             ))}

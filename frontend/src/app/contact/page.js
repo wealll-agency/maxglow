@@ -57,6 +57,24 @@ export default function ContactPage() {
 
   return (
     <>
+      <style>{`
+        @media (max-width: 768px) {
+          .contact-grid-layout {
+            grid-template-columns: 1fr !important;
+            gap: 20px !important;
+          }
+          .contact-sidebar-col, .contact-main-col {
+            grid-column: span 1 !important;
+          }
+          .contact-form-row {
+            grid-template-columns: 1fr !important;
+            gap: 16px !important;
+          }
+          .contact-related-searches {
+            display: none !important;
+          }
+        }
+      `}</style>
       {/* Contact Banner Header */}
       <section style={{
         position: 'relative',
@@ -485,7 +503,7 @@ export default function ContactPage() {
       </section>
 
       {/* Related Search Tags Section */}
-      <section style={{ padding: '60px 0', background: 'white' }}>
+      <section className="contact-related-searches" style={{ padding: '60px 0', background: 'white' }}>
         <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
           <h4 style={{ fontFamily: 'var(--font-outfit)', fontSize: '20px', fontWeight: '800', color: '#1a2332', marginBottom: '20px' }}>
             People Are Also Looking For

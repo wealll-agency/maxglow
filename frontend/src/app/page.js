@@ -21,20 +21,17 @@ import {
 
 export default function Home() {
   const [topSellingProducts, setTopSellingProducts] = useState([]);
-  const [healthyProducts, setHealthyProducts] = useState([]);
   const [newArrivalProducts, setNewArrivalProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchHomepageProducts = async () => {
       try {
-        const [topRes, healthyRes, arrivalRes] = await Promise.all([
+        const [topRes, arrivalRes] = await Promise.all([
           api.get(`/products?topSelling=true&limit=8&inStock=true`),
-          api.get(`/products?healthyProduct=true&limit=8&inStock=true`),
           api.get(`/products?newArrival=true&limit=8&inStock=true`),
         ]);
         if (topRes.data.success) setTopSellingProducts(topRes.data.products || []);
-        if (healthyRes.data.success) setHealthyProducts(healthyRes.data.products || []);
         if (arrivalRes.data.success) setNewArrivalProducts(arrivalRes.data.products || []);
       } catch (error) {
         console.error("Error fetching homepage products:", error);
@@ -46,9 +43,12 @@ export default function Home() {
   }, []);
 
   return (
-    <main>
+    <main style={{ display: 'flex', flexDirection: 'column' }}>
       {/* Hero Section */}
       <HeroSlider />
+
+      {/* Strict physical spacer to prevent any overlap bugs */}
+      <div className="hero-category-spacer"></div>
 
       {/* Category Icons Row */}
       <CategoryIconRow />
@@ -64,12 +64,7 @@ export default function Home() {
       {/* Shop By Categories — card grid matching reference */}
       <ShopByCategoryCards />
 
-      {/* Healthy Products */}
-      {healthyProducts.length > 0 && (
-        <div style={{ background: 'linear-gradient(180deg, #F7FBFD 0%, #EAF8FF 100%)' }}>
-          <ProductCarouselSection title="Healthy Picks" products={healthyProducts} />
-        </div>
-      )}
+
 
       {/* New Arrival Ad Banner */}
       <NewArrivalBanner />

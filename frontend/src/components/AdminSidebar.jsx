@@ -42,7 +42,20 @@ export default function AdminSidebar() {
       fetchUnread();
       fetchPendingRefunds();
     }, 30000);
-    return () => clearInterval(interval);
+    
+    // Auto collapse on small screens
+    const handleResize = () => {
+      if (window.innerWidth <= 1024) {
+        setIsCollapsed(true);
+      }
+    };
+    handleResize(); // Initial check
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   const handleLogout = () => {

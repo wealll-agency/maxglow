@@ -41,7 +41,7 @@ const purposes = [
 
 const ShopByPurpose = () => {
   return (
-    <section style={{ background: 'linear-gradient(180deg, #F7FBFD 0%, white 100%)', padding: '64px 0' }}>
+    <section className="mg-section-spacing" style={{ background: 'linear-gradient(180deg, #F7FBFD 0%, white 100%)' }}>
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
         {/* Title */}
         <div style={{ textAlign: 'center', marginBottom: '48px' }}>
@@ -52,15 +52,54 @@ const ShopByPurpose = () => {
           <p className="mg-section-subtitle">Discover products tailored to your wellness goals</p>
         </div>
 
+        <style>{`
+          .purpose-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+          }
+          @media (max-width: 768px) {
+            .purpose-grid {
+              display: grid !important;
+              grid-template-columns: repeat(4, 1fr) !important;
+              gap: 8px !important;
+              overflow-x: hidden !important;
+              margin: 0 !important;
+              padding: 0 !important;
+            }
+            .purpose-card-inner {
+              padding: 12px 4px !important;
+              border-radius: 12px !important;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              text-align: center;
+            }
+            .purpose-icon-wrapper {
+              width: 40px !important;
+              height: 40px !important;
+              border-radius: 10px !important;
+              margin-bottom: 8px !important;
+            }
+            .purpose-icon-wrapper svg {
+              width: 20px !important;
+              height: 20px !important;
+            }
+            .purpose-card-title {
+              font-size: 10px !important;
+              line-height: 1.2 !important;
+              margin-bottom: 0 !important;
+            }
+            .purpose-card-desc, .purpose-card-explore {
+              display: none !important;
+            }
+          }
+        `}</style>
         {/* Cards Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: '20px',
-        }}>
+        <div className="purpose-grid">
           {purposes.map((item, idx) => (
-            <Link key={idx} href={item.link} style={{ textDecoration: 'none' }}>
-              <div style={{
+            <Link key={idx} href={item.link} className="purpose-card-link" style={{ textDecoration: 'none' }}>
+              <div className="purpose-card-inner" style={{
                 background: item.color,
                 borderRadius: '20px',
                 padding: '28px 24px',
@@ -83,7 +122,7 @@ const ShopByPurpose = () => {
                 }}
               >
                 {/* Icon circle */}
-                <div style={{
+                <div className="purpose-icon-wrapper" style={{
                   width: '56px', height: '56px', borderRadius: '14px',
                   background: `${item.accent}18`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -93,16 +132,16 @@ const ShopByPurpose = () => {
                   {item.icon}
                 </div>
 
-                <h3 style={{
+                <h3 className="purpose-card-title" style={{
                   fontFamily: 'var(--font-outfit)', fontSize: '16px', fontWeight: '700',
                   color: '#1a2332', marginBottom: '8px',
                 }}>{item.title}</h3>
 
-                <p style={{ fontSize: '13px', color: '#64748b', lineHeight: '1.6', marginBottom: '16px' }}>
+                <p className="purpose-card-desc" style={{ fontSize: '13px', color: '#64748b', lineHeight: '1.6', marginBottom: '16px' }}>
                   {item.desc}
                 </p>
 
-                <div style={{
+                <div className="purpose-card-explore" style={{
                   display: 'inline-flex', alignItems: 'center', gap: '4px',
                   color: item.accent, fontSize: '13px', fontWeight: '700',
                 }}>

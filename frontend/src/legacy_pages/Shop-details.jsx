@@ -337,20 +337,20 @@ function ShopDetailsContent() {
               </div>
           </div>
 
-          <div className="d-flex gap-3 mb-4">
+          <div className="d-flex gap-2 mb-4 flex-wrap">
              {realProduct.stock <= 0 ? (
                <button onClick={handleNotifyMe} className="btn w-100 py-3 fw-bold" style={{ backgroundColor: '#6c757d', color: 'white' }} disabled={notifyLoading}>
                  {notifyLoading ? 'Subscribing...' : 'Notify Me When Available'}
                </button>
              ) : (
                <>
-                 <button onClick={handleAddToCart} className="btn w-50 py-3 fw-bold" style={{ backgroundColor: '#005B6E', color: 'white' }}>
+                 <button onClick={handleAddToCart} className="btn flex-grow-1 py-3 fw-bold" style={{ backgroundColor: '#005B6E', color: 'white', minWidth: '130px' }}>
                    Add To Cart
                  </button>
-                 <button onClick={handleBuyNow} className="btn btn-outline-dark w-50 py-3 fw-bold">Buy It Now</button>
+                 <button onClick={handleBuyNow} className="btn btn-outline-dark flex-grow-1 py-3 fw-bold" style={{ minWidth: '130px' }}>Buy It Now</button>
                </>
              )}
-             <button onClick={() => dispatch(toggleWishlist(realProduct))} className="btn btn-outline-dark px-3"><Heart size={20} fill={isInWishlist ? 'var(--accent-color)' : 'none'} color={isInWishlist ? 'var(--accent-color)' : 'currentColor'} /></button>
+             <button onClick={() => dispatch(toggleWishlist(realProduct))} className="btn btn-outline-dark px-3 flex-shrink-0"><Heart size={20} fill={isInWishlist ? 'var(--accent-color)' : 'none'} color={isInWishlist ? 'var(--accent-color)' : 'currentColor'} /></button>
           </div>
 
           <div className="mb-4 pt-2">

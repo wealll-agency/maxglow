@@ -3,7 +3,8 @@ import {
   getCategories, 
   createCategory, 
   addSubCategory,
-  deleteCategory
+  deleteCategory,
+  deleteSubCategory
 } from '../controllers/categoryController.js';
 import { protect, authorizeRoles } from '../middleware/auth.js';
 
@@ -21,5 +22,8 @@ router.route('/:id')
 
 router.route('/:id/subcategories')
   .post(addSubCategory);
+
+router.route('/:id/subcategories/:subCategoryName')
+  .delete(deleteSubCategory);
 
 export default router;

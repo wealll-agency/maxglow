@@ -29,22 +29,50 @@ export default function HeroSlider() {
   };
 
   return (
-    <section 
-      className="hero-banner-section" 
+    <section
+      className="hero-banner-section"
       onClick={handleBannerClick}
       style={{
         width: '100%',
         position: 'relative',
         cursor: 'pointer',
         display: 'block',
-        padding: '10px 20px', // Small padding so the rounded corners are visible against the background
-        backgroundColor: '#fff'
+        padding: '10px 20px', 
+        backgroundColor: '#fff',
+        overflow: 'hidden'
       }}
     >
       <style>
         {`
           .shop-now-animated {
             animation: pulse-glow 2s infinite;
+            background: rgba(255, 255, 255, 0.9);
+            color: #111;
+            border: none;
+            padding: 12px 30px;
+            font-size: 18px;
+            font-weight: 700;
+            border-radius: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+          }
+          .shop-now-animated .arrow-icon {
+            font-size: 20px;
+          }
+          @media (max-width: 768px) {
+            .shop-now-animated {
+              padding: 8px 16px !important;
+              font-size: 11px !important;
+              letter-spacing: 0.5px !important;
+              gap: 4px !important;
+            }
+            .shop-now-animated .arrow-icon {
+              font-size: 14px !important;
+            }
           }
           @keyframes pulse-glow {
             0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.7); }
@@ -53,17 +81,30 @@ export default function HeroSlider() {
           }
         `}
       </style>
-      <div 
+      <div
         className="carousel-mask"
         style={{
-          borderRadius: '20px', 
-          overflow: 'hidden', 
+          borderRadius: '20px',
+          overflow: 'hidden',
           boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
           position: 'relative',
-          width: '100%'
+          width: '100%',
+          aspectRatio: '2.5 / 1', // Industry standard wide panoramic ratio
         }}
       >
-        <div 
+        <style>{`
+          .hero-banner-section {
+            margin-bottom: 20px;
+          }
+          .carousel-mask { min-height: 350px; }
+          @media (max-width: 991px) {
+            .hero-banner-section { margin-bottom: 0px !important; padding-bottom: 0px !important; }
+            .carousel-mask { min-height: unset; aspect-ratio: 16/9 !important; }
+          }
+          /* Ensure images don't bleed out or cause collapse */
+          .hero-slider-track { height: 100%; min-height: 100%; }
+        `}</style>
+        <div
           className="hero-slider-track"
           style={{
             display: 'flex',
@@ -74,87 +115,41 @@ export default function HeroSlider() {
           }}
         >
           {images.map((img, idx) => (
-            <div key={idx} style={{ 
-              minWidth: '100%', 
+            <div key={idx} style={{
+              minWidth: '100%',
+              height: '100%',
               flexShrink: 0,
               position: 'relative',
-              aspectRatio: '2.5 / 1', // Industry standard wide panoramic ratio
-              minHeight: '350px' // Hardcoded minimum height to prevent squishing on mobile
             }}>
-            <img
-              src={img}
-              alt={`MaxGlow Premium Herbal Wellness ${idx + 1}`}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover', // ensure it perfectly fills the panoramic shape
-                objectPosition: 'center',
-                display: 'block'
-              }}
-            />
-            {/* Animated Shop Now Button in Bottom Left */}
-            <div style={{
-              position: 'absolute',
-              bottom: '10%',
-              left: '8%',
-              zIndex: 5
-            }}>
-              <button 
-                className="shop-now-animated"
+              <img
+                src={img}
+                alt={`MaxGlow Premium Herbal Wellness ${idx + 1}`}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.9)',
-                  color: '#111',
-                  border: 'none',
-                  padding: '12px 30px',
-                  fontSize: '18px',
-                  fontWeight: '700',
-                  borderRadius: '30px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  letterSpacing: '1px',
-                  textTransform: 'uppercase'
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover', // ensure it perfectly fills the panoramic shape
+                  objectPosition: 'center',
+                  display: 'block'
                 }}
-              >
-                Shop Now
-                <span style={{ fontSize: '20px' }}>&rarr;</span>
-              </button>
+              />
+              {/* Animated Shop Now Button in Bottom Left */}
+              <div style={{
+                position: 'absolute',
+                bottom: '10%',
+                left: '8%',
+                zIndex: 5
+              }}>
+                <button className="shop-now-animated">
+                  Shop Now
+                  <span className="arrow-icon">&rarr;</span>
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      {/* Navigation Dots */}
-      <div style={{
-        position: 'absolute',
-        bottom: '20px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        display: 'flex',
-        gap: '12px',
-        zIndex: 10
-      }}>
-        {images.map((_, idx) => (
-          <button
-            key={idx}
-            onClick={(e) => { e.stopPropagation(); setCurrentIndex(idx); }}
-            style={{
-              width: currentIndex === idx ? '35px' : '12px',
-              height: '12px',
-              borderRadius: '6px',
-              backgroundColor: currentIndex === idx ? '#3BAE56' : 'rgba(255,255,255,0.8)',
-              border: 'none',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
-            }}
-            aria-label={`Go to slide ${idx + 1}`}
-          />
-        ))}
-      </div>
-      
-      {/* CLOSE CAROUSEL MASK */}
+
+        {/* CLOSE CAROUSEL MASK */}
       </div>
     </section>
   );

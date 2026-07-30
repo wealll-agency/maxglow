@@ -122,6 +122,22 @@ const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggl
       borderRadius: '16px',
       boxShadow: isComboMode && isSelected ? '0 8px 24px rgba(28, 114, 185, 0.15)' : undefined
     }}>
+      <style>{`
+        .mg-product-tag {
+          font-size: 11px !important;
+          padding: 4px 10px !important;
+        }
+        @media (max-width: 576px) {
+          .mg-product-tag {
+            font-size: 9px !important;
+            padding: 3px 6px !important;
+            top: 8px !important;
+            letter-spacing: 0.01em !important;
+          }
+          .mg-tag-left { left: 6px !important; }
+          .mg-tag-right { right: 6px !important; }
+        }
+      `}</style>
       {isComboMode && isSelected && (
         <div style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 15, width: '28px', height: '28px', borderRadius: '50%', background: '#1c72b9', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
           <i className="fas fa-check" style={{ fontSize: '14px' }}></i>
@@ -147,7 +163,7 @@ const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggl
 
         {/* Discount Badge */}
           {discountLabel && (
-          <div style={{
+          <div className="mg-product-tag mg-tag-left" style={{
             position: 'absolute', top: '12px', left: '12px', zIndex: 10,
             background: 'linear-gradient(135deg, #3BAE56, #61C454)',
             color: 'white', fontSize: '11px', fontWeight: '800',
@@ -167,7 +183,7 @@ const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggl
             
           if (customTag) {
             return (
-              <div style={{
+              <div className="mg-product-tag mg-tag-right" style={{
                 position: 'absolute', top: '12px', right: '12px', zIndex: 10,
                 background: 'linear-gradient(135deg, #f59e0b, #fbbf24)',
                 color: 'white', fontSize: '11px', fontWeight: '800',
@@ -250,7 +266,14 @@ const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggl
         </div>
 
         {/* Action Buttons */}
-        <div style={{ marginTop: 'auto', display: 'flex', gap: '8px' }}>
+        <div className="product-actions-container" style={{ marginTop: 'auto', display: 'flex', gap: '8px' }}>
+          <style>{`
+            @media (max-width: 576px) {
+              .product-actions-container { gap: 4px !important; }
+              .mg-product-action-btn { padding: 8px 0 !important; font-size: 10px !important; }
+              .mg-product-action-btn svg { width: 11px !important; height: 11px !important; margin-right: 2px !important; }
+            }
+          `}</style>
           {isComboMode ? (
             <button
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (resolvedProduct.stock > 0 && onToggleSelect) onToggleSelect(); }}
@@ -269,6 +292,7 @@ const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggl
           ) : resolvedProduct.stock <= 0 ? (
             <Link
               href={`/shop-details?name=${encodeURIComponent(resolvedProduct.name)}`}
+              className="mg-product-action-btn"
               style={{
                 flex: 1, textAlign: 'center', padding: '10px 0',
                 background: '#f1f5f9', color: '#64748b',
@@ -283,12 +307,13 @@ const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggl
             <>
               <button
                 onClick={handleAddToCart}
+                className="mg-product-action-btn"
                 style={{
                   flex: 1, padding: '10px 0', border: 'none', cursor: 'pointer',
                   background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
-                  color: 'white', borderRadius: '9999px', fontSize: '12px', fontWeight: '700',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
-                  transition: 'all 0.2s ease', letterSpacing: '0.03em',
+                  color: 'white', borderRadius: '9999px', fontSize: '11px', fontWeight: '800',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2px',
+                  transition: 'all 0.2s ease', letterSpacing: '0.01em',
                 }}
                 onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
                 onMouseLeave={e => e.currentTarget.style.opacity = '1'}
@@ -297,12 +322,13 @@ const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggl
               </button>
               <button
                 onClick={handleBuyNow}
+                className="mg-product-action-btn"
                 style={{
                   flex: 1, padding: '10px 0', border: 'none', cursor: 'pointer',
                   background: 'linear-gradient(135deg, #3BAE56 0%, #61C454 100%)',
-                  color: 'white', borderRadius: '9999px', fontSize: '12px', fontWeight: '700',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
-                  transition: 'all 0.2s ease', letterSpacing: '0.03em',
+                  color: 'white', borderRadius: '9999px', fontSize: '11px', fontWeight: '800',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2px',
+                  transition: 'all 0.2s ease', letterSpacing: '0.01em',
                   boxShadow: '0 4px 12px rgba(59,174,86,0.25)',
                 }}
                 onMouseEnter={e => e.currentTarget.style.boxShadow = '0 6px 16px rgba(59,174,86,0.4)'}

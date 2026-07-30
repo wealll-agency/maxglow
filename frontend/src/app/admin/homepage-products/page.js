@@ -20,13 +20,13 @@ export default function HomepageProductsPage() {
   
   const [selections, setSelections] = useState({
     showOnHomepage: {},
-    healthyProduct: {},
+    newArrival: {},
     manualTopSelling: {}
   });
 
   const [saving, setSaving] = useState({
     showOnHomepage: false,
-    healthyProduct: false,
+    newArrival: false,
     manualTopSelling: false
   });
 
@@ -42,12 +42,12 @@ export default function HomepageProductsPage() {
     if (products && products.length > 0) {
       const initialSelections = {
         showOnHomepage: {},
-        healthyProduct: {},
+        newArrival: {},
         manualTopSelling: {}
       };
       products.forEach(p => {
         initialSelections.showOnHomepage[p._id] = p.showOnHomepage || false;
-        initialSelections.healthyProduct[p._id] = p.healthyProduct || false;
+        initialSelections.newArrival[p._id] = p.newArrival || false;
         initialSelections.manualTopSelling[p._id] = p.manualTopSelling || false;
       });
       setSelections(initialSelections);
@@ -77,17 +77,7 @@ export default function HomepageProductsPage() {
     }));
   };
 
-  const handleNewArrivalTagToggle = async (productId, checked) => {
-    try {
-      const res = await api.patch(`/products/${productId}/toggle`, { field: 'newArrival', value: checked });
-      if (res.data.success) {
-        dispatch(fetchAdminProducts({ limit: 1000 }));
-        showAlert('New Arrival tag updated', 'success');
-      }
-    } catch (error) {
-      showAlert('Failed to update New Arrival tag', 'error');
-    }
-  };
+
 
   const handleSaveSetting = async () => {
     setSettingsLoading(true);
@@ -143,7 +133,6 @@ export default function HomepageProductsPage() {
           <thead>
             <tr className="border-bottom text-muted">
               <th style={{ width: '60px' }}>Select</th>
-              <th style={{ width: '120px' }}>New Arrival Tag</th>
               <th style={{ width: '80px' }}>Image</th>
               <th>Product Name</th>
               <th>Category</th>
@@ -163,17 +152,6 @@ export default function HomepageProductsPage() {
                       checked={selections[flag]?.[product._id] || false}
                       onChange={(e) => handleCheckboxChange(flag, product._id, e.target.checked)}
                       style={{ transform: 'scale(1.2)' }}
-                    />
-                  </div>
-                </td>
-                <td>
-                  <div className="form-check form-switch">
-                    <input 
-                      className="form-check-input" 
-                      type="checkbox" 
-                      role="switch"
-                      checked={product.newArrival || false}
-                      onChange={(e) => handleNewArrivalTagToggle(product._id, e.target.checked)}
                     />
                   </div>
                 </td>
@@ -264,11 +242,11 @@ export default function HomepageProductsPage() {
             </li>
             <li className="nav-item">
               <button 
-                className={`nav-link fw-medium border-0 ${activeTab === 'healthyProduct' ? 'text-brand border-bottom border-brand border-3' : 'text-muted'}`}
-                onClick={() => setActiveTab('healthyProduct')}
+                className={`nav-link fw-medium border-0 ${activeTab === 'newArrival' ? 'text-brand border-bottom border-brand border-3' : 'text-muted'}`}
+                onClick={() => setActiveTab('newArrival')}
                 style={{ backgroundColor: 'transparent' }}
               >
-                Healthy Products
+                New Arrivals
               </button>
             </li>
             <li className="nav-item">
@@ -328,18 +306,18 @@ export default function HomepageProductsPage() {
                 </div>
               )}
 
-              {activeTab === 'healthyProduct' && (
+              {activeTab === 'newArrival' && (
                 <div className="animate-fade-in">
                   <div className="d-flex justify-content-between align-items-center mb-3">
                     <div>
-                      <h5 className="fw-bold mb-1">Healthy Products</h5>
-                      <p className="text-muted fs-7 mb-0">Select products to highlight in the Healthy Section carousel.</p>
+                      <h5 className="fw-bold mb-1">New Arrivals</h5>
+                      <p className="text-muted fs-7 mb-0">Select products to highlight in the New Arrivals carousel.</p>
                     </div>
-                    <button className="btn btn-brand d-flex align-items-center gap-2" onClick={() => handleSaveFlag('healthyProduct')} disabled={saving.healthyProduct}>
-                      <Save size={16} /> {saving.healthyProduct ? 'Saving...' : 'Save Assignments'}
+                    <button className="btn btn-brand d-flex align-items-center gap-2" onClick={() => handleSaveFlag('newArrival')} disabled={saving.newArrival}>
+                      <Save size={16} /> {saving.newArrival ? 'Saving...' : 'Save Assignments'}
                     </button>
                   </div>
-                  {renderProductList('healthyProduct')}
+                  {renderProductList('newArrival')}
                 </div>
               )}
 

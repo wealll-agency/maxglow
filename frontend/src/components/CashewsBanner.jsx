@@ -4,7 +4,7 @@ import React, { memo } from 'react';
 
 const CashewsBanner = () => {
   return (
-    <section style={{ padding: '60px 0', background: 'white' }}>
+    <section className="mg-section-spacing" style={{ background: 'white' }}>
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
         
         {/* Section Title matching the reference layout */}
@@ -24,12 +24,11 @@ const CashewsBanner = () => {
         </div>
 
         {/* Banner Card */}
-        <div style={{
+        <div className="cashews-banner-card" style={{
           position: 'relative',
           borderRadius: '24px',
           overflow: 'hidden',
           aspectRatio: '16/6',
-          minHeight: '260px',
           boxShadow: '0 10px 30px rgba(0,0,0,0.06)',
           backgroundImage: 'url("/trending_banner.png")',
           backgroundSize: 'cover',
@@ -37,8 +36,22 @@ const CashewsBanner = () => {
           display: 'flex',
           alignItems: 'center',
         }}>
+          <style>{`
+            @media (max-width: 768px) {
+              .cashews-banner-card { 
+                aspect-ratio: auto !important; 
+                min-height: 260px !important; 
+              }
+              .cashews-gradient {
+                background: linear-gradient(90deg, rgba(15,30,53,0.85) 0%, rgba(15,30,53,0.7) 60%, rgba(15,30,53,0) 100%) !important;
+              }
+              .cashews-banner-content {
+                padding: 30px 24px !important;
+              }
+            }
+          `}</style>
           {/* Darker left gradient overlay for text readability */}
-          <div style={{
+          <div className="cashews-gradient" style={{
             position: 'absolute',
             inset: 0,
             background: 'linear-gradient(90deg, rgba(15,30,53,0.7) 0%, rgba(15,30,53,0.4) 40%, rgba(15,30,53,0) 80%)',
@@ -46,7 +59,7 @@ const CashewsBanner = () => {
           }} />
 
           {/* Banner Content */}
-          <div style={{
+          <div className="cashews-banner-content" style={{
             position: 'relative',
             zIndex: 2,
             padding: '40px 48px',

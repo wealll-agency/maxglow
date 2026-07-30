@@ -23,9 +23,9 @@ export const createCategory = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Category name is required' });
     }
 
-    const categoryExists = await Category.findOne({ name });
+    const categoryExists = await Category.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') } });
     if (categoryExists) {
-      return res.status(400).json({ success: false, message: 'Category already exists' });
+      return res.status(400).json({ success: false, message: 'This category is already added' });
     }
 
     const category = await Category.create({ name, subCategories: [] });
@@ -52,8 +52,9 @@ export const addSubCategory = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Category not found' });
     }
 
-    if (category.subCategories.includes(subCategory)) {
-      return res.status(400).json({ success: false, message: 'Sub-category already exists in this category' });
+    const subExists = category.subCategories.some(sub => sub.toLowerCase() === subCategory.toLowerCase());
+    if (subExists) {
+      return res.status(400).json({ success: false, message: 'This sub category is already added' });
     }
 
     category.subCategories.push(subCategory);
@@ -79,3 +80,27 @@ export const deleteCategory = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 };
+
+// @desc    Delete a sub-category
+// @route   DELETE /api/categories/:id/subcategories/:subCategoryName
+// @access  Private/Admin
+export const deleteSubCategory = async (req, res) => {
+  try {
+    const { id, subCategoryName } = req.params;
+    
+    const category = await Category.findById(id);
+    if (!category) {
+      return res.status(404).json({ success: false, message: 'Category not found' });
+    }
+
+    category.subCategories = category.subCategories.filter(
+      (sub) => sub.toLowerCase() !== subCategoryName.toLowerCase()
+    );
+
+    await category.save();
+    res.json({ success: true, category });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+};
+

@@ -25,5 +25,14 @@ The following rules have been strictly set by the user and MUST NOT be changed o
 - **Strict Rule:** There is NO 'Inventory Notifications' page in the admin sidebar. Clicking on a restock notification MUST redirect the admin directly to the 'Inventory Manager' page.
 - **Strict Rule:** The Warehouse Add/Edit popup MUST include 'Working Days' and 'Return Details' fields. The popup MUST be scrollable (`modal-dialog-scrollable`) and large (`modal-lg`) to prevent UI cut-offs. Do not revert these structural changes.
 
+## 6. Homepage and Admin Content Fixes
+- **Strict Rule:** The 'Shop by Category' section on mobile MUST only display exactly 5 categories. It MUST NOT contain any horizontal scrolling. The custom generated category icons must remain in place.
+- **Strict Rule:** The spacing between the Hero Slider and the Category Row on mobile MUST remain minimal (do not revert the margin reductions).
+- **Strict Rule:** The Admin Products page "Add Category" and "Add Sub-category" popups MUST include the scrolling list of existing categories with a delete option. Do not remove this UI or the backend deletion logic. 
+- **Strict Rule:** There is NO "New Arrival" or "Healthy Product" tag logic; it has been strictly replaced with "New Arrivals" across the frontend and admin panel.
+
+## 7. Database Stability
+- **Strict Rule:** The MongoDB connection in `config/db.js` uses a robust connection pool (`maxPoolSize`, `minPoolSize`, `socketTimeoutMS`, etc.) and event listeners for auto-reconnection. NEVER modify these connection pool settings or the reconnect logic to prevent database disconnects in production. Ensure error logs are never suppressed.
+
 ---
 *Note to agents: Adhere to these rules unconditionally to prevent overriding critical user-approved functionality.*

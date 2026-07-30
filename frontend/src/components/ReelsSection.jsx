@@ -90,8 +90,39 @@ const ReelCard = ({ reel }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const router = useRouter();
   const swiper = useSwiper();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  useEffect(() => {
+    if (!isMobile || !videoRef.current) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            videoRef.current.currentTime = 0;
+            videoRef.current.play().catch(() => {});
+            setIsPlaying(true);
+            // On mobile, we let Swiper's 5s autoplay continue running
+          } else {
+            videoRef.current.pause();
+            setIsPlaying(false);
+          }
+        });
+      },
+      { threshold: 0.6 }
+    );
+    observer.observe(videoRef.current);
+    return () => observer.disconnect();
+  }, [isMobile]);
 
   const handleMouseEnter = useCallback(() => {
+    if (isMobile) return;
     const video = videoRef.current;
     if (video) {
       video.currentTime = 0;
@@ -99,9 +130,10 @@ const ReelCard = ({ reel }) => {
       setIsPlaying(true);
       if (swiper && swiper.autoplay) swiper.autoplay.stop();
     }
-  }, [swiper]);
+  }, [swiper, isMobile]);
 
   const handleMouseLeave = useCallback(() => {
+    if (isMobile) return;
     const video = videoRef.current;
     if (video) {
       video.pause();
@@ -109,7 +141,13 @@ const ReelCard = ({ reel }) => {
       setIsPlaying(false);
       if (swiper && swiper.autoplay) swiper.autoplay.start();
     }
-  }, [swiper]);
+  }, [swiper, isMobile]);
+
+  const handleVideoEnded = () => {
+    if (isMobile && swiper) {
+      swiper.slideNext();
+    }
+  };
 
   const handleBuyClick = (e) => {
     e.stopPropagation();
@@ -128,7 +166,8 @@ const ReelCard = ({ reel }) => {
         src={reel.video}
         poster={reel.poster}
         muted
-        loop
+        loop={!isMobile}
+        onEnded={handleVideoEnded}
         playsInline
         preload="none"
         className="reel-video"
@@ -227,16 +266,16 @@ const ReelsSection = () => {
           spaceBetween={14}
           freeMode={{ enabled: true, sticky: false }}
           loop={true}
-          speed={4000}
+          speed={800}
           autoplay={{
-            delay: 0,
+            delay: 4000,
             disableOnInteraction: false,
             pauseOnMouseEnter: true,
           }}
           breakpoints={{
-            0:    { spaceBetween: 10 },
-            768:  { spaceBetween: 14 },
-            1200: { spaceBetween: 16 },
+            0:    { spaceBetween: 10, freeMode: { enabled: false }, speed: 600, autoplay: { delay: 5000, disableOnInteraction: false }, centeredSlides: true },
+            768:  { spaceBetween: 14, freeMode: { enabled: true, sticky: false }, speed: 4000, autoplay: { delay: 0 }, centeredSlides: false },
+            1200: { spaceBetween: 16, freeMode: { enabled: true, sticky: false }, speed: 4000, autoplay: { delay: 0 }, centeredSlides: false },
           }}
           className="reels-swiper"
         >
@@ -286,8 +325,8 @@ const ReelsSection = () => {
         /* ── Reel Card ── */
         .reel-card {
           position: relative;
-          width: 240px;
-          height: 420px;
+          width: 240px; /* Base desktop width */
+          aspect-ratio: 4 / 7;
           border-radius: 20px;
           overflow: hidden;
           cursor: pointer;
@@ -415,17 +454,48 @@ const ReelsSection = () => {
 
         /* Responsive card sizing */
         @media (max-width: 767.98px) {
+          .reels-slider-wrapper {
+            padding-left: 0;
+            padding-right: 0;
+          }
+          .reels-swiper .swiper-slide .reel-card {
+            transition: transform 0.4s ease, opacity 0.4s ease;
+            transform: scale(0.9);
+            opacity: 0.6;
+          }
+          .reels-swiper .swiper-slide-active .reel-card {
+            transform: scale(1);
+            opacity: 1;
+          }
           .reel-card {
-            width: 175px;
-            height: 310px;
+            width: 75vw;
+            max-width: 280px;
+            aspect-ratio: 4 / 6.5;
+            margin: 0;
+          }
+          .reel-overlay {
+            padding: 40px 14px 14px;
+          }
+          .reel-title {
+            font-size: 14px;
+            margin-bottom: 6px;
+          }
+          .reel-tag {
+            font-size: 11px;
+            padding: 4px 10px;
+            margin-bottom: 8px;
+          }
+          .reel-buy-btn {
+            padding: 8px 16px;
+            font-size: 13px;
           }
           .reel-play-icon {
-            width: 44px;
-            height: 44px;
+            width: 52px;
+            height: 52px;
           }
           .reel-play-icon svg {
-            width: 24px;
-            height: 24px;
+            width: 26px;
+            height: 26px;
           }
         }
       `}</style>

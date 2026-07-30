@@ -38,7 +38,7 @@ export const NuttyDelightOffers = () => {
   const offers = offersState;
 
   return (
-    <section style={{ background: '#F7FBFD', padding: '60px 0' }}>
+    <section className="mg-section-spacing" style={{ background: '#F7FBFD' }}>
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
           <h2 className="mg-section-title">Exclusive Herbal Offers</h2>
@@ -124,7 +124,7 @@ export const ShopByCategoryCards = () => {
   ];
 
   return (
-    <section style={{ background: 'white', padding: '64px 0' }}>
+    <section className="mg-section-spacing" style={{ background: 'white' }}>
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
         {/* Title with decorative lines */}
         <div className="mg-divider" style={{ marginBottom: '40px' }}>
@@ -207,7 +207,7 @@ export const RecentBlogs = () => {
   ];
 
   return (
-    <section style={{ background: '#F7FBFD', padding: '64px 0' }}>
+    <section className="mg-section-spacing" style={{ background: '#F7FBFD' }}>
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
           <h2 className="mg-section-title">From Our Blog</h2>
@@ -249,7 +249,7 @@ export const Faqs = () => {
   const [openIdx, setOpenIdx] = useState(null);
 
   return (
-    <section style={{ background: 'white', padding: '64px 0' }}>
+    <section className="mg-section-spacing" style={{ background: 'white' }}>
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 20px' }}>
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
           <h2 className="mg-section-title">Frequently Asked Questions</h2>
@@ -305,28 +305,61 @@ export const TagsSection = () => {
   ];
 
   return (
-    <section style={{ background: '#F7FBFD', padding: '40px 0' }}>
+    <section className="mg-section-spacing" style={{ background: '#F7FBFD' }}>
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
+        <style>{`
+          .popular-search-tag {
+            display: inline-block;
+            padding: 7px 16px;
+            background: white;
+            border: 1.5px solid rgba(221,244,255,0.8);
+            border-radius: 9999px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #374151;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(74,144,226,0.06);
+            text-decoration: none;
+          }
+          .popular-search-tag:hover {
+            background: #DDF7E3;
+            border-color: #3BAE56;
+            color: #3BAE56;
+          }
+          .view-all-btn {
+            display: none;
+          }
+          @media (max-width: 768px) {
+            .popular-tags-wrapper a:nth-child(n+5):not(.view-all-btn) {
+              display: none !important;
+            }
+            .view-all-btn {
+              display: inline-flex !important;
+              padding: 7px 16px;
+              background: #F0E6FF;
+              border: 1.5px solid #8b5cf6;
+              border-radius: 9999px;
+              font-size: 13px;
+              font-weight: 700;
+              color: #8b5cf6;
+              text-decoration: none;
+              align-items: center;
+              gap: 4px;
+            }
+          }
+        `}</style>
         <h3 style={{ fontFamily: 'var(--font-outfit)', fontSize: '14px', fontWeight: '700', color: '#94a3b8', marginBottom: '16px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
           Popular Searches
         </h3>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+        <div className="popular-tags-wrapper" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
           {tags.map((tag, idx) => (
-            <Link key={idx} href={`/shop?keyword=${encodeURIComponent(tag)}`} style={{ textDecoration: 'none' }}>
-              <span style={{
-                display: 'inline-block', padding: '7px 16px',
-                background: 'white', border: '1.5px solid rgba(221,244,255,0.8)',
-                borderRadius: '9999px', fontSize: '13px', fontWeight: '500',
-                color: '#374151', transition: 'all 0.2s ease',
-                boxShadow: '0 2px 8px rgba(74,144,226,0.06)',
-              }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#DDF7E3'; e.currentTarget.style.borderColor = '#3BAE56'; e.currentTarget.style.color = '#3BAE56'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = 'rgba(221,244,255,0.8)'; e.currentTarget.style.color = '#374151'; }}
-              >
-                {tag}
-              </span>
+            <Link key={idx} href={`/shop?keyword=${encodeURIComponent(tag)}`} className="popular-search-tag">
+              {tag}
             </Link>
           ))}
+          <Link href="/shop" className="view-all-btn">
+            View All &rarr;
+          </Link>
         </div>
       </div>
     </section>

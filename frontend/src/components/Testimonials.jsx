@@ -43,7 +43,7 @@ const testimonials = [
 
 const Testimonials = () => {
   return (
-    <section style={{ background: 'linear-gradient(180deg, white 0%, #EAF8FF 100%)', padding: '64px 0' }}>
+    <section className="mg-section-spacing" style={{ background: 'linear-gradient(180deg, white 0%, #EAF8FF 100%)' }}>
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
         <div style={{ textAlign: 'center', marginBottom: '48px' }}>
           <span style={{
@@ -108,23 +108,47 @@ const Testimonials = () => {
         </div>
 
         {/* Summary stats */}
-        <div style={{
+        <div className="stats-container" style={{
           display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
           gap: '24px', marginTop: '48px',
           background: 'white', borderRadius: '20px', padding: '32px',
           boxShadow: '0 4px 24px rgba(74,144,226,0.08)',
           border: '1px solid rgba(221,244,255,0.8)',
         }}>
+          <style>{`
+            @media (max-width: 768px) {
+              .stats-container {
+                grid-template-columns: repeat(4, 1fr) !important;
+                gap: 4px !important;
+                padding: 16px 8px !important;
+                border-radius: 12px !important;
+              }
+              .stat-item {
+                text-align: center;
+              }
+              .stat-icon {
+                font-size: 18px !important;
+                margin-bottom: 2px !important;
+              }
+              .stat-value {
+                font-size: 12px !important;
+              }
+              .stat-label {
+                font-size: 9px !important;
+                line-height: 1.1 !important;
+              }
+            }
+          `}</style>
           {[
             { value: '4.9/5', label: 'Average Rating', icon: '⭐' },
             { value: '50,000+', label: 'Happy Customers', icon: '😊' },
             { value: '98%', label: 'Would Recommend', icon: '💚' },
             { value: '5,000+', label: 'Verified Reviews', icon: '✅' },
           ].map((stat, idx) => (
-            <div key={idx} style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '28px', marginBottom: '4px' }}>{stat.icon}</div>
-              <div style={{ fontFamily: 'var(--font-outfit)', fontSize: '24px', fontWeight: '800', color: '#1a2332' }}>{stat.value}</div>
-              <div style={{ fontSize: '13px', color: '#64748b' }}>{stat.label}</div>
+            <div key={idx} className="stat-item" style={{ textAlign: 'center' }}>
+              <div className="stat-icon" style={{ fontSize: '28px', marginBottom: '4px' }}>{stat.icon}</div>
+              <div className="stat-value" style={{ fontFamily: 'var(--font-outfit)', fontSize: '24px', fontWeight: '800', color: '#1a2332' }}>{stat.value}</div>
+              <div className="stat-label" style={{ fontSize: '13px', color: '#64748b' }}>{stat.label}</div>
             </div>
           ))}
         </div>

@@ -21,16 +21,15 @@ const NewArrivalBanner = () => {
   }, []);
 
   return (
-    <section style={{ padding: '40px 0', background: 'white' }}>
+    <section className="mg-section-spacing" style={{ background: 'white' }}>
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
         
         {/* Banner Card */}
-        <div style={{
+        <div className="new-arrival-banner-card" style={{
           position: 'relative',
           borderRadius: '24px',
           overflow: 'hidden',
           aspectRatio: '16/3.2',
-          minHeight: '180px',
           boxShadow: '0 10px 30px rgba(0,0,0,0.06)',
           backgroundImage: `url("${bgImage}")`,
           backgroundSize: 'cover',
@@ -38,8 +37,22 @@ const NewArrivalBanner = () => {
           display: 'flex',
           alignItems: 'center',
         }}>
+          <style>{`
+            @media (max-width: 768px) {
+              .new-arrival-banner-card { 
+                aspect-ratio: auto !important; 
+                min-height: 260px !important; 
+              }
+              .new-arrival-gradient {
+                background: linear-gradient(90deg, rgba(247,251,253,0.95) 0%, rgba(247,251,253,0.88) 60%, rgba(247,251,253,0) 100%) !important;
+              }
+              .new-arrival-content {
+                padding: 30px 24px !important;
+              }
+            }
+          `}</style>
           {/* Light-Green elegant overlay for readability on left side */}
-          <div style={{
+          <div className="new-arrival-gradient" style={{
             position: 'absolute',
             inset: 0,
             background: 'linear-gradient(90deg, rgba(247,251,253,0.94) 0%, rgba(247,251,253,0.85) 40%, rgba(247,251,253,0) 80%)',
@@ -47,7 +60,7 @@ const NewArrivalBanner = () => {
           }} />
 
           {/* Banner Content */}
-          <div style={{
+          <div className="new-arrival-content" style={{
             position: 'relative',
             zIndex: 2,
             padding: '24px 40px',

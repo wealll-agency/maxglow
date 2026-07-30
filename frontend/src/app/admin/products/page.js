@@ -5,7 +5,7 @@ import Image from 'next/image';
 
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchAdminProducts, addProduct, editProduct, removeProduct, toggleProductState, fetchWarehouses, fetchCategories, createCategory, addSubCategory } from '../../../store/adminSlice';
+import { fetchAdminProducts, addProduct, editProduct, removeProduct, toggleProductState, fetchWarehouses, fetchCategories, createCategory, addSubCategory, removeCategory, removeSubCategory } from '../../../store/adminSlice';
 import { Plus, Edit, Trash2, X, Eye, Download, Search, LayoutGrid } from 'lucide-react';
 import { useNotification } from '../../../context/NotificationContext';
 
@@ -104,10 +104,8 @@ export default function AdminProductsPage() {
   useEffect(() => {
     dispatch(fetchAdminProducts({}));
     dispatch(fetchWarehouses());
-    if (!categories || categories.length === 0) {
-      dispatch(fetchCategories());
-    }
-  }, [dispatch, categories]);
+    dispatch(fetchCategories());
+  }, [dispatch]);
 
   const handleToggle = (id, field, value) => {
     dispatch(toggleProductState({ id, field, value }));
@@ -236,10 +234,15 @@ export default function AdminProductsPage() {
 
   const handleAddCategorySubmit = async () => {
     if (!newCategoryName.trim()) return showAlert("Category name is required", "error");
+    
+    const exists = categories.some(c => c.name.toLowerCase() === newCategoryName.trim().toLowerCase());
+    if (exists) {
+      return showAlert("This category is already added", "error");
+    }
+
     try {
-      await dispatch(createCategory({ name: newCategoryName })).unwrap();
+      await dispatch(createCategory({ name: newCategoryName.trim() })).unwrap();
       setNewCategoryName('');
-      setShowCategoryModal(false);
       showAlert("Category added successfully!", "success");
     } catch (err) {
       showAlert(err || "Failed to add category", "error");
@@ -250,14 +253,41 @@ export default function AdminProductsPage() {
     if (!parentCategoryId) return showAlert("Please select a parent category", "error");
     if (!newSubCategoryName.trim()) return showAlert("Sub-category name is required", "error");
     
+    const parentCat = categories.find(c => c._id === parentCategoryId);
+    if (parentCat && parentCat.subCategories.some(sub => sub.toLowerCase() === newSubCategoryName.trim().toLowerCase())) {
+      return showAlert("This sub category is already added", "error");
+    }
+
     try {
-      await dispatch(addSubCategory({ categoryId: parentCategoryId, subCategoryData: { subCategory: newSubCategoryName } })).unwrap();
+      await dispatch(addSubCategory({ categoryId: parentCategoryId, subCategoryData: { subCategory: newSubCategoryName.trim() } })).unwrap();
       setNewSubCategoryName('');
-      setParentCategoryId('');
-      setShowSubCategoryModal(false);
       showAlert("Sub-category added successfully!", "success");
     } catch (err) {
-      showAlert(err || "Failed to add sub-category", "error");
+      showAlert(err || "Failed to add sub category", "error");
+    }
+  };
+
+  const handleDeleteCategory = async (id) => {
+    const confirmed = await showConfirm("Are you sure you want to delete this category?");
+    if (confirmed) {
+      try {
+        await dispatch(removeCategory(id)).unwrap();
+        showAlert("Category deleted successfully!", "success");
+      } catch (err) {
+        showAlert(err || "Failed to delete category", "error");
+      }
+    }
+  };
+
+  const handleDeleteSubCategory = async (categoryId, subCategoryName) => {
+    const confirmed = await showConfirm("Are you sure you want to delete this sub-category?");
+    if (confirmed) {
+      try {
+        await dispatch(removeSubCategory({ categoryId, subCategoryName })).unwrap();
+        showAlert("Sub-category deleted successfully!", "success");
+      } catch (err) {
+        showAlert(err || "Failed to delete sub category", "error");
+      }
     }
   };
 
@@ -431,13 +461,7 @@ export default function AdminProductsPage() {
           </div>
           <div className="card-body">
             <div className="row g-3 align-items-end">
-              <div className="col-md-3">
-                <label className="fw-medium mb-1 fs-7">Brand</label>
-                <select className="form-select" value={filterBrand} onChange={(e) => setFilterBrand(e.target.value)}>
-                  <option value="All Brands">All Brands</option>
-                  <option value="MaxGlow">MaxGlow</option>
-                </select>
-              </div>
+              {/* Brand filter removed */}
               <div className="col-md-3">
                 <label className="fw-medium mb-1 fs-7">Category</label>
                 <select className="form-select" value={filterCategory} onChange={(e) => {
@@ -919,18 +943,35 @@ export default function AdminProductsPage() {
                 <button type="button" className="btn-close" onClick={() => setShowCategoryModal(false)}></button>
               </div>
               <div className="modal-body pt-3">
-                <label className="fw-medium mb-1 fs-7">Category Name</label>
-                <input 
-                  type="text" 
-                  className="form-control" 
-                  value={newCategoryName} 
-                  onChange={(e) => setNewCategoryName(e.target.value)}
-                  placeholder="e.g. Skin Care"
-                />
-              </div>
-              <div className="modal-footer border-top-0 pt-0">
-                <button type="button" className="btn btn-light" onClick={() => setShowCategoryModal(false)}>Cancel</button>
-                <button type="button" className="btn btn-brand" onClick={handleAddCategorySubmit}>Add Category</button>
+                <div className="mb-4">
+                  <label className="fw-medium mb-1 fs-7">Category Name</label>
+                  <div className="d-flex gap-2">
+                    <input 
+                      type="text" 
+                      className="form-control" 
+                      value={newCategoryName} 
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                      placeholder="e.g. Skin Care"
+                    />
+                    <button type="button" className="btn btn-brand" onClick={handleAddCategorySubmit}>Add</button>
+                  </div>
+                </div>
+
+                <div className="existing-categories">
+                  <h6 className="fw-bold mb-2 fs-7 text-muted">Existing Categories</h6>
+                  <ul className="list-group list-group-flush border rounded-3" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                    {categories && categories.length > 0 ? categories.map((cat) => (
+                      <li key={cat._id} className="list-group-item d-flex justify-content-between align-items-center py-2 px-3 border-bottom fs-7">
+                        {cat.name}
+                        <button className="btn btn-sm text-danger p-0 border-0 bg-transparent" onClick={() => handleDeleteCategory(cat._id)}>
+                          <Trash2 size={16} />
+                        </button>
+                      </li>
+                    )) : (
+                      <li className="list-group-item text-muted text-center py-3 fs-7">No categories found.</li>
+                    )}
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
@@ -956,20 +997,39 @@ export default function AdminProductsPage() {
                     ))}
                   </select>
                 </div>
-                <div>
+                <div className="mb-4">
                   <label className="fw-medium mb-1 fs-7">Sub-Category Name</label>
-                  <input 
-                    type="text" 
-                    className="form-control" 
-                    value={newSubCategoryName} 
-                    onChange={(e) => setNewSubCategoryName(e.target.value)}
-                    placeholder="e.g. Face Wash"
-                  />
+                  <div className="d-flex gap-2">
+                    <input 
+                      type="text" 
+                      className="form-control" 
+                      value={newSubCategoryName} 
+                      onChange={(e) => setNewSubCategoryName(e.target.value)}
+                      placeholder="e.g. Face Wash"
+                    />
+                    <button type="button" className="btn btn-brand" onClick={handleAddSubCategorySubmit}>Add</button>
+                  </div>
                 </div>
-              </div>
-              <div className="modal-footer border-top-0 pt-0">
-                <button type="button" className="btn btn-light" onClick={() => setShowSubCategoryModal(false)}>Cancel</button>
-                <button type="button" className="btn btn-brand" onClick={handleAddSubCategorySubmit}>Add Sub-Category</button>
+
+                {parentCategoryId && (
+                  <div className="existing-subcategories">
+                    <h6 className="fw-bold mb-2 fs-7 text-muted">Existing Sub-Categories</h6>
+                    <ul className="list-group list-group-flush border rounded-3" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                      {categories.find(c => c._id === parentCategoryId)?.subCategories?.length > 0 ? (
+                        categories.find(c => c._id === parentCategoryId).subCategories.map((sub, idx) => (
+                          <li key={idx} className="list-group-item d-flex justify-content-between align-items-center py-2 px-3 border-bottom fs-7">
+                            {sub}
+                            <button className="btn btn-sm text-danger p-0 border-0 bg-transparent" onClick={() => handleDeleteSubCategory(parentCategoryId, sub)}>
+                              <Trash2 size={16} />
+                            </button>
+                          </li>
+                        ))
+                      ) : (
+                        <li className="list-group-item text-muted text-center py-3 fs-7">No sub-categories found.</li>
+                      )}
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
           </div>

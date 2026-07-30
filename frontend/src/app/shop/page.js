@@ -145,6 +145,19 @@ function ShopContent() {
 
   return (
     <>
+      <style>{`
+        .shop-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+          gap: 20px;
+        }
+        @media (max-width: 576px) {
+          .shop-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+          }
+        }
+      `}</style>
       {/* Shop Banner */}
       {(() => {
         const cat = selectedCategory || categoryQuery;
@@ -287,27 +300,7 @@ function ShopContent() {
                 </div>
               </div>
 
-              {/* Brands */}
-              <div style={{ borderTop: '1.5px solid #f1f5f9', padding: '16px 0' }}>
-                <h4 style={{ fontFamily: 'var(--font-outfit)', fontSize: '14px', fontWeight: '700', color: '#1a2332', marginBottom: '12px' }}>Brand</h4>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {['MaxGlow', 'MaxGlow ANMOL', 'MaxGlow SNACKRITE'].map(brand => (
-                    <button
-                      key={brand}
-                      onClick={() => setSelectedBrand(selectedBrand === brand ? null : brand)}
-                      style={{
-                        padding: '6px 14px', borderRadius: '9999px', fontSize: '12px', fontWeight: '600',
-                        background: selectedBrand === brand ? '#EAF8FF' : '#F7FBFD',
-                        border: `1.5px solid ${selectedBrand === brand ? '#4A90E2' : '#e2e8f0'}`,
-                        color: selectedBrand === brand ? '#4A90E2' : '#374151', cursor: 'pointer',
-                        transition: 'all 0.15s ease',
-                      }}
-                    >
-                      {brand}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              {/* Brands filter removed as requested */}
 
               {/* Categories */}
               <div style={{ borderTop: '1.5px solid #f1f5f9', padding: '16px 0' }}>
@@ -386,7 +379,7 @@ function ShopContent() {
 
             {/* Products Grid / List */}
             {loading ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '20px' }}>
+              <div className="shop-grid">
                 {Array(6).fill(0).map((_, i) => (
                   <div key={i} className="mg-card" style={{ height: '320px', padding: '16px' }}>
                     <div className="mg-skeleton" style={{ height: '180px', width: '100%', marginBottom: '16px' }} />
@@ -397,7 +390,7 @@ function ShopContent() {
               </div>
             ) : sortedProducts.length > 0 ? (
               viewType === 'grid' ? (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '20px' }}>
+                <div className="shop-grid">
                   {sortedProducts.map(product => (
                     <ProductCard key={product._id} product={product} />
                   ))}
@@ -492,25 +485,7 @@ function ShopContent() {
             </div>
           </div>
 
-          <div>
-            <h4 style={{ fontFamily: 'var(--font-outfit)', fontSize: '14px', fontWeight: '700', color: '#1a2332', marginBottom: '12px' }}>Brand</h4>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-              {['MaxGlow', 'MaxGlow ANMOL', 'MaxGlow SNACKRITE'].map(brand => (
-                <button
-                  key={brand}
-                  onClick={() => { setSelectedBrand(selectedBrand === brand ? null : brand); setIsMobileFilterOpen(false); }}
-                  style={{
-                    padding: '6px 14px', borderRadius: '9999px', fontSize: '12px', fontWeight: '600',
-                    background: selectedBrand === brand ? '#EAF8FF' : '#F7FBFD',
-                    border: `1.5px solid ${selectedBrand === brand ? '#4A90E2' : '#e2e8f0'}`,
-                    color: selectedBrand === brand ? '#4A90E2' : '#374151', cursor: 'pointer',
-                  }}
-                >
-                  {brand}
-                </button>
-              ))}
-            </div>
-          </div>
+          {/* Mobile Brands filter removed */}
 
           <div>
             <h4 style={{ fontFamily: 'var(--font-outfit)', fontSize: '14px', fontWeight: '700', color: '#1a2332', marginBottom: '12px' }}>Category</h4>

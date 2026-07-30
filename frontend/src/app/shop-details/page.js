@@ -433,7 +433,7 @@ function ShopDetailsContent() {
         {/* Description & Review Tabs */}
         <div className="glass" style={{ borderRadius: '24px', padding: '32px', background: 'white', marginTop: '40px' }}>
           <div style={{ display: 'flex', gap: '20px', borderBottom: '1px solid #e2e8f0', marginBottom: '24px', overflowX: 'auto' }}>
-            {['description', 'ingredients', 'benefits', 'additional info', 'reviews'].map((tab) => (
+            {['description', 'ingredients', 'benefits', 'reviews'].map((tab) => (
               <button
                 key={tab}
                 className={`mg-tab ${activeTab === tab ? 'active' : ''}`}
@@ -459,16 +459,7 @@ function ShopDetailsContent() {
                 {realProduct.benefits?.length > 0 ? realProduct.benefits.join(', ') : 'No benefits specified.'}
               </p>
             )}
-            {activeTab === 'additional info' && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', fontSize: '14px', color: '#4a5568' }}>
-                <div><strong>SKU:</strong> {realProduct.sku || 'N/A'}</div>
-                <div><strong>Category:</strong> {realProduct.category || 'N/A'}</div>
-                {realProduct.subCategory && <div><strong>Sub Category:</strong> {realProduct.subCategory}</div>}
-                {realProduct.brand && <div><strong>Brand:</strong> {realProduct.brand}</div>}
-                <div><strong>Product Type:</strong> {realProduct.productType || 'Physical'}</div>
-                {realProduct.expiryDate && <div><strong>Expiry Date:</strong> {new Date(realProduct.expiryDate).toLocaleDateString()}</div>}
-              </div>
-            )}
+
             {activeTab === 'reviews' && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '40px' }}>
                 {/* Review List */}

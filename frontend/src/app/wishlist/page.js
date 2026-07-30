@@ -31,12 +31,25 @@ export default function WishlistPage() {
 
   return (
     <div style={{ background: '#F7FBFD', padding: '40px 0', minHeight: '60vh' }}>
+      <style>{`
+        .shop-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+          gap: 20px;
+        }
+        @media (max-width: 576px) {
+          .shop-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+          }
+        }
+      `}</style>
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
         <h1 style={{ fontFamily: 'var(--font-outfit)', fontSize: '32px', fontWeight: '800', color: '#1a2332', marginBottom: '28px' }}>
           My Wishlist
         </h1>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '20px' }}>
+        <div className="shop-grid">
           {wishlistItems.map((product) => (
             <ProductCard 
               key={product._id}

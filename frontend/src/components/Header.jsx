@@ -90,7 +90,7 @@ const Header = () => {
         }}
       >
         <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', height: '64px', gap: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', height: '64px', gap: '24px', justifyContent: 'space-between' }}>
 
             {/* Logo */}
             <Link href="/" style={{ textDecoration: 'none', flexShrink: 0, display: 'flex', alignItems: 'center', height: '40px' }}>
@@ -250,7 +250,7 @@ const Header = () => {
 
       {/* Mobile Menu Drawer */}
       <div style={{
-        position: 'fixed', top: 0, left: 0, height: '100vh', width: '300px',
+        position: 'fixed', top: 0, left: 0, height: '100vh', width: '100%', maxWidth: '300px',
         background: 'white', zIndex: 9991,
         boxShadow: '4px 0 40px rgba(0,0,0,0.15)',
         transform: isMobileMenuOpen ? 'translateX(0)' : 'translateX(-100%)',
@@ -322,7 +322,7 @@ const Header = () => {
               <Link href="/user/profile" className="btn-mg-outline" onClick={() => setIsMobileMenuOpen(false)} style={{ justifyContent: 'center', fontSize: '14px', padding: '10px 20px' }}>
                 <FiUser size={16} /> My Profile
               </Link>
-              <button onClick={handleLogout} style={{ background: '#fff0f0', border: 'none', borderRadius: '9999px', padding: '10px', color: '#ef4444', fontWeight: '600', cursor: 'pointer', fontSize: '14px' }}>
+              <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff0f0', border: 'none', borderRadius: '9999px', padding: '10px', color: '#ef4444', fontWeight: '600', cursor: 'pointer', fontSize: '14px' }}>
                 <FiLogOut size={16} style={{ marginRight: '6px' }} /> Log Out
               </button>
             </div>

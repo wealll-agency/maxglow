@@ -57,6 +57,30 @@ export const addSubCategory = createAsyncThunk(
   }
 );
 
+export const removeCategory = createAsyncThunk(
+  'admin/removeCategory',
+  async (categoryId, { rejectWithValue }) => {
+    try {
+      await axios.delete(`${CATEGORIES_URL}/${categoryId}`);
+      return categoryId;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to remove category');
+    }
+  }
+);
+
+export const removeSubCategory = createAsyncThunk(
+  'admin/removeSubCategory',
+  async ({ categoryId, subCategoryName }, { rejectWithValue }) => {
+    try {
+      const response = await axios.delete(`${CATEGORIES_URL}/${categoryId}/subcategories/${encodeURIComponent(subCategoryName)}`);
+      return response.data.category;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to remove sub category');
+    }
+  }
+);
+
 export const fetchAdminProducts = createAsyncThunk(
   'admin/fetchProducts',
   async (filters = {}, { rejectWithValue }) => {
@@ -367,9 +391,14 @@ const adminSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+
       // Categories
       .addCase(fetchCategories.fulfilled, (state, action) => {
         state.categories = action.payload.categories || [];
+      })
+      .addCase(fetchCategories.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       })
       .addCase(createCategory.fulfilled, (state, action) => {
         if (action.payload.category) {
@@ -385,15 +414,32 @@ const adminSlice = createSlice({
           }
         }
       })
+      .addCase(removeCategory.fulfilled, (state, action) => {
+        state.categories = state.categories.filter(c => c._id !== action.payload);
+      })
+      .addCase(removeSubCategory.fulfilled, (state, action) => {
+        const updatedCat = action.payload;
+        if (updatedCat) {
+          const index = state.categories.findIndex(c => c._id === updatedCat._id);
+          if (index > -1) {
+            state.categories[index] = updatedCat;
+          }
+        }
+      })
       // Admin products list
       .addCase(fetchAdminProducts.pending, (state) => {
         state.productsLoading = true;
+        state.error = null;
       })
       .addCase(fetchAdminProducts.fulfilled, (state, action) => {
         state.productsLoading = false;
         state.products = action.payload.products || action.payload;
         state.productsTotalPages = action.payload.pages || 1;
         state.productsCurrentPage = action.payload.currentPage || 1;
+      })
+      .addCase(fetchAdminProducts.rejected, (state, action) => {
+        state.productsLoading = false;
+        state.error = action.payload;
       })
       // Add product
       .addCase(addProduct.fulfilled, (state, action) => {
