@@ -6,11 +6,7 @@ import MgCard from '../../components/ui/MgCard';
 export default function AboutPage() {
   return (
     <>
-      <div className="marquee-wrapper">
-        <marquee behavior="scroll" direction="left" scrollamount="5">
-          || 🌿 MaxGlow Premium Skin & Hair Care - Extra 10% OFF! 🌿 || 🎁 Gift of Herbal Glow 🎁 || 🔥 PayDay Sale Is LIVE - Extra 15% OFF Sitewide! 🔥 ||
-        </marquee>
-      </div>
+
 
       {/* Premium Hero Banner */}
       <section className="position-relative py-5 d-flex align-items-center" style={{ minHeight: '350px' }}>
