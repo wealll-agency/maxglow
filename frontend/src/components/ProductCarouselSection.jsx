@@ -88,14 +88,7 @@ const ProductCarouselSection = ({ title, products = [] }) => {
         </div>
       </div>
 
-      <style>{`
-        .carousel-nav-btn:hover {
-          background: #3BAE56 !important;
-          border-color: #3BAE56 !important;
-        }
-        .carousel-nav-btn:hover svg { color: white !important; }
-        .swiper-button-next, .swiper-button-prev { display: none !important; }
-      `}</style>
+
     </section>
   );
 };

@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import { useRouter, usePathname } from 'next/navigation';
 import AdminSidebar from '../../components/AdminSidebar';
 import AdminHeader from '../../components/AdminHeader';
-import { ShieldAlert, ArrowLeft } from 'lucide-react';
+import { ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 import './admin.css';
 
@@ -20,28 +20,51 @@ export default function AdminLayout({ children }) {
   }, []);
 
   useEffect(() => {
-    if (!isMounted) return;
-    // If not loading and no user, send to login
-    if (!loading && !user) {
+    if (isMounted && !loading && !user) {
       const currentPath = pathname ? pathname.replace(/^\//, '') : 'admin/dashboard';
       router.push(`/login?redirect=${currentPath}`);
     }
-  }, [user, loading, router, isMounted, pathname]);
+  }, [isMounted, user, loading, router, pathname]);
 
-  if (!isMounted) return null;
-
-  // Show loading skeleton while session resolves
-  if (loading) {
+  // Initial SSR & Initial Client Hydration pass: Render identical layout structure
+  if (!isMounted) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
-        <div className="spinner-border text-success" role="status">
-          <span className="visually-hidden">Loading console...</span>
+      <div className="d-flex" style={{ minHeight: '100vh' }}>
+        <AdminSidebar />
+        <div className="flex-grow-1 bg-light d-flex flex-column admin-wrapper" style={{ maxHeight: '100vh', overflowY: 'auto' }}>
+          <AdminHeader />
+          <div className="p-4 flex-grow-1">
+            <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
+              <div className="spinner-border text-success" role="status">
+                <span className="visually-hidden">Loading console...</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
-  // Block customer access
+  // Once mounted on client, render auth states cleanly:
+  if (loading) {
+    return (
+      <div className="d-flex" style={{ minHeight: '100vh' }}>
+        <AdminSidebar />
+        <div className="flex-grow-1 bg-light d-flex flex-column admin-wrapper" style={{ maxHeight: '100vh', overflowY: 'auto' }}>
+          <AdminHeader />
+          <div className="p-4 flex-grow-1">
+            <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
+              <div className="spinner-border text-success" role="status">
+                <span className="visually-hidden">Loading console...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Block non-admin user roles
   if (user && !['Super Admin', 'Manager', 'Staff'].includes(user.role)) {
     return (
       <div className="container py-5 d-flex justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
@@ -51,24 +74,23 @@ export default function AdminLayout({ children }) {
           </div>
           <h2 className="fw-bold display-font text-danger">Access Denied</h2>
           <p className="text-muted mb-4">
-            Your account does not have administrative privileges. Please return to the customer store.
+            You do not have administrative privileges to view this portal.
           </p>
-          <Link href="/" className="btn btn-brand d-inline-flex align-items-center gap-1">
-            <ArrowLeft size={16} /> Return to Store
+          <Link href="/" className="btn btn-brand py-2 px-4 fw-semibold">
+            Return to Storefront
           </Link>
         </div>
       </div>
     );
   }
 
-  if (!user) return null;
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="d-flex" style={{ minHeight: '100vh' }}>
-      {/* Admin navigation sidebar */}
       <AdminSidebar />
-      
-      {/* Content panel */}
       <div className="flex-grow-1 bg-light d-flex flex-column admin-wrapper" style={{ maxHeight: '100vh', overflowY: 'auto' }}>
         <AdminHeader />
         <div className="p-4 flex-grow-1">

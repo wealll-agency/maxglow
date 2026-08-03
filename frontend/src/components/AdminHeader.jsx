@@ -17,6 +17,7 @@ const TYPE_CONFIG = {
 };
 
 function timeAgo(dateStr) {
+  if (!dateStr) return '';
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
   if (mins < 1) return 'now';
@@ -31,12 +32,18 @@ export default function AdminHeader() {
   const [unread, setUnread] = useState(0);
   const [showBell, setShowBell] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  
   const bellRef = useRef(null);
   const profileRef = useRef(null);
 
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const router = useRouter();
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Fetch notifications
   const fetchNotifs = async () => {
@@ -54,10 +61,11 @@ export default function AdminHeader() {
   };
 
   useEffect(() => {
+    if (!isMounted) return;
     fetchNotifs();
     const interval = setInterval(fetchNotifs, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [isMounted]);
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -127,7 +135,7 @@ export default function AdminHeader() {
           className="admin-header-icon-btn"
         >
           <Bell size={20} />
-          {unread > 0 && (
+          {isMounted && unread > 0 && (
             <span style={{
               position: 'absolute', top: 4, right: 4, backgroundColor: '#ef4444', color: '#fff',
               borderRadius: '50%', width: 18, height: 18, fontSize: 10, fontWeight: 700,
@@ -145,7 +153,7 @@ export default function AdminHeader() {
             backgroundColor: '#fff', borderRadius: 12, boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
             zIndex: 9999, overflow: 'hidden', border: '1px solid #f3f4f6'
           }}>
-            <div style={{ padding: '14px 16px', borderBottom: '1px solid #f3f4f6', display: 'flex', justifycontent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '14px 16px', borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontWeight: 700, fontSize: 15 }}>Notifications</span>
               {unread > 0 && <span style={{ fontSize: 12, backgroundColor: '#fee2e2', color: '#ef4444', borderRadius: 99, padding: '2px 8px', fontWeight: 600 }}>{unread} new</span>}
             </div>
@@ -204,7 +212,7 @@ export default function AdminHeader() {
           <div style={{ width: 30, height: 30, borderRadius: '50%', backgroundColor: '#162C18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <User size={16} color="#fff" />
           </div>
-          {user && <span style={{ fontSize: 13, fontWeight: 600, maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.name}</span>}
+          {isMounted && user && <span style={{ fontSize: 13, fontWeight: 600, maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.name}</span>}
         </button>
 
         {/* Profile Dropdown */}

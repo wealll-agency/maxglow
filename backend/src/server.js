@@ -1,6 +1,11 @@
 import express from 'express'; // Trigger restart
 import 'express-async-errors'; // Catch async route errors
 import dotenv from 'dotenv';
+import dns from 'dns';
+
+try {
+  dns.setDefaultResultOrder?.('ipv4first');
+} catch (e) {}
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
@@ -82,6 +87,9 @@ const allowedOrigins = [
   'http://localhost:3000', 
   'http://localhost:3001', 
   'http://localhost:7053',
+  'http://127.0.0.1:3000', 
+  'http://127.0.0.1:3001', 
+  'http://127.0.0.1:7053',
   'https://maxglowon.com',
   'https://www.maxglowon.com'
 ];
@@ -131,6 +139,21 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/delhivery', delhiveryRoutes);
 app.use('/api/warehouses', warehouseRoutes);
 app.use('/api/categories', categoryRoutes);
+// Health check route
+app.get('/api/health', (req, res) => {
+  const dbStatus = mongoose.connection.readyState === 1 ? 'healthy' : 'unhealthy';
+  const statusCode = dbStatus === 'healthy' ? 200 : 503;
+  res.status(statusCode).json({
+    success: dbStatus === 'healthy',
+    status: dbStatus === 'healthy' ? 'UP' : 'DOWN',
+    timestamp: new Date(),
+    uptime: process.uptime(),
+    memoryUsage: process.memoryUsage(),
+    database: dbStatus,
+    env: process.env.NODE_ENV || 'development'
+  });
+});
+
 // Root route
 app.get('/', (req, res) => {
   res.json({ success: true, message: 'MaxGlow Enterprise E-commerce API Active' });

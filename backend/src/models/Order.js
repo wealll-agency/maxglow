@@ -73,5 +73,13 @@ const orderSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Compound indexes for aggregations and queries
+orderSchema.index({ paymentStatus: 1, orderStatus: 1 });
+orderSchema.index({ createdAt: -1 });
+orderSchema.index({ orderStatus: 1, createdAt: -1 });
+orderSchema.index({ couponCode: 1, createdAt: -1 });
+orderSchema.index({ couponCode: 1, orderStatus: 1 });
+orderSchema.index({ couponCode: 1, "deliveryAddress.pincode": 1 });
+
 const Order = mongoose.model('Order', orderSchema);
 export default Order;

@@ -48,35 +48,46 @@ const calculateOrderTotals = async (items, couponCode) => {
       );
       if (selectedPack) {
         basePrice = selectedPack.price;
-      } else if (item.size !== `${product.unitValue || 1} ${product.unit || 'Pack'}`) {
-        throw new Error(`Invalid pack size selected for: ${item.name}`);
       }
     }
     
-    const activePrice = product.discount > 0 
-      ? (product.discountType === 'Percent' ? Math.round(basePrice * (1 - product.discount / 100)) : Math.max(0, basePrice - product.discount))
-      : basePrice;
+    let activePrice = basePrice;
+    if (item.price && typeof item.price === 'number' && item.price > 0 && Math.abs(item.price - basePrice) <= (product.discount || 0) + 10) {
+      activePrice = item.price;
+    } else if (product.discount > 0) {
+      activePrice = product.discountType === 'Percent' 
+        ? Math.round(basePrice * (1 - product.discount / 100)) 
+        : Math.max(0, basePrice - product.discount);
+    }
       
     subtotal += activePrice * item.quantity;
     item.price = activePrice; // Bind exact price paid
   }
 
+  let discountableSubtotal = 0;
   let discount = 0;
+
   if (couponCode) {
-    const coupon = await Coupon.findOne({ code: couponCode.toUpperCase() });
+    const coupon = await Coupon.findOne({ code: couponCode.toUpperCase().trim() });
     if (coupon && coupon.isValid()) {
-      discount = Math.round((subtotal * coupon.discountPercentage) / 100);
+      if (coupon.applicableProducts && coupon.applicableProducts.length > 0) {
+        items.forEach(item => {
+          if (coupon.applicableProducts.some(p => p.toString() === item.product.toString())) {
+            discountableSubtotal += item.price * item.quantity;
+          }
+        });
+      } else {
+        discountableSubtotal = subtotal;
+      }
+      discount = Math.round((discountableSubtotal * coupon.discountPercentage) / 100);
     }
   }
 
-  // Tax = 5% of discounted price
-  const taxableAmount = subtotal - discount;
-  const tax = Math.round(taxableAmount * 0.05);
-  
-  // Shipping: Free above 500, else 40 INR
-  const shippingFee = taxableAmount > 500 ? 0 : 40;
-  
-  const totalAmount = taxableAmount + tax + shippingFee;
+  const discountedSubtotal = Math.max(0, subtotal - discount);
+  // GST 5% is Included in product MRP
+  const tax = Math.round(discountedSubtotal - (discountedSubtotal / 1.05));
+  const shippingFee = discountedSubtotal > 500 || items.length === 0 ? 0 : 40;
+  const totalAmount = discountedSubtotal + shippingFee;
 
   return { subtotal, discount, tax, shippingFee, totalAmount, validatedItems: items };
 };

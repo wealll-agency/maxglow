@@ -8,109 +8,93 @@ import ExcelJS from 'exceljs';
 // @desc    Get Admin Dashboard summary stats
 // @route   GET /api/reports/dashboard
 // @access  Private/Admin/Manager
+let cachedDashboardData = null;
+let dashboardCacheTime = 0;
+const DASHBOARD_CACHE_TTL = 15 * 1000; // 15 seconds cache TTL
+
+// @desc    Get Admin Dashboard summary stats
+// @route   GET /api/reports/dashboard
+// @access  Private/Admin/Manager
 export const getDashboardSummary = async (req, res, next) => {
   try {
-    // 1. Calculate Total Sales & Revenue (Total amount of Paid/Delivered orders)
-    const salesAggregation = await Order.aggregate([
-      { $match: { paymentStatus: 'Paid', orderStatus: { $ne: 'Cancelled' } } },
-      { $group: { _id: null, totalSales: { $sum: '$totalAmount' }, count: { $sum: 1 } } }
-    ]);
-    const totalSales = salesAggregation[0]?.totalSales || 0;
-    const totalOrders = salesAggregation[0]?.count || 0;
-
-    // 2. Count Customers
-    const totalCustomers = await User.countDocuments({ role: 'Customer' });
-
-    // 3. Count Low Stock Items
-    const lowStockItems = await Inventory.countDocuments({
-      $expr: { $lte: ['$stockQuantity', '$lowStockThreshold'] }
-    });
-
-    // New: Count Total Products
-    const totalProducts = await Product.countDocuments();
-
-    // New: Calculate Order Statuses (Pending, Confirmed, Packed, Shipped, Delivered, Cancelled)
-    const orderStatusesRaw = await Order.aggregate([
-      {
-        $group: {
-          _id: '$orderStatus',
-          count: { $sum: 1 }
-        }
-      }
-    ]);
-    const orderStatuses = orderStatusesRaw.reduce((acc, curr) => {
-      acc[curr._id] = curr.count;
-      return acc;
-    }, { Placed: 0, Confirmed: 0, Packed: 0, Shipped: 0, Delivered: 0, Cancelled: 0 });
-
-    // New: Admin Wallet Stats
-    const walletAggregation = await Order.aggregate([
-      { $match: { paymentStatus: 'Paid', orderStatus: { $ne: 'Cancelled' } } },
-      {
-        $group: {
-          _id: null,
-          totalDeliveryCharge: { $sum: '$shippingFee' },
-          totalTaxCollected: { $sum: '$tax' }
-        }
-      }
-    ]);
-    const pendingAmountAgg = await Order.aggregate([
-      { $match: { paymentStatus: 'Pending', orderStatus: { $ne: 'Cancelled' } } },
-      { $group: { _id: null, pendingAmount: { $sum: '$totalAmount' } } }
-    ]);
-    
-    const adminWallet = {
-      inHouseEarning: totalSales, // Same as gross sales since no vendors
-      commissionEarned: 0, // No multi-vendor
-      deliveryChargeEarned: walletAggregation[0]?.totalDeliveryCharge || 0,
-      totalTaxCollected: walletAggregation[0]?.totalTaxCollected || 0,
-      pendingAmount: pendingAmountAgg[0]?.pendingAmount || 0
-    };
-
-    // 4. Get monthly sales data for charts (last 6 months)
-    const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
-    sixMonthsAgo.setDate(1);
-    sixMonthsAgo.setHours(0, 0, 0, 0);
-
-    let formattedSalesOverview = [];
-    try {
-      const monthlySales = await Order.aggregate([
-        {
-          $match: {
-            paymentStatus: 'Paid',
-            orderStatus: { $ne: 'Cancelled' },
-            createdAt: { $gte: sixMonthsAgo }
-          }
-        },
-        {
-          $group: {
-            _id: {
-              year: { $year: '$createdAt' },
-              month: { $month: '$createdAt' }
-            },
-            revenue: { $sum: '$totalAmount' },
-            orders: { $sum: 1 }
-          }
-        },
-        { $sort: { '_id.year': 1, '_id.month': 1 } }
-      ]);
-
-      // Format monthly data for chart display
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      formattedSalesOverview = monthlySales.map(item => ({
-        name: `${months[item._id.month - 1]} ${item._id.year}`,
-        revenue: item.revenue,
-        orders: item.orders
-      }));
-    } catch (err) {
-      console.error('Dashboard Monthly Sales Error:', err);
+    if (cachedDashboardData && (Date.now() - dashboardCacheTime < DASHBOARD_CACHE_TTL)) {
+      return res.json(cachedDashboardData);
     }
 
-    // 5. Get top selling products
-    let topProducts = [];
-    try {
-      const topProductsAggregation = await Order.aggregate([
+    const now = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 1, 0, 0, 0, 0);
+    const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+    const dayOfWeek = now.getDay();
+    const distanceToMon = (dayOfWeek + 6) % 7;
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - distanceToMon);
+    startOfWeek.setHours(0, 0, 0, 0);
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
+
+    // Parallelize all DB queries with Promise.all
+    const [
+      salesAggregation,
+      totalCustomers,
+      lowStockItems,
+      totalProducts,
+      orderStatusesRaw,
+      walletAggregation,
+      pendingAmountAgg,
+      yearlySales,
+      monthlySales,
+      weeklySales,
+      topProductsAggregation,
+      lowStockDetails
+    ] = await Promise.all([
+      // 1. Sales & Revenue
+      Order.aggregate([
+        { $match: { paymentStatus: 'Paid', orderStatus: { $ne: 'Cancelled' } } },
+        { $group: { _id: null, totalSales: { $sum: '$totalAmount' }, count: { $sum: 1 } } }
+      ]),
+      // 2. Customers
+      User.countDocuments({ role: 'Customer' }),
+      // 3. Low stock count
+      Inventory.countDocuments({
+        $expr: { $lte: ['$stockQuantity', '$lowStockThreshold'] }
+      }),
+      // 4. Products count
+      Product.countDocuments(),
+      // 5. Order Statuses
+      Order.aggregate([
+        { $group: { _id: '$orderStatus', count: { $sum: 1 } } }
+      ]),
+      // 6. Wallet Aggregation
+      Order.aggregate([
+        { $match: { paymentStatus: 'Paid', orderStatus: { $ne: 'Cancelled' } } },
+        { $group: { _id: null, totalDeliveryCharge: { $sum: '$shippingFee' }, totalTaxCollected: { $sum: '$tax' } } }
+      ]),
+      // 7. Pending Amount
+      Order.aggregate([
+        { $match: { paymentStatus: 'Pending', orderStatus: { $ne: 'Cancelled' } } },
+        { $group: { _id: null, pendingAmount: { $sum: '$totalAmount' } } }
+      ]),
+      // 8. Yearly Sales
+      Order.aggregate([
+        { $match: { orderStatus: { $ne: 'Cancelled' }, createdAt: { $gte: startOfYear, $lte: endOfYear } } },
+        { $group: { _id: { $month: '$createdAt' }, revenue: { $sum: '$totalAmount' }, orders: { $sum: 1 } } }
+      ]),
+      // 9. Monthly Sales
+      Order.aggregate([
+        { $match: { orderStatus: { $ne: 'Cancelled' }, createdAt: { $gte: startOfMonth, $lte: endOfMonth } } },
+        { $group: { _id: { $dayOfMonth: '$createdAt' }, revenue: { $sum: '$totalAmount' }, orders: { $sum: 1 } } }
+      ]),
+      // 10. Weekly Sales
+      Order.aggregate([
+        { $match: { orderStatus: { $ne: 'Cancelled' }, createdAt: { $gte: startOfWeek, $lte: endOfWeek } } },
+        { $group: { _id: { $dayOfWeek: '$createdAt' }, revenue: { $sum: '$totalAmount' }, orders: { $sum: 1 } } }
+      ]),
+      // 11. Top Products
+      Order.aggregate([
         { $match: { paymentStatus: 'Paid', orderStatus: { $ne: 'Cancelled' } } },
         { $unwind: '$items' },
         {
@@ -123,26 +107,85 @@ export const getDashboardSummary = async (req, res, next) => {
         },
         { $sort: { unitsSold: -1 } },
         { $limit: 5 }
-      ]);
+      ]),
+      // 12. Low Stock Details
+      Inventory.find({
+        $expr: { $lte: ['$stockQuantity', '$lowStockThreshold'] }
+      }).populate('product', 'name category price').limit(5).lean()
+    ]);
 
-      // Populate thumbnails
-      for (const prod of topProductsAggregation) {
-        const pDetail = await Product.findById(prod._id).select('images');
-        topProducts.push({
-          ...prod,
-          image: pDetail?.images[0] || ''
-        });
-      }
-    } catch (err) {
-      console.error('Dashboard Top Products Error:', err);
+    const totalSales = salesAggregation[0]?.totalSales || 0;
+    const totalOrders = salesAggregation[0]?.count || 0;
+
+    const orderStatuses = orderStatusesRaw.reduce((acc, curr) => {
+      acc[curr._id] = curr.count;
+      return acc;
+    }, { Placed: 0, Confirmed: 0, Packed: 0, Shipped: 0, Delivered: 0, Cancelled: 0 });
+
+    const adminWallet = {
+      inHouseEarning: totalSales,
+      commissionEarned: 0,
+      deliveryChargeEarned: walletAggregation[0]?.totalDeliveryCharge || 0,
+      totalTaxCollected: walletAggregation[0]?.totalTaxCollected || 0,
+      pendingAmount: pendingAmountAgg[0]?.pendingAmount || 0
+    };
+
+    // Format Sales Overview
+    const monthsList = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const yearlyFormatted = monthsList.map((mName, idx) => {
+      const found = yearlySales.find(item => item._id === idx + 1);
+      const rev = found ? found.revenue : 0;
+      return { name: mName, inHouse: rev, seller: 0, commission: 0, revenue: rev, orders: found ? found.orders : 0 };
+    });
+
+    const weeksList = [
+      { name: 'Week 1', min: 1, max: 7 },
+      { name: 'Week 2', min: 8, max: 14 },
+      { name: 'Week 3', min: 15, max: 21 },
+      { name: 'Week 4', min: 22, max: 28 },
+      { name: 'Week 5', min: 29, max: 31 },
+    ];
+    const monthlyFormatted = weeksList.map(w => {
+      const matching = monthlySales.filter(item => item._id >= w.min && item._id <= w.max);
+      const sumRevenue = matching.reduce((acc, item) => acc + item.revenue, 0);
+      const sumOrders = matching.reduce((acc, item) => acc + item.orders, 0);
+      return { name: w.name, inHouse: sumRevenue, seller: 0, commission: 0, revenue: sumRevenue, orders: sumOrders };
+    });
+
+    const daysMap = [
+      { name: 'Mon', mongoDay: 2 },
+      { name: 'Tue', mongoDay: 3 },
+      { name: 'Wed', mongoDay: 4 },
+      { name: 'Thu', mongoDay: 5 },
+      { name: 'Fri', mongoDay: 6 },
+      { name: 'Sat', mongoDay: 7 },
+      { name: 'Sun', mongoDay: 1 },
+    ];
+    const weeklyFormatted = daysMap.map(d => {
+      const found = weeklySales.find(item => item._id === d.mongoDay);
+      const rev = found ? found.revenue : 0;
+      return { name: d.name, inHouse: rev, seller: 0, commission: 0, revenue: rev, orders: found ? found.orders : 0 };
+    });
+
+    const formattedSalesOverview = {
+      yearly: yearlyFormatted,
+      monthly: monthlyFormatted,
+      weekly: weeklyFormatted
+    };
+
+    // Batch populate product thumbnails for Top Products
+    const topProdIds = topProductsAggregation.map(p => p._id).filter(Boolean);
+    let topProducts = [];
+    if (topProdIds.length > 0) {
+      const pDetails = await Product.find({ _id: { $in: topProdIds } }).select('images').lean();
+      const pMap = new Map(pDetails.map(p => [p._id.toString(), p.images?.[0] || '']));
+      topProducts = topProductsAggregation.map(prod => ({
+        ...prod,
+        image: pMap.get(prod._id?.toString()) || ''
+      }));
     }
 
-    // 6. Get low stock alert items detail list
-    const lowStockDetails = await Inventory.find({
-      $expr: { $lte: ['$stockQuantity', '$lowStockThreshold'] }
-    }).populate('product', 'name category price').limit(5);
-
-    res.json({
+    const responsePayload = {
       success: true,
       stats: {
         totalSales,
@@ -150,14 +193,19 @@ export const getDashboardSummary = async (req, res, next) => {
         totalCustomers,
         lowStockItems,
         totalProducts,
-        totalStores: 1, // Single vendor store
+        totalStores: 1,
         orderStatuses,
         adminWallet
       },
       salesOverview: formattedSalesOverview,
       topProducts,
       lowStockDetails
-    });
+    };
+
+    cachedDashboardData = responsePayload;
+    dashboardCacheTime = Date.now();
+
+    res.json(responsePayload);
   } catch (error) {
     next(error);
   }

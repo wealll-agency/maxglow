@@ -1,7 +1,7 @@
 "use client";
 
-
-import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
+import { FiCheckCircle, FiAlertCircle, FiAlertTriangle, FiInfo, FiX } from 'react-icons/fi';
 
 const NotificationContext = createContext();
 
@@ -17,11 +17,7 @@ export const NotificationProvider = ({ children }) => {
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
   const [confirmModal, setConfirmModal] = useState({ show: false, message: '' });
   
-  // We need a ref to store the resolver function so we can resolve the Promise
-  // when the user clicks Confirm or Cancel
   const confirmResolver = useRef(null);
-  
-  // Timer for toast auto-hide
   const toastTimer = useRef(null);
 
   const showAlert = useCallback((message, type = 'info') => {
@@ -61,64 +57,194 @@ export const NotificationProvider = ({ children }) => {
     }
   }, []);
 
-  // Map our simple types to bootstrap classes
-  const getToastClass = (type) => {
-    if (type === 'error' || type === 'danger') return 'text-bg-danger';
-    if (type === 'success') return 'text-bg-success';
-    if (type === 'warning') return 'text-bg-warning';
-    return 'text-bg-dark'; // default
+  const getToastConfig = (type) => {
+    switch (type) {
+      case 'error':
+      case 'danger':
+        return {
+          icon: <FiAlertCircle size={20} color="#EF4444" />,
+          bg: '#FFFFFF',
+          border: '1px solid #FEE2E2',
+          borderLeft: '4px solid #EF4444',
+          iconBg: '#FEF2F2',
+          textColor: '#1f2937',
+        };
+      case 'success':
+        return {
+          icon: <FiCheckCircle size={20} color="#10B981" />,
+          bg: '#FFFFFF',
+          border: '1px solid #D1FAE5',
+          borderLeft: '4px solid #10B981',
+          iconBg: '#ECFDF5',
+          textColor: '#1f2937',
+        };
+      case 'warning':
+        return {
+          icon: <FiAlertTriangle size={20} color="#F59E0B" />,
+          bg: '#FFFFFF',
+          border: '1px solid #FEF3C7',
+          borderLeft: '4px solid #F59E0B',
+          iconBg: '#FFFBEB',
+          textColor: '#1f2937',
+        };
+      default: // info
+        return {
+          icon: <FiInfo size={20} color="#3B82F6" />,
+          bg: '#FFFFFF',
+          border: '1px solid #DBEAFE',
+          borderLeft: '4px solid #3B82F6',
+          iconBg: '#EFF6FF',
+          textColor: '#1f2937',
+        };
+    }
   };
 
   return (
     <NotificationContext.Provider value={{ showAlert, showConfirm }}>
       {children}
       
-      {/* Bootstrap Toast */}
-      <div 
-        className="toast-container position-fixed top-0 end-0 p-3" 
-        style={{ zIndex: 9999 }}
-      >
-        <div 
-          className={`toast align-items-center border-0 ${toast.show ? 'show' : 'hide'} ${getToastClass(toast.type)}`} 
-          role="alert" 
-          aria-live="assertive" 
-          aria-atomic="true"
-        >
-          <div className="d-flex">
-            <div className="toast-body fw-medium">
-              {toast.message}
+      {/* Industry Standard Toast Notification */}
+      {toast.show && (() => {
+        const config = getToastConfig(toast.type);
+        return (
+          <div
+            style={{
+              position: 'fixed',
+              top: '24px',
+              right: '24px',
+              zIndex: 99999,
+              animation: 'toastSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                background: config.bg,
+                border: config.border,
+                borderLeft: config.borderLeft,
+                borderRadius: '14px',
+                padding: '14px 18px',
+                boxShadow: '0 12px 36px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04)',
+                minWidth: '280px',
+                maxWidth: '420px',
+              }}
+            >
+              {/* Icon Badge */}
+              <div
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  background: config.iconBg,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                {config.icon}
+              </div>
+
+              {/* Message */}
+              <div style={{ flex: 1 }}>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: '13.5px',
+                    fontWeight: '600',
+                    color: config.textColor,
+                    lineHeight: '1.4',
+                    fontFamily: 'var(--font-outfit), sans-serif',
+                  }}
+                >
+                  {toast.message}
+                </p>
+              </div>
+
+              {/* Close Button */}
+              <button
+                onClick={hideAlert}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#94a3b8',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '50%',
+                  transition: 'color 0.2s ease',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = '#374151')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = '#94a3b8')}
+              >
+                <FiX size={16} />
+              </button>
             </div>
-            <button 
-              type="button" 
-              className={`btn-close btn-close-white me-2 m-auto`} 
-              onClick={hideAlert} 
-              aria-label="Close"
-            ></button>
+          </div>
+        );
+      })()}
+
+      {/* Confirmation Modal */}
+      {confirmModal.show && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 100000,
+            background: 'rgba(0, 0, 0, 0.45)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+          }}
+        >
+          <div
+            style={{
+              background: 'white',
+              borderRadius: '20px',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+              padding: '28px 32px',
+              maxWidth: '420px',
+              width: '100%',
+              textAlign: 'center',
+              border: '1px solid rgba(221,244,255,0.8)',
+            }}
+          >
+            <div style={{
+              width: '48px', height: '48px', borderRadius: '50%', background: '#FEF3C7',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px auto'
+            }}>
+              <FiAlertTriangle size={24} color="#F59E0B" />
+            </div>
+            <h3 style={{ fontFamily: 'var(--font-outfit)', fontSize: '18px', fontWeight: '800', color: '#1a2332', marginBottom: '10px' }}>
+              Confirmation Required
+            </h3>
+            <p style={{ fontSize: '14px', color: '#64748b', lineHeight: '1.6', marginBottom: '24px' }}>
+              {confirmModal.message}
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button
+                onClick={handleCancel}
+                className="btn-mg-outline"
+                style={{ flex: 1, padding: '10px 20px', fontSize: '14px', justifyContent: 'center' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirm}
+                className="btn-mg-primary"
+                style={{ flex: 1, padding: '10px 20px', fontSize: '14px', justifyContent: 'center' }}
+              >
+                Confirm
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Bootstrap Modal for Confirm */}
-      {confirmModal.show && (
-        <>
-          <div className="modal fade show d-block" tabIndex="-1" style={{ zIndex: 10000, backgroundColor: 'rgba(0,0,0,0.5)' }}>
-            <div className="modal-dialog modal-dialog-centered">
-              <div className="modal-content shadow border-0 rounded-4">
-                <div className="modal-header border-bottom-0 pb-0">
-                  <h5 className="modal-title fw-bold text-dark">Confirmation</h5>
-                  <button type="button" className="btn-close" onClick={handleCancel}></button>
-                </div>
-                <div className="modal-body py-4">
-                  <p className="mb-0 fs-5 text-center text-muted">{confirmModal.message}</p>
-                </div>
-                <div className="modal-footer border-top-0 d-flex justify-content-center gap-3 pb-4">
-                  <button type="button" className="btn btn-light px-4 py-2 fw-medium rounded-3" onClick={handleCancel}>Cancel</button>
-                  <button type="button" className="btn btn-brand px-4 py-2 fw-medium rounded-3" onClick={handleConfirm}>Confirm</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
       )}
     </NotificationContext.Provider>
   );

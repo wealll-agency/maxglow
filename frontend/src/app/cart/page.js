@@ -234,7 +234,7 @@ function CartPage() {
                   <span style={{ fontWeight: '600', color: '#1a2332' }}>{shippingFee === 0 ? 'Free' : `₹${shippingFee}`}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748b' }}>
-                  <span>GST Tax (5%)</span>
+                  <span>GST Tax (5% Incl.)</span>
                   <span style={{ fontWeight: '600', color: '#1a2332' }}>₹{tax}</span>
                 </div>
                 <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', fontSize: '18px', fontWeight: '800', color: '#1a2332' }}>

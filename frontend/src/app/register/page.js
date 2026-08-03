@@ -31,7 +31,8 @@ function RegisterContent() {
 
   useEffect(() => {
     if (user) {
-      router.push(redirect ? `/${redirect}` : '/');
+      const targetUrl = redirect ? (redirect.startsWith('/') ? redirect : `/${redirect}`) : '/';
+      router.push(targetUrl);
     }
     dispatch(clearError());
   }, [user, redirect, router, dispatch]);
@@ -40,8 +41,12 @@ function RegisterContent() {
     e.preventDefault();
     if (!name || !email || !password) return;
     setIsSubmitting(true);
-    await dispatch(registerUser({ name, email, password, phone }));
+    const resultAction = await dispatch(registerUser({ name, email, password, phone }));
     setIsSubmitting(false);
+    if (registerUser.fulfilled.match(resultAction)) {
+      const targetUrl = redirect ? (redirect.startsWith('/') ? redirect : `/${redirect}`) : '/';
+      router.push(targetUrl);
+    }
   };
 
   const inputFields = [

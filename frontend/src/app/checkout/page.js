@@ -354,7 +354,11 @@ export default function CheckoutPage() {
         isCombo: response.data.isCombo
       }));
 
-      setCouponSuccess(`Coupon "${response.data.code}" applied! ${response.data.discountPercentage}% Discount.`);
+      if (applicableProducts.length > 0) {
+        setCouponSuccess(`Coupon "${response.data.code}" applied! ${response.data.discountPercentage}% Discount on eligible items.`);
+      } else {
+        setCouponSuccess(`Coupon "${response.data.code}" applied! ${response.data.discountPercentage}% Storewide Discount.`);
+      }
     } catch (error) {
       setCouponError(error.response?.data?.message || 'Failed to apply coupon');
       dispatch(applyCouponCode({ code: '', discountPercentage: 0, applicableProducts: [], isCombo: false }));
@@ -672,7 +676,7 @@ export default function CheckoutPage() {
                 <span>{shippingFee === 0 ? 'Free' : `₹${shippingFee}`}</span>
               </div>
               <div className="d-flex justify-content-between">
-                <span>GST Tax (5%)</span>
+                <span>GST Tax (5% Incl.)</span>
                 <span>₹{tax}</span>
               </div>
               <hr />

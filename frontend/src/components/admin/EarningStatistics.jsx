@@ -33,31 +33,53 @@ const CustomTooltip = ({ active, payload, label }) => {
 export default function EarningStatistics({ data }) {
   const [activeTab, setActiveTab] = useState('This Year');
 
-  // Format data specifically for the chart based on the provided sales data
-  // We map the backend data over a fixed 12-month array so the chart always renders a full line.
-  const baseMonths = [
-    { name: 'Jan', inHouse: 0, seller: 0, commission: 0 },
-    { name: 'Feb', inHouse: 0, seller: 0, commission: 0 },
-    { name: 'Mar', inHouse: 0, seller: 0, commission: 0 },
-    { name: 'Apr', inHouse: 0, seller: 0, commission: 0 },
-    { name: 'May', inHouse: 0, seller: 0, commission: 0 },
-    { name: 'Jun', inHouse: 0, seller: 0, commission: 0 },
-    { name: 'Jul', inHouse: 0, seller: 0, commission: 0 },
-    { name: 'Aug', inHouse: 0, seller: 0, commission: 0 },
-    { name: 'Sep', inHouse: 0, seller: 0, commission: 0 },
-    { name: 'Oct', inHouse: 0, seller: 0, commission: 0 },
-    { name: 'Nov', inHouse: 0, seller: 0, commission: 0 },
-    { name: 'Dec', inHouse: 0, seller: 0, commission: 0 },
-  ];
+  let displayData = [];
 
-  const displayData = baseMonths.map(month => {
-    // Find if the backend returned data for this month (e.g. "Jun 2026" starts with "Jun")
-    const found = data.find(d => d.name && d.name.startsWith(month.name));
-    if (found) {
-      return { ...month, inHouse: found.revenue };
+  // Check if data is passed as an object containing { yearly, monthly, weekly }
+  if (data && typeof data === 'object' && !Array.isArray(data)) {
+    if (activeTab === 'This Year') {
+      displayData = data.yearly || [];
+    } else if (activeTab === 'This Month') {
+      displayData = data.monthly || [];
+    } else if (activeTab === 'This Week') {
+      displayData = data.weekly || [];
     }
-    return month;
-  });
+  } else if (Array.isArray(data)) {
+    // Fallback if legacy array is provided
+    const baseMonths = [
+      { name: 'Jan', inHouse: 0, seller: 0, commission: 0 },
+      { name: 'Feb', inHouse: 0, seller: 0, commission: 0 },
+      { name: 'Mar', inHouse: 0, seller: 0, commission: 0 },
+      { name: 'Apr', inHouse: 0, seller: 0, commission: 0 },
+      { name: 'May', inHouse: 0, seller: 0, commission: 0 },
+      { name: 'Jun', inHouse: 0, seller: 0, commission: 0 },
+      { name: 'Jul', inHouse: 0, seller: 0, commission: 0 },
+      { name: 'Aug', inHouse: 0, seller: 0, commission: 0 },
+      { name: 'Sep', inHouse: 0, seller: 0, commission: 0 },
+      { name: 'Oct', inHouse: 0, seller: 0, commission: 0 },
+      { name: 'Nov', inHouse: 0, seller: 0, commission: 0 },
+      { name: 'Dec', inHouse: 0, seller: 0, commission: 0 },
+    ];
+    displayData = baseMonths.map(month => {
+      const found = data.find(d => d.name && d.name.startsWith(month.name));
+      return found ? { ...month, inHouse: found.revenue || found.inHouse || 0 } : month;
+    });
+  } else {
+    displayData = [
+      { name: 'Jan', inHouse: 0, seller: 0, commission: 0 },
+      { name: 'Feb', inHouse: 0, seller: 0, commission: 0 },
+      { name: 'Mar', inHouse: 0, seller: 0, commission: 0 },
+      { name: 'Apr', inHouse: 0, seller: 0, commission: 0 },
+      { name: 'May', inHouse: 0, seller: 0, commission: 0 },
+      { name: 'Jun', inHouse: 0, seller: 0, commission: 0 },
+      { name: 'Jul', inHouse: 0, seller: 0, commission: 0 },
+      { name: 'Aug', inHouse: 0, seller: 0, commission: 0 },
+      { name: 'Sep', inHouse: 0, seller: 0, commission: 0 },
+      { name: 'Oct', inHouse: 0, seller: 0, commission: 0 },
+      { name: 'Nov', inHouse: 0, seller: 0, commission: 0 },
+      { name: 'Dec', inHouse: 0, seller: 0, commission: 0 },
+    ];
+  }
 
   const yAxisTickFormatter = (value) => {
     if (value >= 1000) {

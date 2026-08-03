@@ -1,6 +1,6 @@
 "use client";
-import React, { memo } from 'react';
-import { FiStar } from 'react-icons/fi';
+import React, { useState, memo } from 'react';
+import { FiStar, FiChevronDown } from 'react-icons/fi';
 
 const testimonials = [
   {
@@ -42,6 +42,14 @@ const testimonials = [
 ];
 
 const Testimonials = () => {
+  const [openIndices, setOpenIndices] = useState([0]);
+
+  const toggleReview = (index) => {
+    setOpenIndices(prev =>
+      prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]
+    );
+  };
+
   return (
     <section className="mg-section-spacing" style={{ background: 'linear-gradient(180deg, white 0%, #EAF8FF 100%)' }}>
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
@@ -55,56 +63,113 @@ const Testimonials = () => {
             CUSTOMER STORIES
           </span>
           <h2 className="mg-section-title">What Our Customers Say</h2>
-          <p className="mg-section-subtitle">Real results, real people</p>
+          <p className="mg-section-subtitle">Click on any review to read full details</p>
         </div>
 
         <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-          gap: '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px',
+          maxWidth: '900px',
+          margin: '0 auto',
         }}>
-          {testimonials.map((review, idx) => (
-            <div key={idx} className="mg-card" style={{ padding: '24px' }}>
-              {/* Rating */}
-              <div style={{ display: 'flex', gap: '3px', marginBottom: '14px' }}>
-                {[...Array(review.rating)].map((_, i) => (
-                  <FiStar key={i} size={14} style={{ color: '#f59e0b', fill: '#f59e0b' }} />
-                ))}
-              </div>
-
-              {/* Review text */}
-              <p style={{ fontSize: '14px', color: '#4a5568', lineHeight: '1.7', marginBottom: '20px', fontStyle: 'italic' }}>
-                "{review.text}"
-              </p>
-
-              {/* Product badge */}
-              <div style={{
-                display: 'inline-block', padding: '4px 12px',
-                background: review.bg, borderRadius: '9999px',
-                fontSize: '11px', fontWeight: '600', color: '#374151',
-                marginBottom: '16px',
-              }}>
-                ✓ Verified — {review.product}
-              </div>
-
-              {/* Author */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
-                <div style={{
-                  width: '40px', height: '40px', borderRadius: '50%',
-                  background: review.bg, display: 'flex', alignItems: 'center',
-                  justifyContent: 'center', fontSize: '20px', flexShrink: 0,
-                }}>
-                  {review.avatar}
-                </div>
-                <div>
-                  <div style={{ fontFamily: 'var(--font-outfit)', fontSize: '14px', fontWeight: '700', color: '#1a2332' }}>
-                    {review.name}
+          {testimonials.map((review, idx) => {
+            const isOpen = openIndices.includes(idx);
+            return (
+              <div 
+                key={idx} 
+                className="mg-card" 
+                style={{ 
+                  padding: 0, 
+                  borderRadius: '16px',
+                  overflow: 'hidden',
+                  background: 'white',
+                  boxShadow: isOpen ? '0 8px 24px rgba(74, 144, 226, 0.12)' : '0 2px 10px rgba(0, 0, 0, 0.04)',
+                  transition: 'all 0.3s ease',
+                  border: isOpen ? '1.5px solid #5DAEFF' : '1.5px solid rgba(221, 244, 255, 0.8)'
+                }}
+              >
+                {/* Accordion Header (Always Visible) */}
+                <div
+                  onClick={() => toggleReview(idx)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '16px 20px',
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                    background: isOpen ? '#F7FBFD' : 'white',
+                    transition: 'background 0.2s ease',
+                  }}
+                >
+                  {/* Name and Avatar */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{
+                      width: '38px', height: '38px', borderRadius: '50%',
+                      background: review.bg, display: 'flex', alignItems: 'center',
+                      justifyContent: 'center', fontSize: '18px', flexShrink: 0,
+                    }}>
+                      {review.avatar}
+                    </div>
+                    <div>
+                      <div style={{ fontFamily: 'var(--font-outfit)', fontSize: '15px', fontWeight: '700', color: '#1a2332' }}>
+                        {review.name}
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#94a3b8' }}>{review.location}</div>
+                    </div>
                   </div>
-                  <div style={{ fontSize: '12px', color: '#94a3b8' }}>{review.location}</div>
+
+                  {/* Rating and Toggle Arrow */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ display: 'flex', gap: '2px' }}>
+                      {[...Array(review.rating)].map((_, i) => (
+                        <FiStar key={i} size={14} style={{ color: '#f59e0b', fill: '#f59e0b' }} />
+                      ))}
+                    </div>
+                    <div style={{
+                      width: '28px', height: '28px', borderRadius: '50%',
+                      background: isOpen ? '#EAF8FF' : '#f8fafc',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      transition: 'all 0.3s ease'
+                    }}>
+                      <FiChevronDown 
+                        size={16} 
+                        style={{ 
+                          color: isOpen ? '#4A90E2' : '#64748b', 
+                          transition: 'transform 0.3s ease',
+                          transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)'
+                        }} 
+                      />
+                    </div>
+                  </div>
                 </div>
+
+                {/* Collapsible Content */}
+                {isOpen && (
+                  <div style={{
+                    padding: '16px 20px 20px 20px',
+                    borderTop: '1px dashed rgba(221, 244, 255, 0.9)',
+                    background: 'white',
+                  }}>
+                    {/* Review text */}
+                    <p style={{ fontSize: '14px', color: '#374151', lineHeight: '1.7', marginBottom: '14px', fontStyle: 'italic' }}>
+                      "{review.text}"
+                    </p>
+
+                    {/* Product badge */}
+                    <div style={{
+                      display: 'inline-block', padding: '4px 12px',
+                      background: review.bg, borderRadius: '9999px',
+                      fontSize: '11px', fontWeight: '600', color: '#1a2332',
+                    }}>
+                      ✓ Verified Purchase — {review.product}
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Summary stats */}
@@ -115,30 +180,6 @@ const Testimonials = () => {
           boxShadow: '0 4px 24px rgba(74,144,226,0.08)',
           border: '1px solid rgba(221,244,255,0.8)',
         }}>
-          <style>{`
-            @media (max-width: 768px) {
-              .stats-container {
-                grid-template-columns: repeat(4, 1fr) !important;
-                gap: 4px !important;
-                padding: 16px 8px !important;
-                border-radius: 12px !important;
-              }
-              .stat-item {
-                text-align: center;
-              }
-              .stat-icon {
-                font-size: 18px !important;
-                margin-bottom: 2px !important;
-              }
-              .stat-value {
-                font-size: 12px !important;
-              }
-              .stat-label {
-                font-size: 9px !important;
-                line-height: 1.1 !important;
-              }
-            }
-          `}</style>
           {[
             { value: '4.9/5', label: 'Average Rating', icon: '⭐' },
             { value: '50,000+', label: 'Happy Customers', icon: '😊' },

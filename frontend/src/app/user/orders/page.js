@@ -15,17 +15,18 @@ import { fetchMyOrders } from '../../../store/ordersSlice';
 import { ShoppingBag, Eye, Package, Truck, CheckCircle2, Clock } from 'lucide-react';
 
 const getStatusBadge = (status) => {
+  const badgeStyle = "d-inline-flex align-items-center gap-1 px-2.5 py-1.5 rounded-pill text-nowrap fw-semibold";
   switch (status) {
     case 'Delivered':
-      return <span className="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill"><CheckCircle2 size={14} className="me-1 mb-1"/> Delivered</span>;
+      return <span className={`badge bg-success bg-opacity-10 text-success ${badgeStyle}`}><CheckCircle2 size={14} /> Delivered</span>;
     case 'Cancelled':
-      return <span className="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill"><Clock size={14} className="me-1 mb-1"/> Cancelled</span>;
+      return <span className={`badge bg-danger bg-opacity-10 text-danger ${badgeStyle}`}><Clock size={14} /> Cancelled</span>;
     case 'Shipped':
-      return <span className="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill"><Truck size={14} className="me-1 mb-1"/> Shipped</span>;
+      return <span className={`badge bg-primary bg-opacity-10 text-primary ${badgeStyle}`}><Truck size={14} /> Shipped</span>;
     case 'Packed':
-      return <span className="badge bg-info bg-opacity-10 text-info px-3 py-2 rounded-pill"><Package size={14} className="me-1 mb-1"/> Packed</span>;
+      return <span className={`badge bg-info bg-opacity-10 text-info ${badgeStyle}`}><Package size={14} /> Packed</span>;
     default:
-      return <span className="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill"><Clock size={14} className="me-1 mb-1"/> {status || 'Pending'}</span>;
+      return <span className={`badge bg-warning bg-opacity-10 text-warning ${badgeStyle}`}><Clock size={14} /> {status || 'Pending'}</span>;
   }
 };
 

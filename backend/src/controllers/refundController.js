@@ -123,6 +123,8 @@ export const createCustomerRefundRequest = async (req, res, next) => {
     if (order.orderStatus === 'Placed' || order.orderStatus === 'Confirmed') {
         order.orderStatus = 'Cancelled';
         await order.save();
+    } else if (order.orderStatus === 'Packed' || order.orderStatus === 'Shipped') {
+        return res.status(400).json({ success: false, message: 'Your order is already packed or in transit and cannot be cancelled. You can request a refund once it is delivered.' });
     }
 
     const refund = new RefundRequest({

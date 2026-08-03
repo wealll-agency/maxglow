@@ -17,24 +17,29 @@ const calculateTotals = (items, discountPercentage = 0, applicableProducts = [],
     const itemTotal = item.price * item.quantity;
     subtotal += itemTotal;
     
-    if (isCombo) {
-      if (hasAllComboProducts && applicableProducts.includes(item.product)) {
-        discountableSubtotal += itemTotal;
+    if (applicableProducts && applicableProducts.length > 0) {
+      if (isCombo) {
+        if (hasAllComboProducts && applicableProducts.includes(item.product)) {
+          discountableSubtotal += itemTotal;
+        }
+      } else {
+        if (applicableProducts.includes(item.product)) {
+          discountableSubtotal += itemTotal;
+        }
       }
     } else {
-      if (!applicableProducts || applicableProducts.length === 0 || applicableProducts.includes(item.product)) {
-        discountableSubtotal += itemTotal;
-      }
+      discountableSubtotal += itemTotal;
     }
   });
 
   const discount = Math.round((discountableSubtotal * discountPercentage) / 100);
-  const taxableAmount = subtotal - discount;
-  const tax = Math.round(taxableAmount * 0.05); // 5% GST
-  const shippingFee = taxableAmount > 500 || items.length === 0 ? 0 : 40;
-  const total = taxableAmount + tax + shippingFee;
+  const discountedSubtotal = Math.max(0, subtotal - discount);
+  // GST (5%) is Included in product MRP
+  const tax = Math.round(discountedSubtotal - (discountedSubtotal / 1.05));
+  const shippingFee = discountedSubtotal > 500 || items.length === 0 ? 0 : 40;
+  const total = discountedSubtotal + shippingFee;
 
-  return { subtotal, discount, tax, shippingFee, total };
+  return { subtotal, discount, tax, shippingFee, total, discountableSubtotal };
 };
 
 const cartSlice = createSlice({
@@ -49,7 +54,8 @@ const cartSlice = createSlice({
     discount: 0,
     tax: 0,
     shippingFee: 0,
-    total: 0
+    total: 0,
+    discountableSubtotal: 0
   },
   reducers: {
     addToCart: (state, action) => {

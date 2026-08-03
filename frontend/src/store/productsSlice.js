@@ -76,7 +76,9 @@ const productsSlice = createSlice({
     builder
       // Fetch Products
       .addCase(fetchProducts.pending, (state) => {
-        state.loading = true;
+        if (state.items.length === 0) {
+          state.loading = true;
+        }
         state.error = null;
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {

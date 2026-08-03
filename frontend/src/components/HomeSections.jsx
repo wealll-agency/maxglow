@@ -125,60 +125,163 @@ export const ShopByCategoryCards = () => {
 
   return (
     <section className="mg-section-spacing" style={{ background: 'white' }}>
+      <style dangerouslySetInnerHTML={{ __html: `
+        .shop-by-cat-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 20px;
+        }
+        
+        .cat-card-container {
+          background: var(--bg);
+          border-radius: 20px;
+          padding: 24px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          border: 1px solid var(--accent-trans);
+          transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+          cursor: pointer;
+          position: relative;
+          overflow: hidden;
+          min-height: 120px;
+          width: 100%;
+        }
+        
+        .cat-card-left {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+        }
+        
+        .cat-card-title {
+          font-family: var(--font-outfit);
+          font-size: 18px;
+          font-weight: 700;
+          color: #1a2332;
+          margin-bottom: 4px;
+        }
+        
+        .cat-card-discount {
+          color: var(--accent);
+          font-size: 12px;
+          font-weight: 800;
+          margin-bottom: 12px;
+          letter-spacing: 0.03em;
+        }
+        
+        .cat-card-shopnow {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          color: var(--accent);
+          font-size: 13px;
+          font-weight: 700;
+        }
+        
+        .cat-card-img-wrapper {
+          width: 90px;
+          height: 90px;
+          flex-shrink: 0;
+          position: relative;
+          mix-blend-mode: multiply;
+        }
+        
+        @media (max-width: 768px) {
+          .shop-by-cat-grid {
+            grid-template-columns: repeat(4, 1fr) !important;
+            gap: 8px !important;
+          }
+          
+          .cat-card-container {
+            flex-direction: column-reverse !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 8px 4px !important;
+            aspect-ratio: 1 / 1 !important;
+            min-height: unset !important;
+            border-radius: 12px !important;
+            text-align: center !important;
+          }
+          
+          .cat-card-left {
+            align-items: center !important;
+          }
+          
+          .cat-card-title {
+            font-size: 10px !important;
+            margin-bottom: 2px !important;
+            margin-top: 4px !important;
+            white-space: nowrap;
+          }
+          
+          .cat-card-discount {
+            font-size: 7px !important;
+            margin-bottom: 0px !important;
+            letter-spacing: 0px !important;
+            white-space: nowrap;
+          }
+          
+          .cat-card-shopnow {
+            display: none !important;
+          }
+          
+          .cat-card-img-wrapper {
+            width: 36px !important;
+            height: 36px !important;
+          }
+        }
+        
+        @media (max-width: 380px) {
+          .cat-card-title {
+            font-size: 8px !important;
+          }
+          .cat-card-discount {
+            font-size: 6px !important;
+          }
+          .cat-card-img-wrapper {
+            width: 28px !important;
+            height: 28px !important;
+          }
+        }
+      ` }} />
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
         {/* Title with decorative lines */}
         <div className="mg-divider" style={{ marginBottom: '40px' }}>
           <span className="mg-section-title" style={{ margin: 0 }}>Shop By Categories</span>
         </div>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: '20px',
-        }}>
+        <div className="shop-by-cat-grid">
           {categories.map((cat, idx) => (
             <Link key={idx} href={`/shop?category=${encodeURIComponent(cat.query)}`} style={{ textDecoration: 'none' }}>
-              <div style={{
-                background: cat.bg,
-                borderRadius: '20px',
-                padding: '24px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                border: `1px solid ${cat.accent}22`,
-                transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',
-                cursor: 'pointer',
-                position: 'relative',
-                overflow: 'hidden',
-                minHeight: '120px',
-              }}
+              <div 
+                className="cat-card-container"
+                style={{
+                  '--bg': cat.bg,
+                  '--accent': cat.accent,
+                  '--accent-trans': `${cat.accent}22`
+                }}
                 onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = `0 12px 32px ${cat.accent}22`; }}
                 onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
               >
                 {/* Left content */}
-                <div style={{ flex: 1 }}>
-                  <h3 style={{
-                    fontFamily: 'var(--font-outfit)', fontSize: '18px', fontWeight: '700',
-                    color: '#1a2332', marginBottom: '4px',
-                  }}>{cat.name}</h3>
-                  <div style={{ color: cat.accent, fontSize: '12px', fontWeight: '800', marginBottom: '12px', letterSpacing: '0.03em' }}>
+                <div className="cat-card-left">
+                  <h3 className="cat-card-title">{cat.name}</h3>
+                  <div className="cat-card-discount">
                     {cat.discount}
                   </div>
-                  <span style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '4px',
-                    color: cat.accent, fontSize: '13px', fontWeight: '700',
-                  }}>
+                  <span className="cat-card-shopnow">
                     Shop Now <FiArrowRight size={14} />
                   </span>
                 </div>
 
                 {/* Product Image */}
-                <div style={{ width: '90px', height: '90px', flexShrink: 0, position: 'relative', mixBlendMode: 'multiply' }}>
+                <div className="cat-card-img-wrapper">
                   <Image
                     src={cat.image}
                     alt={cat.name}
                     fill
-                    sizes="90px"
+                    sizes="(max-width: 768px) 50px, 90px"
                     style={{ objectFit: 'cover', borderRadius: '50%' }}
                   />
                 </div>
@@ -307,47 +410,7 @@ export const TagsSection = () => {
   return (
     <section className="mg-section-spacing" style={{ background: '#F7FBFD' }}>
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
-        <style>{`
-          .popular-search-tag {
-            display: inline-block;
-            padding: 7px 16px;
-            background: white;
-            border: 1.5px solid rgba(221,244,255,0.8);
-            border-radius: 9999px;
-            font-size: 13px;
-            font-weight: 500;
-            color: #374151;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 8px rgba(74,144,226,0.06);
-            text-decoration: none;
-          }
-          .popular-search-tag:hover {
-            background: #DDF7E3;
-            border-color: #3BAE56;
-            color: #3BAE56;
-          }
-          .view-all-btn {
-            display: none;
-          }
-          @media (max-width: 768px) {
-            .popular-tags-wrapper a:nth-child(n+5):not(.view-all-btn) {
-              display: none !important;
-            }
-            .view-all-btn {
-              display: inline-flex !important;
-              padding: 7px 16px;
-              background: #F0E6FF;
-              border: 1.5px solid #8b5cf6;
-              border-radius: 9999px;
-              font-size: 13px;
-              font-weight: 700;
-              color: #8b5cf6;
-              text-decoration: none;
-              align-items: center;
-              gap: 4px;
-            }
-          }
-        `}</style>
+
         <h3 style={{ fontFamily: 'var(--font-outfit)', fontSize: '14px', fontWeight: '700', color: '#94a3b8', marginBottom: '16px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
           Popular Searches
         </h3>

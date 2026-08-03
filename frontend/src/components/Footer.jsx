@@ -7,37 +7,22 @@ import { Leaf } from 'lucide-react';
 const Footer = () => {
   return (
     <footer>
+      <style dangerouslySetInnerHTML={{ __html: `
+        .mg-footer-links-wrap {
+          display: contents;
+        }
+        @media (max-width: 768px) {
+          .mg-footer-links-wrap {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 20px !important;
+            grid-column: span 1 !important;
+          }
+        }
+      ` }} />
       {/* Trust Strip */}
       <div className="trust-strip">
-        <style>{`
-          @media (max-width: 768px) {
-            .trust-grid {
-              grid-template-columns: repeat(4, 1fr) !important;
-              gap: 8px !important;
-              padding: 0 4px !important;
-            }
-            .trust-item {
-              flex-direction: column !important;
-              text-align: center !important;
-              gap: 6px !important;
-            }
-            .trust-icon {
-              width: 36px !important;
-              height: 36px !important;
-              font-size: 16px !important;
-              border-radius: 10px !important;
-              margin: 0 auto !important;
-            }
-            .trust-title {
-              font-size: 9.5px !important;
-              text-align: center !important;
-              line-height: 1.1 !important;
-            }
-            .trust-sub {
-              display: none !important;
-            }
-          }
-        `}</style>
+
         <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
           <div className="trust-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', textAlign: 'center' }}>
             {[
@@ -110,100 +95,76 @@ const Footer = () => {
               </div>
             </div>
 
-            {/* Quick Links */}
-            <div>
-              <h4 style={{ fontFamily: 'var(--font-outfit)', fontSize: '14px', fontWeight: '700', color: 'white', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                Quick Links
-              </h4>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {[
-                  { label: 'Home', href: '/' },
-                  { label: 'Shop All', href: '/shop' },
-                  { label: 'Bestsellers', href: '/shop?sort=bestselling' },
-                  { label: 'Combo Boxes', href: '/build-combo' },
-                  { label: 'About Us', href: '/about' },
-                  { label: 'Contact', href: '/contact' },
-                ].map((link, idx) => (
-                  <li key={idx}>
-                    <Link href={link.href} style={{
-                      color: '#94a3b8', textDecoration: 'none', fontSize: '14px',
-                      display: 'flex', alignItems: 'center', gap: '6px',
-                      transition: 'color 0.2s ease',
-                    }}
-                      onMouseEnter={e => e.currentTarget.style.color = '#61C454'}
-                      onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}
-                    >
-                      <FiArrowRight size={12} /> {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+            <div className="mg-footer-links-wrap">
+              {/* Quick Links */}
+              <div>
+                <h4 style={{ fontFamily: 'var(--font-outfit)', fontSize: '14px', fontWeight: '700', color: 'white', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  Quick Links
+                </h4>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {[
+                    { label: 'Home', href: '/' },
+                    { label: 'Shop All', href: '/shop' },
+                    { label: 'Bestsellers', href: '/shop?sort=bestselling' },
+                    { label: 'Combo Boxes', href: '/build-combo' },
+                    { label: 'About Us', href: '/about' },
+                    { label: 'Contact', href: '/contact' },
+                  ].map((link, idx) => (
+                    <li key={idx}>
+                      <Link href={link.href} style={{
+                        color: '#94a3b8', textDecoration: 'none', fontSize: '14px',
+                        display: 'flex', alignItems: 'center', gap: '6px',
+                        transition: 'color 0.2s ease',
+                      }}
+                        onMouseEnter={e => e.currentTarget.style.color = '#61C454'}
+                        onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}
+                      >
+                        <FiArrowRight size={12} /> {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Categories */}
+              <div>
+                <h4 style={{ fontFamily: 'var(--font-outfit)', fontSize: '14px', fontWeight: '700', color: 'white', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  Categories
+                </h4>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {['Skin Care', 'Hair Care', 'Serum', 'Sheet Mask', 'Face Care'].map((cat, idx) => (
+                    <li key={idx}>
+                      <Link href={`/shop?category=${encodeURIComponent(cat)}`} style={{
+                        color: '#94a3b8', textDecoration: 'none', fontSize: '14px',
+                        display: 'flex', alignItems: 'center', gap: '6px',
+                        transition: 'color 0.2s ease',
+                      }}
+                        onMouseEnter={e => e.currentTarget.style.color = '#61C454'}
+                        onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}
+                      >
+                        <FiArrowRight size={12} /> {cat}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
 
-            {/* Categories */}
-            <div>
-              <h4 style={{ fontFamily: 'var(--font-outfit)', fontSize: '14px', fontWeight: '700', color: 'white', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                Categories
-              </h4>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {['Skin Care', 'Hair Care', 'Body Care', 'Wellness', 'Baby Care', 'Face Care'].map((cat, idx) => (
-                  <li key={idx}>
-                    <Link href={`/shop?category=${encodeURIComponent(cat)}`} style={{
-                      color: '#94a3b8', textDecoration: 'none', fontSize: '14px',
-                      display: 'flex', alignItems: 'center', gap: '6px',
-                      transition: 'color 0.2s ease',
-                    }}
-                      onMouseEnter={e => e.currentTarget.style.color = '#61C454'}
-                      onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}
-                    >
-                      <FiArrowRight size={12} /> {cat}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Contact + Newsletter */}
+            {/* Contact */}
             <div>
               <h4 style={{ fontFamily: 'var(--font-outfit)', fontSize: '14px', fontWeight: '700', color: 'white', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                 Contact Us
               </h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {[
                   { icon: <FiMail size={14} />, text: 'support@maxglowon.com' },
-                  { icon: <FiPhone size={14} />, text: '+91 98765 43210' },
-                  { icon: <FiMapPin size={14} />, text: 'Mumbai, Maharashtra, India' },
+                  { icon: <FiMapPin size={14} />, text: 'Delhi, India' },
                 ].map((item, idx) => (
                   <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#94a3b8', fontSize: '13px' }}>
                     <span style={{ color: '#61C454', flexShrink: 0 }}>{item.icon}</span>
                     {item.text}
                   </div>
                 ))}
-              </div>
-
-              {/* Newsletter */}
-              <div style={{
-                background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: '16px', padding: '16px',
-              }}>
-                <div style={{ fontSize: '13px', fontWeight: '700', color: 'white', marginBottom: '4px' }}>Newsletter</div>
-                <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '12px' }}>Get wellness tips & exclusive offers</div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <input
-                    type="email"
-                    style={{
-                      flex: 1, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)',
-                      borderRadius: '8px', padding: '8px 12px', color: 'white', fontSize: '13px', outline: 'none',
-                    }}
-                  />
-                  <button style={{
-                    background: 'linear-gradient(135deg, #3BAE56, #61C454)', border: 'none',
-                    borderRadius: '8px', padding: '8px 14px', color: 'white', cursor: 'pointer',
-                    fontWeight: '700', fontSize: '13px', whiteSpace: 'nowrap',
-                  }}>
-                    Join
-                  </button>
-                </div>
               </div>
             </div>
           </div>

@@ -184,7 +184,7 @@ export default function ShipmentDetails() {
                 <div className="d-flex align-items-center justify-content-between">
                   <span className="fw-medium">Method:</span>
                   <span className={`badge ${order.paymentStatus === 'Paid' ? 'bg-success' : 'bg-warning'} bg-opacity-10 text-${order.paymentStatus === 'Paid' ? 'success' : 'warning'}`}>
-                    {order.paymentMode || (order.paymentStatus === 'Paid' ? 'Prepaid' : 'COD')}
+                    {order.paymentMode === 'COD' ? 'Cash on Delivery (COD)' : `Online Transaction (${order.paymentMode || 'Prepaid'})`}
                   </span>
                 </div>
                 <div className="d-flex align-items-center justify-content-between mt-2">

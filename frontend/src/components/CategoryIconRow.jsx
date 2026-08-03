@@ -1,63 +1,60 @@
 "use client";
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import React, { memo } from 'react';
 
 const categories = [
   { label: 'Skin Care', image: '/category-icons/skin-care.png', query: 'Skin Care', color: '#DDF4FF' },
   { label: 'Hair Care', image: '/category-icons/hair-care.png', query: 'Hair Care', color: '#DDF7E3' },
-  { label: 'Body Care', image: '/category-icons/body-care.png', query: 'Body Care', color: '#FEF9E7' },
-  { label: 'Wellness', image: '/category-icons/wellness.png', query: 'Wellness', color: '#F0E6FF' },
-  { label: 'Baby Care', image: '/category-icons/baby-care.png', query: 'Baby Care', color: '#FFF0F5' },
+  { label: 'Serum', image: '/category-icons/wellness.png', query: 'Serum', color: '#F0E6FF' },
+  { label: 'Sheet Mask', image: '/category-icons/baby-care.png', query: 'Sheet Mask', color: '#FFF0F5' },
   { label: 'Combos', image: '/category-icons/combos.png', query: 'Combo', color: '#E8F5E9' },
   { label: 'Gifting', image: '/category-icons/gifting.png', query: 'Gifting', color: '#FFF8E1' },
   { label: 'Offers', image: '/category-icons/offers.png', query: 'sale', color: '#FFEBEE', isOffer: true },
 ];
 
 const CategoryIconRow = () => {
+  const router = useRouter();
+
   return (
     <section className="category-icon-row-section">
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 16px' }}>
         <div className="category-icon-row-container">
-          {categories.map((cat, idx) => (
-            <Link
-              key={idx}
-              href={cat.isOffer ? '/shop' : `/shop?category=${encodeURIComponent(cat.query)}`}
-              className="category-link-item"
-              style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', width: '90px', flexShrink: 0 }}
-            >
+          {categories.map((cat, idx) => {
+            const targetHref = cat.isOffer ? '/shop' : `/shop?category=${encodeURIComponent(cat.query)}`;
+            return (
+              <Link
+                key={idx}
+                href={targetHref}
+                prefetch={true}
+                onMouseEnter={() => router.prefetch(targetHref)}
+                className="category-link-item"
+                style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', width: '110px', flexShrink: 0 }}
+              >
               {/* Circle */}
-              <div className="category-circle category-circle-wrapper" style={{ background: cat.color, width: '80px', height: '80px', minWidth: '80px', minHeight: '80px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div className="category-circle category-circle-wrapper" style={{ background: cat.color, width: '100px', height: '100px', minWidth: '100px', minHeight: '100px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Image
                   src={cat.image}
                   alt={cat.label}
-                  width={56}
-                  height={56}
-                  style={{ width: '56px', height: '56px', objectFit: cat.image === '/logo.png' ? 'contain' : 'cover', padding: cat.image === '/logo.png' ? '8px' : '0', borderRadius: '50%' }}
+                  width={70}
+                  height={70}
+                  style={{ width: '70px', height: '70px', objectFit: cat.image === '/logo.png' ? 'contain' : 'cover', padding: cat.image === '/logo.png' ? '8px' : '0', borderRadius: '50%' }}
                 />
               </div>
 
               {/* Label */}
               <span className="category-label-text" style={{
-                fontSize: '12px', fontWeight: '600', color: '#374151',
+                fontSize: '13px', fontWeight: '700', color: '#374151',
                 textAlign: 'center', whiteSpace: 'nowrap',
                 lineHeight: '1.2',
                 fontFamily: 'var(--font-outfit), sans-serif',
               }}>
-                {cat.isOffer ? <span style={{ color: '#ef4444', fontWeight: '700' }}>Offers</span> : cat.label}
+                {cat.isOffer ? <span style={{ color: '#ef4444', fontWeight: '800' }}>Offers</span> : cat.label}
               </span>
-
-              {/* Active underline */}
-              <div style={{
-                height: '2px', width: '24px', borderRadius: '9999px',
-                background: cat.isOffer
-                  ? 'linear-gradient(90deg, #ef4444, #f97316)'
-                  : 'linear-gradient(90deg, #4A90E2, #3BAE56)',
-                opacity: 0,
-                transition: 'opacity 0.2s ease',
-              }} />
             </Link>
-          ))}
+            );
+          })}
         </div>
       </div>
       <style dangerouslySetInnerHTML={{ __html: `
@@ -65,7 +62,7 @@ const CategoryIconRow = () => {
           position: relative;
           z-index: 20;
           background: white;
-          padding: 24px 0;
+          padding: 20px 0;
           border-bottom: 1px solid rgba(221,244,255,0.8);
           clear: both;
         }
@@ -77,21 +74,19 @@ const CategoryIconRow = () => {
           overflow-y: visible; /* Prevent vertical clipping */
           scrollbar-width: none; /* Firefox */
           width: 100%;
-          padding-top: 15px; /* Allow space for hover effects so circles don't clip */
-          padding-bottom: 15px;
-          margin-top: -15px; /* Offset the padding visually if needed, though padding is safer */
+          padding-top: 10px; /* Allow space for hover effects so circles don't clip */
+          padding-bottom: 10px;
         }
         .category-icon-row-container::-webkit-scrollbar {
           display: none; /* Chrome/Safari */
         }
-        a:hover .category-circle { border-color: #3BAE56 !important; }
-        section a:hover > div:last-child { opacity: 1 !important; }
+        a:hover .category-circle { transform: scale(1.05); }
         @media (max-width: 991px) {
           .category-icon-row-section {
-            padding: 10px 0 !important;
+            padding: 14px 0 !important;
           }
           .category-icon-row-container {
-            gap: 2px !important;
+            gap: 4px !important;
             overflow-x: hidden !important; /* Strict rule: no horizontal scroll */
             justify-content: space-between !important;
           }
@@ -105,33 +100,37 @@ const CategoryIconRow = () => {
             gap: 6px !important;
           }
           .category-circle-wrapper {
-            width: 50px !important;
-            height: 50px !important;
-            min-width: 50px !important;
-            min-height: 50px !important;
+            width: 76px !important;
+            height: 76px !important;
+            min-width: 76px !important;
+            min-height: 76px !important;
           }
           .category-circle-wrapper img {
-            width: 32px !important;
-            height: 32px !important;
+            width: 52px !important;
+            height: 52px !important;
           }
           .category-label-text {
-            font-size: 10px !important;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            color: #1a2332 !important;
             white-space: normal !important;
           }
         }
         @media (max-width: 576px) {
           .category-circle-wrapper {
-            width: 44px !important;
-            height: 44px !important;
-            min-width: 44px !important;
-            min-height: 44px !important;
+            width: 68px !important;
+            height: 68px !important;
+            min-width: 68px !important;
+            min-height: 68px !important;
           }
           .category-circle-wrapper img {
-            width: 24px !important;
-            height: 24px !important;
+            width: 48px !important;
+            height: 48px !important;
           }
           .category-label-text {
-            font-size: 9px !important;
+            font-size: 11.5px !important;
+            font-weight: 700 !important;
+            color: #1a2332 !important;
           }
         }
       `}} />

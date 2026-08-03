@@ -20,8 +20,13 @@ const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const searchRef = useRef(null);
   const userDropdownRef = useRef(null);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const { user } = useSelector((state) => state.auth);
   const wishlistItems = useSelector((state) => state.wishlist?.items || []);
@@ -93,7 +98,7 @@ const Header = () => {
           <div style={{ display: 'flex', alignItems: 'center', height: '64px', gap: '24px', justifyContent: 'space-between' }}>
 
             {/* Logo */}
-            <Link href="/" style={{ textDecoration: 'none', flexShrink: 0, display: 'flex', alignItems: 'center', height: '40px' }}>
+            <Link href="/" prefetch={true} onMouseEnter={() => router.prefetch('/')} style={{ textDecoration: 'none', flexShrink: 0, display: 'flex', alignItems: 'center', height: '40px' }}>
               <img
                 src="/logo.png"
                 alt="MaxGlow"
@@ -104,7 +109,13 @@ const Header = () => {
             {/* Desktop Nav */}
             <nav style={{ display: 'flex', alignItems: 'center', gap: '2px', flex: 1 }} className="hide-mobile">
               {navLinks.map((link) => (
-                <Link key={link.href} href={link.href} className="mg-nav-link">
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  prefetch={true}
+                  onMouseEnter={() => router.prefetch(link.href)}
+                  className="mg-nav-link"
+                >
                   {link.label}
                 </Link>
               ))}
@@ -161,13 +172,13 @@ const Header = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
 
               {/* User */}
-              <div ref={userDropdownRef} style={{ position: 'relative' }} className="hide-mobile">
-                <button className="mg-action-btn" onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}>
+              <div ref={userDropdownRef} style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }} className="hide-mobile">
+                <button className="mg-action-btn" onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)} type="button">
                   <FiUser size={20} />
                 </button>
                 {isUserDropdownOpen && (
                   <div className="mg-dropdown">
-                    {user ? (
+                    {isMounted && user ? (
                       <>
                         <div style={{ padding: '12px', borderBottom: '1px solid #f1f5f9', marginBottom: '4px' }}>
                           <div style={{ fontSize: '13px', fontWeight: '700', color: '#1a2332' }}>Hi, {user.name?.split(' ')[0] || 'User'}</div>
@@ -203,10 +214,10 @@ const Header = () => {
                 )}
               </div>
 
-              {/* Wishlist */}
-              <Link href="/wishlist" className="mg-action-btn hide-mobile" style={{ position: 'relative', color: '#374151' }}>
+              {/* Wishlist / Favourites */}
+              <Link href="/wishlist" prefetch={true} onMouseEnter={() => router.prefetch('/wishlist')} className="mg-action-btn" style={{ color: '#374151' }}>
                 <FiHeart size={20} />
-                {wishlistCount > 0 && (
+                {isMounted && wishlistCount > 0 && (
                   <span className="mg-action-badge">{wishlistCount}</span>
                 )}
               </Link>
@@ -215,17 +226,19 @@ const Header = () => {
               <button
                 className="mg-action-btn"
                 onClick={() => setIsCartOpen(true)}
-                style={{ position: 'relative', color: '#374151', border: 'none', cursor: 'pointer' }}
+                type="button"
+                style={{ color: '#374151' }}
               >
                 <FiShoppingBag size={20} />
-                <span className="mg-action-badge">{cartCount}</span>
+                <span className="mg-action-badge">{isMounted ? cartCount : 0}</span>
               </button>
 
               {/* Mobile hamburger */}
               <button
                 className="mg-action-btn show-mobile"
                 onClick={() => setIsMobileMenuOpen(true)}
-                style={{ border: 'none', cursor: 'pointer', color: '#374151' }}
+                type="button"
+                style={{ color: '#374151' }}
               >
                 <FiMenu size={22} />
               </button>
@@ -260,18 +273,10 @@ const Header = () => {
       }}>
         {/* Mobile Header */}
         <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '20px', borderBottom: '1px solid #f1f5f9',
+          display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+          padding: '16px 20px', borderBottom: '1px solid #f1f5f9',
           background: 'linear-gradient(135deg, #EAF8FF 0%, #DDF7E3 100%)',
         }}>
-          <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }} onClick={() => setIsMobileMenuOpen(false)}>
-            <div style={{ width: '28px', height: '28px', background: 'linear-gradient(135deg, #4A90E2, #3BAE56)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Leaf size={16} color="white" />
-            </div>
-            <span style={{ fontFamily: 'var(--font-outfit)', fontSize: '20px', fontWeight: '800', color: '#1a2332', letterSpacing: '-0.03em' }}>
-              Max<span style={{ color: '#3BAE56' }}>Glow</span>
-            </span>
-          </Link>
           <button onClick={() => setIsMobileMenuOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: '4px' }}>
             <FiX size={22} />
           </button>
@@ -299,6 +304,7 @@ const Header = () => {
             <Link
               key={link.href}
               href={link.href}
+              prefetch={true}
               onClick={() => setIsMobileMenuOpen(false)}
               style={{
                 display: 'flex', alignItems: 'center', padding: '14px 12px',
@@ -307,7 +313,11 @@ const Header = () => {
                 fontFamily: 'var(--font-outfit), sans-serif',
                 marginBottom: '4px', transition: 'all 0.2s ease',
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#DDF7E3'; e.currentTarget.style.color = '#3BAE56'; }}
+              onMouseEnter={e => {
+                router.prefetch(link.href);
+                e.currentTarget.style.background = '#DDF7E3';
+                e.currentTarget.style.color = '#3BAE56';
+              }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#374151'; }}
             >
               {link.label}
@@ -339,14 +349,7 @@ const Header = () => {
         </div>
       </div>
 
-      <style>{`
-        @media (max-width: 768px) {
-          .hide-mobile { display: none !important; }
-        }
-        @media (min-width: 769px) {
-          .show-mobile { display: none !important; }
-        }
-      `}</style>
+
     </>
   );
 };

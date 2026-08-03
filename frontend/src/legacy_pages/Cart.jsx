@@ -236,7 +236,7 @@ export default function CartPage() {
               </div>
               
               <div className="d-flex justify-content-between text-muted">
-                <span>GST Tax (5%)</span>
+                <span>GST Tax (5% Incl.)</span>
                 <span>₹{tax}</span>
               </div>
               

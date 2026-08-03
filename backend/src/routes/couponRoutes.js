@@ -3,7 +3,8 @@ import {
   createCoupon,
   applyCoupon,
   getCoupons,
-  deleteCoupon
+  deleteCoupon,
+  getCouponAnalytics
 } from '../controllers/couponController.js';
 import { protect, authorizeRoles } from '../middleware/auth.js';
 import { auditRoute } from '../middleware/logger.js';
@@ -15,6 +16,8 @@ router.route('/')
   .get(protect, authorizeRoles('Super Admin', 'Manager', 'Staff'), getCoupons);
 
 router.post('/apply', protect, applyCoupon);
+
+router.get('/:id/analytics', protect, authorizeRoles('Super Admin', 'Manager', 'Staff'), getCouponAnalytics);
 
 router.route('/:id')
   .delete(protect, authorizeRoles('Super Admin'), auditRoute('DELETE_COUPON'), deleteCoupon);

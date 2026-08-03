@@ -6,21 +6,22 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchOrderDetails, trackDelhiveryShipment, createRefundRequest } from '../../../../store/ordersSlice';
 import { clearCart } from '../../../../store/cartSlice';
-import { ShieldCheck, MapPin, Truck, Check, Calendar, ArrowLeft, ShoppingBag, CheckCircle2, Clock, Package } from 'lucide-react';
+import { ShieldCheck, MapPin, Truck, Check, Calendar, ArrowLeft, ShoppingBag, CheckCircle2, Clock, Package, ChevronDown } from 'lucide-react';
 import { useNotification } from '../../../../context/NotificationContext';
 
 const getStatusBadge = (status) => {
+  const badgeStyle = "d-inline-flex align-items-center gap-1 px-2.5 py-1.5 rounded-pill text-nowrap fw-semibold";
   switch (status) {
     case 'Delivered':
-      return <span className="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill"><CheckCircle2 size={14} className="me-1 mb-1"/> Delivered</span>;
+      return <span className={`badge bg-success bg-opacity-10 text-success ${badgeStyle}`}><CheckCircle2 size={14} /> Delivered</span>;
     case 'Cancelled':
-      return <span className="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill"><Clock size={14} className="me-1 mb-1"/> Cancelled</span>;
+      return <span className={`badge bg-danger bg-opacity-10 text-danger ${badgeStyle}`}><Clock size={14} /> Cancelled</span>;
     case 'Shipped':
-      return <span className="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill"><Truck size={14} className="me-1 mb-1"/> Shipped</span>;
+      return <span className={`badge bg-primary bg-opacity-10 text-primary ${badgeStyle}`}><Truck size={14} /> Shipped</span>;
     case 'Packed':
-      return <span className="badge bg-info bg-opacity-10 text-info px-3 py-2 rounded-pill"><Package size={14} className="me-1 mb-1"/> Packed</span>;
+      return <span className={`badge bg-info bg-opacity-10 text-info ${badgeStyle}`}><Package size={14} /> Packed</span>;
     default:
-      return <span className="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill"><Clock size={14} className="me-1 mb-1"/> {status || 'Pending'}</span>;
+      return <span className={`badge bg-warning bg-opacity-10 text-warning ${badgeStyle}`}><Clock size={14} /> {status || 'Pending'}</span>;
   }
 };
 
@@ -40,6 +41,7 @@ export default function OrderTrackingPage() {
   const [refundReason, setRefundReason] = useState('');
   const [refundSubmitting, setRefundSubmitting] = useState(false);
   const [hasRefundPermission, setHasRefundPermission] = useState(true);
+  const [isDeliveryStatusOpen, setIsDeliveryStatusOpen] = useState(false);
   
   const isNewSuccess = searchParams.get('success') === 'true';
 
@@ -147,6 +149,130 @@ export default function OrderTrackingPage() {
     return 'pending';
   };
 
+  const renderDeliveryTimeline = () => (
+    <>
+      {order.orderStatus === 'Cancelled' ? (
+        <div className="text-center py-4">
+          <div className="rounded-circle p-3 mb-3 bg-danger-subtle text-danger d-inline-block">
+            <ShieldCheck size={36} />
+          </div>
+          <h5 className="fw-bold text-danger mb-2">Order Cancelled</h5>
+          <p className="text-muted fs-7 mb-0">This order has been cancelled and refunded.</p>
+        </div>
+      ) : (
+        <div className="d-flex flex-column gap-4 relative-timeline py-2">
+          {steps.map((step, idx) => {
+            const status = getStepStatus(idx);
+            const getStepDate = (stepName) => {
+              if (stepName === 'Placed') return order.createdAt;
+              if (stepName === 'Confirmed') return order.confirmedAt;
+              if (stepName === 'Packed') return order.packedAt;
+              if (stepName === 'Shipped') return order.shippedAt;
+              if (stepName === 'Delivered') return order.deliveredAt;
+              return null;
+            };
+            const stepDate = getStepDate(step);
+
+            return (
+              <div key={step} className="d-flex align-items-start gap-3 w-100 position-relative">
+                <div className="position-relative flex-shrink-0">
+                  <div 
+                    className="rounded-circle d-flex align-items-center justify-content-center shadow-sm"
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      backgroundColor: status === 'completed' ? '#198754' : status === 'active' ? '#0d6efd' : '#f8f9fa',
+                      color: status === 'completed' || status === 'active' ? '#fff' : '#adb5bd',
+                      border: status === 'pending' ? '2px solid #e9ecef' : 'none',
+                      zIndex: 2,
+                      position: 'relative'
+                    }}
+                  >
+                    {status === 'completed' ? <Check size={18} /> : <Calendar size={16} />}
+                  </div>
+                  {idx < steps.length - 1 && (
+                    <div 
+                      className="position-absolute start-50 translate-middle-x"
+                      style={{
+                        width: '2px',
+                        height: '100%',
+                        backgroundColor: idx < currentStepIndex ? '#198754' : '#e9ecef',
+                        top: '36px',
+                        zIndex: 1,
+                        minHeight: '40px'
+                      }}
+                    ></div>
+                  )}
+                </div>
+                
+                <div className="flex-grow-1 pb-4">
+                  <div className="d-flex flex-column gap-1">
+                    <h6 className={`fw-bold m-0 ${status === 'completed' ? 'text-success' : status === 'active' ? 'text-primary' : 'text-muted'}`}>{step}</h6>
+                    {stepDate ? (
+                      <small className="text-muted fw-medium" style={{ fontSize: '0.75rem' }}>
+                        {new Date(stepDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' })}
+                      </small>
+                    ) : (
+                      <small className="text-muted" style={{ fontSize: '0.75rem' }}>
+                        {status === 'active' ? 'Processing...' : 'Pending'}
+                      </small>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Delhivery Live Tracking */}
+      {order.shipments && order.shipments.length > 0 && (
+        <div className="mt-2 pt-4 border-top">
+          <h6 className="fw-bold mb-3 d-flex align-items-center gap-2 text-dark"><Truck size={18} className="text-primary" /> Live Carrier Tracking</h6>
+          {trackingLoading ? (
+            <p className="text-muted fs-7">Fetching live status from couriers...</p>
+          ) : (
+            <div className="d-flex flex-column gap-3">
+              {order.shipments.map(shipment => {
+                const tData = trackingData[shipment.waybill];
+                return (
+                  <div key={shipment.waybill} className="bg-light p-3 rounded-4 border">
+                    <div className="d-flex justify-content-between align-items-center mb-2">
+                      <span className="badge bg-primary rounded-pill px-3 py-2 fw-medium">{tData?.Status?.Status || shipment.status || 'Manifested'}</span>
+                    </div>
+                    <small className="text-dark d-block mb-3 fw-medium">
+                      Waybill: <span className="font-monospace fw-bold text-primary">{shipment.waybill}</span>
+                      <br/><span className="text-muted">Courier: {shipment.courierName}</span>
+                      {tData?.ExpectedDeliveryDate && (
+                        <span className="d-block mt-2 text-success fw-bold bg-success-subtle p-2 rounded">
+                          <Calendar size={14} className="me-1 mb-1"/> Expected Delivery: {new Date(tData.ExpectedDeliveryDate).toLocaleDateString()}
+                        </span>
+                      )}
+                    </small>
+                    
+                    {tData?.Scans && tData.Scans.length > 0 && (
+                      <div className="tracking-scans bg-white p-3 rounded border shadow-sm" style={{ maxHeight: '250px', overflowY: 'auto' }}>
+                        {tData.Scans.map((scan, i) => (
+                          <div key={i} className={`mb-3 pb-3 ${i !== tData.Scans.length - 1 ? 'border-bottom' : 'mb-0 pb-0'}`}>
+                            <strong className="d-block fs-8 text-dark mb-1">{scan.ScanDetail.Instructions}</strong>
+                            <small className="text-muted fw-medium d-flex align-items-center gap-1" style={{fontSize: '11px'}}>
+                              <Clock size={10} />
+                              {new Date(scan.ScanDetail.ScanDateTime).toLocaleString()} - {scan.ScanDetail.ScannedLocation}
+                            </small>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </>
+  );
+
   return (
     <div className="container py-5">
       
@@ -167,6 +293,56 @@ export default function OrderTrackingPage() {
           <ArrowLeft size={16} /> Back to My Orders
         </Link>
       </div>
+
+      {/* Mobile Version: Delivery Status Collapsible Accordion (First Section on Page) */}
+      {order && (
+        <div className="d-block d-lg-none mb-4">
+          <div className="bg-white rounded-4 shadow-sm border overflow-hidden">
+            <div
+              onClick={() => setIsDeliveryStatusOpen(!isDeliveryStatusOpen)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '16px 20px',
+                cursor: 'pointer',
+                userSelect: 'none',
+                background: isDeliveryStatusOpen ? '#F7FBFD' : 'white',
+                transition: 'background 0.2s ease',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <h6 className="fw-bold m-0 text-dark" style={{ fontFamily: 'var(--font-outfit)', fontSize: '16px' }}>
+                  Delivery Status
+                </h6>
+                {getStatusBadge(order.orderStatus)}
+              </div>
+
+              <div style={{
+                width: '32px', height: '32px', borderRadius: '50%',
+                background: isDeliveryStatusOpen ? '#EAF8FF' : '#f8fafc',
+                display: 'flex', alignItems: 'center', justifyCenter: 'center',
+                transition: 'all 0.3s ease'
+              }}>
+                <ChevronDown 
+                  size={18} 
+                  style={{ 
+                    color: isDeliveryStatusOpen ? '#4A90E2' : '#64748b', 
+                    transition: 'transform 0.3s ease',
+                    transform: isDeliveryStatusOpen ? 'rotate(180deg)' : 'rotate(0deg)'
+                  }} 
+                />
+              </div>
+            </div>
+
+            {isDeliveryStatusOpen && (
+              <div style={{ padding: '16px 20px 20px 20px', borderTop: '1px dashed #e2e8f0', background: 'white' }}>
+                {renderDeliveryTimeline()}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {orderLoading || !order ? (
         <div className="row g-5">
@@ -318,7 +494,7 @@ export default function OrderTrackingPage() {
           {(!['Cancelled', 'Refunded'].includes(order.orderStatus)) && hasRefundPermission && (
             <div className="bg-white p-4 rounded-4 shadow-sm border mb-4 text-center">
               <h6 className="fw-bold mb-3 text-dark">Need help with your order?</h6>
-              {(['Placed', 'Confirmed', 'Packed'].includes(order.orderStatus)) ? (
+              {(['Placed', 'Confirmed'].includes(order.orderStatus)) ? (
                 <button 
                   className="btn btn-outline-danger px-5 rounded-pill fw-bold"
                   onClick={() => setShowRefundModal('cancel')}
@@ -333,136 +509,21 @@ export default function OrderTrackingPage() {
                   Request Refund
                 </button>
               ) : (
-                <p className="text-muted small m-0 fw-medium">Your order is currently in transit. You can request a refund once it is delivered.</p>
+                <p className="text-muted small m-0 fw-medium">
+                  {order.orderStatus === 'Packed' 
+                    ? 'Your order is already packed and cannot be cancelled. You can request a refund once it is delivered.' 
+                    : 'Your order is currently in transit. You can request a refund once it is delivered.'}
+                </p>
               )}
             </div>
           )}
         </div>
 
-        {/* Right Side: Order Status Timeline Progress */}
-        <div className="col-lg-4">
+        {/* Right Side: Order Status Timeline Progress (Desktop only) */}
+        <div className="col-lg-4 d-none d-lg-block">
           <div className="bg-white p-4 rounded-4 shadow-sm border sticky-top" style={{ top: '100px' }}>
             <h5 className="fw-bold mb-4 text-dark border-bottom pb-3">Delivery Status</h5>
-            
-            {order.orderStatus === 'Cancelled' ? (
-              <div className="text-center py-4">
-                <div className="rounded-circle p-3 mb-3 bg-danger-subtle text-danger d-inline-block">
-                  <ShieldCheck size={36} />
-                </div>
-                <h5 className="fw-bold text-danger mb-2">Order Cancelled</h5>
-                <p className="text-muted fs-7 mb-0">This order has been cancelled and refunded.</p>
-              </div>
-            ) : (
-              <div className="d-flex flex-column gap-4 relative-timeline py-2">
-                {steps.map((step, idx) => {
-                  const status = getStepStatus(idx);
-                  const getStepDate = (stepName) => {
-                    if (stepName === 'Placed') return order.createdAt;
-                    if (stepName === 'Confirmed') return order.confirmedAt;
-                    if (stepName === 'Packed') return order.packedAt;
-                    if (stepName === 'Shipped') return order.shippedAt;
-                    if (stepName === 'Delivered') return order.deliveredAt;
-                    return null;
-                  };
-                  const stepDate = getStepDate(step);
-
-                  return (
-                    <div key={step} className="d-flex align-items-start gap-3 w-100 position-relative">
-                      <div className="position-relative flex-shrink-0">
-                        <div 
-                          className="rounded-circle d-flex align-items-center justify-content-center shadow-sm"
-                          style={{
-                            width: '36px',
-                            height: '36px',
-                            backgroundColor: status === 'completed' ? '#198754' : status === 'active' ? '#0d6efd' : '#f8f9fa',
-                            color: status === 'completed' || status === 'active' ? '#fff' : '#adb5bd',
-                            border: status === 'pending' ? '2px solid #e9ecef' : 'none',
-                            zIndex: 2,
-                            position: 'relative'
-                          }}
-                        >
-                          {status === 'completed' ? <Check size={18} /> : <Calendar size={16} />}
-                        </div>
-                        {idx < steps.length - 1 && (
-                          <div 
-                            className="position-absolute start-50 translate-middle-x"
-                            style={{
-                              width: '2px',
-                              height: '100%',
-                              backgroundColor: idx < currentStepIndex ? '#198754' : '#e9ecef',
-                              top: '36px',
-                              zIndex: 1,
-                              minHeight: '40px'
-                            }}
-                          ></div>
-                        )}
-                      </div>
-                      
-                      <div className="flex-grow-1 pb-4">
-                        <div className="d-flex flex-column gap-1">
-                          <h6 className={`fw-bold m-0 ${status === 'completed' ? 'text-success' : status === 'active' ? 'text-primary' : 'text-muted'}`}>{step}</h6>
-                          {stepDate ? (
-                            <small className="text-muted fw-medium" style={{ fontSize: '0.75rem' }}>
-                              {new Date(stepDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' })}
-                            </small>
-                          ) : (
-                            <small className="text-muted" style={{ fontSize: '0.75rem' }}>
-                              {status === 'active' ? 'Processing...' : 'Pending'}
-                            </small>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Delhivery Live Tracking */}
-            {order.shipments && order.shipments.length > 0 && (
-              <div className="mt-2 pt-4 border-top">
-                <h6 className="fw-bold mb-3 d-flex align-items-center gap-2 text-dark"><Truck size={18} className="text-primary" /> Live Carrier Tracking</h6>
-                {trackingLoading ? (
-                  <p className="text-muted fs-7">Fetching live status from couriers...</p>
-                ) : (
-                  <div className="d-flex flex-column gap-3">
-                    {order.shipments.map(shipment => {
-                      const tData = trackingData[shipment.waybill];
-                      return (
-                        <div key={shipment.waybill} className="bg-light p-3 rounded-4 border">
-                          <div className="d-flex justify-content-between align-items-center mb-2">
-                            <span className="badge bg-primary rounded-pill px-3 py-2 fw-medium">{tData?.Status?.Status || shipment.status || 'Manifested'}</span>
-                          </div>
-                          <small className="text-dark d-block mb-3 fw-medium">
-                            Waybill: <span className="font-monospace fw-bold text-primary">{shipment.waybill}</span>
-                            <br/><span className="text-muted">Courier: {shipment.courierName}</span>
-                            {tData?.ExpectedDeliveryDate && (
-                              <span className="d-block mt-2 text-success fw-bold bg-success-subtle p-2 rounded">
-                                <Calendar size={14} className="me-1 mb-1"/> Expected Delivery: {new Date(tData.ExpectedDeliveryDate).toLocaleDateString()}
-                              </span>
-                            )}
-                          </small>
-                          
-                          {tData?.Scans && tData.Scans.length > 0 && (
-                            <div className="tracking-scans bg-white p-3 rounded border shadow-sm" style={{ maxHeight: '250px', overflowY: 'auto' }}>
-                              {tData.Scans.map((scan, i) => (
-                                <div key={i} className={`mb-3 pb-3 ${i !== tData.Scans.length - 1 ? 'border-bottom' : 'mb-0 pb-0'}`}>
-                                  <strong className="d-block fs-8 text-dark mb-1">{scan.ScanDetail.Instructions}</strong>
-                                  <small className="text-muted fw-medium d-flex align-items-center gap-1" style={{fontSize: '11px'}}>
-                                    <Clock size={10} />
-                                    {new Date(scan.ScanDetail.ScanDateTime).toLocaleString()} - {scan.ScanDetail.ScannedLocation}
-                                  </small>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
+            {renderDeliveryTimeline()}
           </div>
         </div>
       </div>

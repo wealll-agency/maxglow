@@ -25,6 +25,7 @@ const inventorySchema = new mongoose.Schema({
 
 // Compound index to ensure uniqueness of product + batch combo
 inventorySchema.index({ product: 1, batchNumber: 1 }, { unique: true });
+inventorySchema.index({ stockQuantity: 1, lowStockThreshold: 1 });
 
 const Inventory = mongoose.model('Inventory', inventorySchema);
 export default Inventory;

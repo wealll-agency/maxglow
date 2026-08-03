@@ -616,7 +616,7 @@ export default function CheckoutPage() {
                 <span>{shippingFee === 0 ? 'Free' : `₹${shippingFee}`}</span>
               </div>
               <div className="d-flex justify-content-between">
-                <span>GST Tax (5%)</span>
+                <span>GST Tax (5% Incl.)</span>
                 <span>₹{tax}</span>
               </div>
               <hr />

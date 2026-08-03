@@ -7,7 +7,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addToCart } from '../../store/cartSlice';
 import { fetchProductDetails, fetchProductReviews, submitProductReview, fetchProducts } from '../../store/productsSlice';
 import { toggleWishlist } from '../../store/wishlistSlice';
-import { Star, Heart, Plus, Minus, MessageCircle, Share2, ShieldCheck, RefreshCw, AlertCircle } from 'lucide-react';
+import { Star, Heart, Plus, Minus, MessageCircle, Share2, ShieldCheck, RefreshCw, AlertCircle, ChevronDown, ChevronUp, Leaf, Award } from 'lucide-react';
+import ProductCard from '../../components/ProductCard';
 import api from '../../utils/axiosConfig';
 import { useNotification } from '../../context/NotificationContext';
 
@@ -25,6 +26,7 @@ function ShopDetailsContent() {
   const [activeTab, setActiveTab] = useState('description');
   const [pincode, setPincode] = useState('');
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [openReviewIds, setOpenReviewIds] = useState([]);
 
   // Review form states
   const [rating, setRating] = useState(5);
@@ -32,6 +34,7 @@ function ShopDetailsContent() {
   const [reviewError, setReviewError] = useState('');
   const [reviewSuccess, setReviewSuccess] = useState('');
   const [notifyLoading, setNotifyLoading] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   const productIdParam = searchParams.get('id');
   const productNameParam = searchParams.get('name') || '';
@@ -109,6 +112,17 @@ function ShopDetailsContent() {
       );
     }
   }
+
+  // Resolve recommended products from the same category only
+  const relatedProducts = products
+    ? products.filter(p => {
+        const pIdStr = String(p._id || p.id || '').trim();
+        const rIdStr = String(realProduct._id || realProduct.id || '').trim();
+        const isSameProduct = (pIdStr === rIdStr) || (p.name.toLowerCase().trim() === realProduct.name.toLowerCase().trim());
+        return p.category === realProduct.category && !isSameProduct;
+      })
+    : [];
+  const recommendedList = relatedProducts.slice(0, 4);
 
   const handleAddToCart = () => {
     const mockProduct = {
@@ -204,7 +218,163 @@ function ShopDetailsContent() {
   };
 
   return (
-    <div style={{ background: '#F7FBFD', padding: '40px 0' }}>
+    <>
+      <div className="product-details-container" style={{ background: '#F7FBFD', padding: '40px 0' }}>
+        <style dangerouslySetInnerHTML={{ __html: `
+          .product-details-container {
+            padding-bottom: 40px;
+          }
+          
+          .mobile-sticky-bar {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+            padding: 12px 16px;
+            padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+            z-index: 9999;
+            transform: translate3d(0, 0, 0);
+            will-change: transform;
+          }
+        
+        .sticky-bar-price-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 8px;
+          font-family: var(--font-outfit), sans-serif;
+        }
+        
+        .sticky-bar-price-label {
+          font-size: 13px;
+          font-weight: 600;
+          color: #4b5563;
+        }
+        
+        .sticky-bar-price-val {
+          font-size: 18px;
+          font-weight: 800;
+          color: #111827;
+        }
+        
+        .sticky-bar-mrp {
+          font-size: 13px;
+          color: #9ca3af;
+          text-decoration: line-through;
+          margin-left: 6px;
+        }
+        
+        .sticky-bar-discount {
+          font-size: 13px;
+          color: #22c55e;
+          font-weight: 700;
+          margin-left: 6px;
+        }
+        
+        .sticky-bar-btn-row {
+          display: flex;
+          gap: 10px;
+        }
+        
+        .sticky-bar-addcart-btn {
+          flex: 1;
+          background: #ffffff;
+          color: #3BAE56;
+          border: 2px solid #3BAE56;
+          padding: 12px 6px;
+          font-size: 14px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: background 0.15s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 46px;
+        }
+        
+        .sticky-bar-buynow-btn {
+          flex: 1;
+          background: #3BAE56;
+          color: #ffffff;
+          border: none;
+          padding: 12px 6px;
+          font-size: 14px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: background 0.15s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 46px;
+        }
+        
+        .sticky-bar-notify-btn {
+          width: 100%;
+          background: #3BAE56;
+          color: #ffffff;
+          border: none;
+          padding: 14px 6px;
+          font-size: 14px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          border-radius: 8px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 46px;
+        }
+        
+        .image-floating-wishlist {
+          display: flex;
+        }
+        
+        .collapsible-product-details {
+          display: block;
+        }
+        
+        .desktop-tabs-section {
+          display: block;
+        }
+        
+        .mobile-reviews-section {
+          display: block;
+        }
+        
+        @media (min-width: 769px) {
+          .image-floating-wishlist {
+            display: none !important;
+          }
+          .collapsible-product-details {
+            display: none !important;
+          }
+        }
+        
+        @media (max-width: 768px) {
+          .product-details-container {
+            padding-bottom: 120px !important;
+          }
+          .mobile-sticky-bar {
+            display: block !important;
+          }
+          .inline-action-buttons-wrapper {
+            display: none !important;
+          }
+          .desktop-tabs-section {
+            display: none !important;
+          }
+        }
+      ` }} />
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
         
         {/* Breadcrumb */}
@@ -215,16 +385,41 @@ function ShopDetailsContent() {
         </nav>
 
         {/* Product Details Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '40px', marginBottom: '48px', alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '40px', marginBottom: '20px', alignItems: 'start' }}>
           
           {/* Left: Images Column */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '500px', margin: '0 auto', width: '100%' }}>
             <div className="glass" style={{ borderRadius: '24px', aspectRatio: '1 / 1', overflow: 'hidden', background: 'white', position: 'relative', width: '100%' }}>
               {realProduct.isFeatured && (
-                <span className="mg-badge mg-badge-blue" style={{ position: 'absolute', top: '16px', left: '16px' }}>
+                <span className="mg-badge mg-badge-blue" style={{ position: 'absolute', top: '16px', left: '16px', zIndex: 5 }}>
                   PREMIUM
                 </span>
               )}
+              <button
+                onClick={() => dispatch(toggleWishlist(realProduct))}
+                className="image-floating-wishlist"
+                style={{
+                  position: 'absolute',
+                  top: '16px',
+                  right: '16px',
+                  zIndex: 5,
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  border: 'none',
+                  background: '#ffffff',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: 'transform 0.15s ease',
+                }}
+                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+              >
+                <Heart size={20} fill={isInWishlist ? '#ef4444' : 'none'} color={isInWishlist ? '#ef4444' : '#64748b'} />
+              </button>
               <Image
                 src={getImageUrl(images[activeImageIndex])}
                 alt={realProduct.name}
@@ -254,19 +449,23 @@ function ShopDetailsContent() {
               </div>
             )}
 
-            {/* Trust icons row */}
+            {/* Trust / Brand pillars row */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', borderTop: '1px solid #e2e8f0', paddingTop: '24px', textAlign: 'center' }}>
               {[
-                { img: '/icon_heart.png', label: '100% Healthy' },
-                { img: '/icon_gluten.png', label: 'Gluten Free' },
-                { img: '/icon_nutrition.png', label: 'Rich Nutrients' },
-                { img: '/icon_cholesterol.png', label: 'No Toxins' },
+                { icon: <Leaf size={22} color="#3BAE56" />, bg: '#DDF7E3', label: '100% Organic' },
+                { icon: <Heart size={22} color="#ef4444" />, bg: '#ffe4e6', label: 'Cruelty Free' },
+                { icon: <ShieldCheck size={22} color="#8b5cf6" />, bg: '#f3e8ff', label: 'Toxin Free' },
+                { icon: <Award size={22} color="#4A90E2" />, bg: '#EAF8FF', label: 'Derm Tested' },
               ].map((item, i) => (
                 <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <div style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '6px' }}>
-                    <Image src={item.img} alt={item.label} width={30} height={30} />
+                  <div style={{
+                    width: '44px', height: '44px', borderRadius: '50%', background: item.bg,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+                  }}>
+                    {item.icon}
                   </div>
-                  <span style={{ fontSize: '10px', fontWeight: '600', color: '#64748b' }}>{item.label}</span>
+                  <span style={{ fontSize: '11px', fontWeight: '700', color: '#1a2332', lineHeight: '1.2' }}>{item.label}</span>
                 </div>
               ))}
             </div>
@@ -299,21 +498,38 @@ function ShopDetailsContent() {
               <span style={{ fontSize: '13px', color: '#64748b' }}>{reviews.length} reviews</span>
             </div>
 
-            {/* Price Box */}
-            <div style={{ marginBottom: '24px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
-                <span style={{ fontFamily: 'var(--font-outfit)', fontSize: '32px', fontWeight: '800', color: '#1a2332' }}>
-                  ₹{finalPrice}
-                </span>
-                {realProduct.discount > 0 && (
-                  <span style={{ background: '#DDF7E3', color: '#3BAE56', fontSize: '12px', fontWeight: '700', padding: '4px 10px', borderRadius: '9999px' }}>
-                    {realProduct.discount}% OFF
+            {/* Price & Quantity Row */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
+                  <span style={{ fontFamily: 'var(--font-outfit)', fontSize: '32px', fontWeight: '800', color: '#1a2332' }}>
+                    ₹{finalPrice}
                   </span>
+                  {realProduct.discount > 0 && (
+                    <span style={{ background: '#DDF7E3', color: '#3BAE56', fontSize: '12px', fontWeight: '700', padding: '4px 10px', borderRadius: '9999px' }}>
+                      {realProduct.discount}% OFF
+                    </span>
+                  )}
+                </div>
+                {realProduct.discount > 0 && (
+                  <div style={{ fontSize: '13px', color: '#94a3b8' }}>
+                    MRP: <del>₹{realProduct.price}</del> <span style={{ fontSize: '11px' }}>(inclusive of all taxes)</span>
+                  </div>
                 )}
               </div>
-              {realProduct.discount > 0 && (
-                <div style={{ fontSize: '13px', color: '#94a3b8' }}>
-                  MRP: <del>₹{realProduct.price}</del> <span style={{ fontSize: '11px' }}>(inclusive of all taxes)</span>
+
+              {/* Quantity Selector - positioned next to price */}
+              {realProduct.stock > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', border: '1.5px solid #e2e8f0', borderRadius: '10px', width: '104px', height: '38px', overflow: 'hidden', background: '#F7FBFD' }}>
+                    <button onClick={() => setQuantity(Math.max(1, quantity - 1))} style={{ width: '32px', height: '100%', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#374151' }}>
+                      <Minus size={14} />
+                    </button>
+                    <span style={{ flex: 1, textAlign: 'center', fontSize: '14px', fontWeight: '700', color: '#1a2332' }}>{quantity}</span>
+                    <button onClick={() => setQuantity(Math.min(realProduct.stock || 100, quantity + 1))} disabled={quantity >= (realProduct.stock || 100)} style={{ width: '32px', height: '100%', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#374151' }}>
+                      <Plus size={14} />
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -362,84 +578,124 @@ function ShopDetailsContent() {
               </div>
             </div>
 
-            {/* Quantity */}
-            {realProduct.stock > 0 && (
-              <div style={{ marginBottom: '28px' }}>
-                <label className="mg-form-label" style={{ marginBottom: '10px' }}>Quantity</label>
-                <div style={{ display: 'flex', alignItems: 'center', border: '1.5px solid #e2e8f0', borderRadius: '10px', width: '110px', height: '40px', overflow: 'hidden' }}>
-                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))} style={{ width: '36px', height: '100%', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#374151' }}>
-                    <Minus size={14} />
-                  </button>
-                  <span style={{ flex: 1, textAlign: 'center', fontSize: '14px', fontWeight: '700', color: '#1a2332' }}>{quantity}</span>
-                  <button onClick={() => setQuantity(Math.min(realProduct.stock || 100, quantity + 1))} disabled={quantity >= (realProduct.stock || 100)} style={{ width: '36px', height: '100%', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#374151' }}>
-                    <Plus size={14} />
-                  </button>
-                </div>
-              </div>
-            )}
-
             {/* Action Buttons */}
-            <div style={{ display: 'flex', gap: '12px', marginBottom: '28px' }}>
-              {realProduct.stock <= 0 ? (
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '28px', flexWrap: 'nowrap' }}>
+              <div className="inline-action-buttons-wrapper" style={{ display: 'flex', gap: '8px', flex: 1 }}>
+                {realProduct.stock <= 0 ? (
+                  <button
+                    onClick={handleNotifyMe}
+                    disabled={notifyLoading}
+                    className="btn-mg-primary product-details-action-btn"
+                    style={{ flex: 1, justifyContent: 'center', padding: '12px 6px', whiteSpace: 'nowrap', minWidth: 0 }}
+                  >
+                    {notifyLoading ? 'Subscribing...' : 'Notify Me When Available'}
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={handleAddToCart}
+                      className="btn-mg-outline product-details-action-btn"
+                      style={{ flex: 1, justifyContent: 'center', padding: '12px 6px', whiteSpace: 'nowrap', minWidth: 0 }}
+                    >
+                      Add To Cart
+                    </button>
+                    <button
+                      onClick={handleBuyNow}
+                      className="btn-mg-green product-details-action-btn"
+                      style={{ flex: 1, justifyContent: 'center', padding: '12px 6px', whiteSpace: 'nowrap', minWidth: 0 }}
+                    >
+                      Buy It Now
+                    </button>
+                  </>
+                )}
+                {/* Wishlist Button for Desktop */}
                 <button
-                  onClick={handleNotifyMe}
-                  disabled={notifyLoading}
-                  className="btn-mg-primary"
-                  style={{ flex: 1, justifyContent: 'center', padding: '14px' }}
+                  onClick={() => dispatch(toggleWishlist(realProduct))}
+                  style={{
+                    width: '44px', minWidth: '44px', borderRadius: '12px', border: '1.5px solid #e2e8f0', background: 'white',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                    transition: 'all 0.15s ease', flexShrink: 0
+                  }}
                 >
-                  {notifyLoading ? 'Subscribing...' : 'Notify Me When Available'}
+                  <Heart size={20} fill={isInWishlist ? '#ef4444' : 'none'} color={isInWishlist ? '#ef4444' : '#64748b'} />
                 </button>
-              ) : (
-                <>
-                  <button
-                    onClick={handleAddToCart}
-                    className="btn-mg-outline"
-                    style={{ flex: 1, justifyContent: 'center', padding: '14px' }}
-                  >
-                    Add To Cart
-                  </button>
-                  <button
-                    onClick={handleBuyNow}
-                    className="btn-mg-green"
-                    style={{ flex: 1, justifyContent: 'center', padding: '14px' }}
-                  >
-                    Buy It Now
-                  </button>
-                </>
-              )}
-              <button
-                onClick={() => dispatch(toggleWishlist(realProduct))}
-                style={{
-                  width: '48px', borderRadius: '12px', border: '1.5px solid #e2e8f0', background: 'white',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                <Heart size={20} fill={isInWishlist ? '#ef4444' : 'none'} color={isInWishlist ? '#ef4444' : '#64748b'} />
-              </button>
+              </div>
             </div>
 
-            {/* Delivery Info */}
-            <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '20px' }}>
-              <div style={{ display: 'flex', gap: '16px', fontSize: '13px', color: '#64748b', fontWeight: '500' }}>
-                <span>🚚 Free Shipping above ₹999</span>
-                <span>💵 Cash on Delivery Available</span>
+            {/* Collapsible Product Details Dropdown */}
+            <div className="collapsible-product-details" style={{ borderTop: '1px solid #f1f5f9', paddingTop: '20px', marginTop: '20px' }}>
+              <div 
+                onClick={() => setIsDetailsOpen(!isDetailsOpen)}
+                style={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center', 
+                  cursor: 'pointer',
+                  padding: '8px 0',
+                  userSelect: 'none'
+                }}
+              >
+                <span style={{ fontFamily: 'var(--font-outfit)', fontSize: '15px', fontWeight: '700', color: '#1a2332', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Product Details
+                </span>
+                {isDetailsOpen ? <ChevronUp size={18} color="#64748b" /> : <ChevronDown size={18} color="#64748b" />}
               </div>
+              
+              {isDetailsOpen && (
+                <div style={{ 
+                  padding: '12px 0 16px', 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: '16px',
+                  borderTop: '1px dashed #f1f5f9',
+                  marginTop: '4px',
+                }}>
+                  {/* Description Section */}
+                  {realProduct.description && (
+                    <div>
+                      <h4 style={{ fontSize: '12px', fontWeight: '800', color: '#1a2332', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Description</h4>
+                      <p style={{ fontSize: '13px', color: '#4a5568', lineHeight: '1.6', margin: 0 }}>
+                        {realProduct.description}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Ingredients Section */}
+                  {realProduct.ingredients && realProduct.ingredients.length > 0 && (
+                    <div>
+                      <h4 style={{ fontSize: '12px', fontWeight: '800', color: '#1a2332', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Ingredients</h4>
+                      <p style={{ fontSize: '13px', color: '#4a5568', lineHeight: '1.6', margin: 0 }}>
+                        {realProduct.ingredients.join(', ')}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Benefits Section */}
+                  {realProduct.benefits && realProduct.benefits.length > 0 && (
+                    <div>
+                      <h4 style={{ fontSize: '12px', fontWeight: '800', color: '#1a2332', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Benefits</h4>
+                      <p style={{ fontSize: '13px', color: '#4a5568', lineHeight: '1.6', margin: 0 }}>
+                        {realProduct.benefits.join(', ')}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
           </div>
         </div>
 
-        {/* Description & Review Tabs */}
-        <div className="glass" style={{ borderRadius: '24px', padding: '32px', background: 'white', marginTop: '40px' }}>
+        {/* Description & Review Tabs (Desktop only) */}
+        <div className="glass desktop-tabs-section" style={{ borderRadius: '24px', padding: '32px', background: 'white', marginTop: '40px' }}>
           <div style={{ display: 'flex', gap: '20px', borderBottom: '1px solid #e2e8f0', marginBottom: '24px', overflowX: 'auto' }}>
-            {['description', 'ingredients', 'benefits', 'reviews'].map((tab) => (
+            {['description', 'ingredients', 'benefits'].map((tab) => (
               <button
                 key={tab}
                 className={`mg-tab ${activeTab === tab ? 'active' : ''}`}
                 onClick={() => setActiveTab(tab)}
               >
-                {tab === 'reviews' ? `Reviews (${reviews.length})` : tab}
+                {tab}
               </button>
             ))}
           </div>
@@ -459,74 +715,194 @@ function ShopDetailsContent() {
                 {realProduct.benefits?.length > 0 ? realProduct.benefits.join(', ') : 'No benefits specified.'}
               </p>
             )}
-
-            {activeTab === 'reviews' && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '40px' }}>
-                {/* Review List */}
-                <div>
-                  <h3 style={{ fontFamily: 'var(--font-outfit)', fontSize: '16px', fontWeight: '700', color: '#1a2332', marginBottom: '16px' }}>Customer Feedback</h3>
-                  {reviewsLoading ? (
-                    <div style={{ color: '#94a3b8', fontSize: '13px' }}>Loading reviews...</div>
-                  ) : reviews.length === 0 ? (
-                    <div style={{ color: '#64748b', fontSize: '13px' }}>No reviews yet for this product. Be the first to write a review!</div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                      {reviews.map((rev) => (
-                        <div key={rev._id} style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '16px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                            <div style={{ fontWeight: '700', fontSize: '13px', color: '#1a2332' }}>{rev.user?.name || 'Anonymous User'}</div>
-                            <span style={{ fontSize: '11px', color: '#94a3b8' }}>{new Date(rev.createdAt).toLocaleDateString()}</span>
-                          </div>
-                          <div style={{ display: 'flex', gap: '2px', marginBottom: '6px' }}>
-                            {[...Array(rev.rating)].map((_, i) => <Star key={i} size={12} fill="#f59e0b" color="#f59e0b" />)}
-                          </div>
-                          <p style={{ fontSize: '13px', color: '#4a5568', margin: 0 }}>{rev.comment}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Submit Review */}
-                <div style={{ background: '#F7FBFD', border: '1px solid rgba(221,244,255,0.8)', borderRadius: '16px', padding: '24px' }}>
-                  <h3 style={{ fontFamily: 'var(--font-outfit)', fontSize: '16px', fontWeight: '700', color: '#1a2332', marginBottom: '16px' }}>Write a Review</h3>
-                  {user ? (
-                    <form onSubmit={handleReviewSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      <div>
-                        <label className="mg-form-label">Rating</label>
-                        <select className="mg-select" value={rating} onChange={(e) => setRating(Number(e.target.value))}>
-                          <option value="5">5 Stars (Excellent)</option>
-                          <option value="4">4 Stars (Good)</option>
-                          <option value="3">3 Stars (Average)</option>
-                          <option value="2">2 Stars (Poor)</option>
-                          <option value="1">1 Star (Very Poor)</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="mg-form-label">Comment</label>
-                        <textarea rows="4" className="mg-input" value={comment} onChange={(e) => setComment(e.target.value)} style={{ resize: 'vertical' }} />
-                      </div>
-                      {reviewError && <div style={{ fontSize: '12px', color: '#ef4444' }}>{reviewError}</div>}
-                      {reviewSuccess && <div style={{ fontSize: '12px', color: '#3BAE56' }}>{reviewSuccess}</div>}
-                      <button type="submit" className="btn-mg-green" style={{ width: '100%', justifyContent: 'center', fontSize: '14px', padding: '10px' }}>
-                        Submit Review
-                      </button>
-                    </form>
-                  ) : (
-                    <div style={{ textAlign: 'center', padding: '20px' }}>
-                      <MessageCircle size={28} color="#94a3b8" style={{ marginBottom: '8px' }} />
-                      <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '16px' }}>Please log in to write a product review.</p>
-                      <Link href="/login" className="btn-mg-primary" style={{ padding: '10px 24px', fontSize: '13px' }}>Log In</Link>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
+        {/* Recommended Products Section */}
+        {recommendedList.length > 0 && (
+          <div style={{ marginTop: '40px', marginBottom: '40px' }}>
+            <div style={{ borderBottom: '1px solid #e2e8f0', marginBottom: '24px', paddingBottom: '12px' }}>
+              <h2 style={{ fontFamily: 'var(--font-outfit)', fontSize: '20px', fontWeight: '800', color: '#1a2332', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Recommended Products
+              </h2>
+            </div>
+            
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', 
+              gap: '20px' 
+            }} className="recommended-products-grid">
+              <style dangerouslySetInnerHTML={{ __html: `
+                @media (max-width: 576px) {
+                  .recommended-products-grid {
+                    grid-template-columns: repeat(2, 1fr) !important;
+                    gap: 12px !important;
+                  }
+                }
+              ` }} />
+              {recommendedList.map((prod) => (
+                <ProductCard key={prod._id} product={prod} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Customer Feedback & Reviews Section */}
+        <div className="glass mobile-reviews-section" style={{ borderRadius: '24px', padding: '32px', background: 'white', marginTop: '16px' }}>
+          <div style={{ borderBottom: '1px solid #e2e8f0', marginBottom: '24px', paddingBottom: '12px' }}>
+            <h2 style={{ fontFamily: 'var(--font-outfit)', fontSize: '20px', fontWeight: '800', color: '#1a2332', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Customer Reviews ({reviews.length})
+            </h2>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '40px' }}>
+            {/* Review List */}
+            <div>
+              <h3 style={{ fontFamily: 'var(--font-outfit)', fontSize: '16px', fontWeight: '700', color: '#1a2332', marginBottom: '16px' }}>Customer Feedback</h3>
+              {reviewsLoading ? (
+                <div style={{ color: '#94a3b8', fontSize: '13px' }}>Loading reviews...</div>
+              ) : reviews.length === 0 ? (
+                <div style={{ color: '#64748b', fontSize: '13px' }}>No reviews yet for this product. Be the first to write a review!</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {reviews.map((rev) => {
+                    const isOpen = openReviewIds.includes(rev._id);
+                    return (
+                      <div 
+                        key={rev._id} 
+                        style={{ 
+                          border: isOpen ? '1.5px solid #5DAEFF' : '1px solid #e2e8f0', 
+                          borderRadius: '12px',
+                          overflow: 'hidden',
+                          background: 'white',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        <div 
+                          onClick={() => {
+                            setOpenReviewIds(prev => 
+                              prev.includes(rev._id) ? prev.filter(id => id !== rev._id) : [...prev, rev._id]
+                            );
+                          }}
+                          style={{ 
+                            display: 'flex', 
+                            justifyContent: 'space-between', 
+                            alignItems: 'center', 
+                            padding: '12px 16px',
+                            cursor: 'pointer',
+                            background: isOpen ? '#F7FBFD' : 'white',
+                            userSelect: 'none'
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div style={{ fontWeight: '700', fontSize: '13px', color: '#1a2332' }}>{rev.user?.name || 'Anonymous User'}</div>
+                            <div style={{ display: 'flex', gap: '2px' }}>
+                              {[...Array(rev.rating)].map((_, i) => <Star key={i} size={12} fill="#f59e0b" color="#f59e0b" />)}
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '11px', color: '#94a3b8' }}>{new Date(rev.createdAt).toLocaleDateString()}</span>
+                            <ChevronDown size={16} style={{ color: '#64748b', transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
+                          </div>
+                        </div>
+
+                        {isOpen && (
+                          <div style={{ padding: '12px 16px 16px 16px', borderTop: '1px dashed #e2e8f0' }}>
+                            <p style={{ fontSize: '13px', color: '#4a5568', margin: 0, lineHeight: '1.6', fontStyle: 'italic' }}>"{rev.comment}"</p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Submit Review */}
+            <div style={{ background: '#F7FBFD', border: '1px solid rgba(221,244,255,0.8)', borderRadius: '16px', padding: '24px' }}>
+              <h3 style={{ fontFamily: 'var(--font-outfit)', fontSize: '16px', fontWeight: '700', color: '#1a2332', marginBottom: '16px' }}>Write a Review</h3>
+              {user ? (
+                <form onSubmit={handleReviewSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div>
+                    <label className="mg-form-label">Rating</label>
+                    <select className="mg-select" value={rating} onChange={(e) => setRating(Number(e.target.value))}>
+                      <option value="5">5 Stars (Excellent)</option>
+                      <option value="4">4 Stars (Good)</option>
+                      <option value="3">3 Stars (Average)</option>
+                      <option value="2">2 Stars (Poor)</option>
+                      <option value="1">1 Star (Very Poor)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="mg-form-label">Comment</label>
+                    <textarea rows="4" className="mg-input" value={comment} onChange={(e) => setComment(e.target.value)} style={{ resize: 'vertical' }} />
+                  </div>
+                  {reviewError && <div style={{ fontSize: '12px', color: '#ef4444' }}>{reviewError}</div>}
+                  {reviewSuccess && <div style={{ fontSize: '12px', color: '#3BAE56' }}>{reviewSuccess}</div>}
+                  <button type="submit" className="btn-mg-green" style={{ width: '100%', justifyContent: 'center', fontSize: '14px', padding: '10px' }}>
+                    Submit Review
+                  </button>
+                </form>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '20px' }}>
+                  <MessageCircle size={28} color="#94a3b8" style={{ marginBottom: '8px' }} />
+                  <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '16px' }}>Please log in to write a product review.</p>
+                  <Link href="/login" className="btn-mg-primary" style={{ padding: '10px 24px', fontSize: '13px' }}>Log In</Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+
+    {/* Mobile Sticky Bottom Bar in Beardo style */}
+    <div className="mobile-sticky-bar">
+      <div className="sticky-bar-price-row">
+        <span className="sticky-bar-price-label">Final Price</span>
+        <div>
+          <span className="sticky-bar-price-val">₹{finalPrice}</span>
+          {realProduct.discount > 0 && (
+            <>
+              <span className="sticky-bar-mrp">₹{basePrice}</span>
+              <span className="sticky-bar-discount">
+                {realProduct.discountType === 'Percent' 
+                  ? `${realProduct.discount}%` 
+                  : `${Math.round((realProduct.discount / basePrice) * 100)}%`} OFF
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+      <div className="sticky-bar-btn-row">
+        {realProduct.stock <= 0 ? (
+          <button
+            onClick={handleNotifyMe}
+            disabled={notifyLoading}
+            className="sticky-bar-notify-btn"
+          >
+            {notifyLoading ? 'Subscribing...' : 'Notify Me When Available'}
+          </button>
+        ) : (
+          <>
+            <button
+              onClick={handleAddToCart}
+              className="sticky-bar-addcart-btn"
+            >
+              Add To Cart
+            </button>
+            <button
+              onClick={handleBuyNow}
+              className="sticky-bar-buynow-btn"
+            >
+              Buy Now
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+    </>
   );
 }
 

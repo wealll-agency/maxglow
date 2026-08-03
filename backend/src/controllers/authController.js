@@ -46,8 +46,8 @@ export const registerUser = async (req, res, next) => {
           email: user.email,
           phone: user.phone,
           role: user.role,
-          addresses: user.addresses,
-          permissions: user.permissions instanceof Map ? Object.fromEntries(user.permissions) : user.permissions
+          addresses: user.addresses || [],
+          permissions: user.permissions instanceof Map ? Object.fromEntries(user.permissions) : (user.permissions || {})
         }
       });
     } else {
@@ -127,7 +127,13 @@ export const refreshTokenUser = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'super_secret_jwt_key_for_maxglow_2026_enterprise');
-    const user = await User.findById(decoded.id);
+    let user;
+    try {
+      user = await User.findById(decoded.id);
+    } catch (dbError) {
+      console.error(`Database error during refresh token verification: ${dbError.message}`);
+      return res.status(500).json({ success: false, message: 'Internal server error, database connection failure' });
+    }
 
     if (!user) {
       return res.status(401).json({ success: false, message: 'Not authorized, user not found' });
@@ -360,33 +366,45 @@ export const deleteAddress = async (req, res, next) => {
   }
 };
 
+let cachedSettings = null;
+let settingsCacheTime = 0;
+const SETTINGS_CACHE_TTL = 60 * 1000; // 1 minute cache TTL
+
 // @desc    Get system settings
 // @route   GET /api/auth/settings
 // @access  Public
 export const getSystemSettings = async (req, res, next) => {
   try {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    const codSetting = await SystemSetting.findOne({ key: 'cod' });
-    const refundSetting = await SystemSetting.findOne({ key: 'refund' });
-    const topSellingSetting = await SystemSetting.findOne({ key: 'topSellingSource' });
-    const mediaHero = await SystemSetting.findOne({ key: 'media_hero' });
-    const mediaNewArrivals = await SystemSetting.findOne({ key: 'media_new_arrivals' });
-    const mediaOffers = await SystemSetting.findOne({ key: 'media_offers' });
-    const mediaCategoryBanner = await SystemSetting.findOne({ key: 'media_category_banner' });
-    const mediaReels = await SystemSetting.findOne({ key: 'media_reels' });
+
+    if (cachedSettings && (Date.now() - settingsCacheTime < SETTINGS_CACHE_TTL)) {
+      return res.json({
+        success: true,
+        settings: cachedSettings
+      });
+    }
+
+    const keys = ['cod', 'refund', 'topSellingSource', 'media_hero', 'media_new_arrivals', 'media_offers', 'media_category_banner', 'media_reels'];
+    const docs = await SystemSetting.find({ key: { $in: keys } }).lean();
+    const map = new Map(docs.map(d => [d.key, d.value]));
+
+    const settings = {
+      cod: map.has('cod') ? map.get('cod') : true,
+      refund: map.has('refund') ? map.get('refund') : true,
+      topSellingSource: map.has('topSellingSource') ? map.get('topSellingSource') : 'automatic',
+      media_hero: map.has('media_hero') ? map.get('media_hero') : null,
+      media_new_arrivals: map.has('media_new_arrivals') ? map.get('media_new_arrivals') : null,
+      media_offers: map.has('media_offers') ? map.get('media_offers') : null,
+      media_category_banner: map.has('media_category_banner') ? map.get('media_category_banner') : null,
+      media_reels: map.has('media_reels') ? map.get('media_reels') : null,
+    };
+
+    cachedSettings = settings;
+    settingsCacheTime = Date.now();
 
     res.json({
       success: true,
-      settings: {
-        cod: codSetting ? codSetting.value : true,
-        refund: refundSetting ? refundSetting.value : true,
-        topSellingSource: topSellingSetting ? topSellingSetting.value : 'automatic',
-        media_hero: mediaHero ? mediaHero.value : null,
-        media_new_arrivals: mediaNewArrivals ? mediaNewArrivals.value : null,
-        media_offers: mediaOffers ? mediaOffers.value : null,
-        media_category_banner: mediaCategoryBanner ? mediaCategoryBanner.value : null,
-        media_reels: mediaReels ? mediaReels.value : null,
-      }
+      settings
     });
   } catch (error) {
     next(error);
@@ -428,6 +446,10 @@ export const updateSystemSettings = async (req, res, next) => {
         }
       }
     }
+
+    // Invalidate in-memory cache immediately on settings update
+    cachedSettings = null;
+    settingsCacheTime = 0;
 
     await logActivity(req.user._id, 'UPDATE_SYSTEM_SETTINGS', `Updated global access settings`, req);
 

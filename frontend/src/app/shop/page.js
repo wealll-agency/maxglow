@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import React, { useEffect, useState, Suspense, memo } from 'react';
+import React, { useEffect, useState, useRef, Suspense, memo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProducts } from '../../store/productsSlice';
 import ProductCard from '../../components/ProductCard';
@@ -26,8 +26,20 @@ function ShopContent() {
   const [selectedDiscount, setSelectedDiscount] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [sortBy, setSortBy] = useState('Best Selling');
+  const [isSortOpen, setIsSortOpen] = useState(false);
+  const sortRef = useRef(null);
   const [viewType, setViewType] = useState('grid');
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (sortRef.current && !sortRef.current.contains(e.target)) {
+        setIsSortOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     dispatch(fetchProducts({ limit: 100 }));
@@ -157,6 +169,84 @@ function ShopContent() {
             gap: 12px;
           }
         }
+        
+        .shop-banner-section {
+          position: relative;
+          overflow: hidden;
+          min-height: 220px;
+          display: flex;
+          align-items: center;
+          background-size: cover;
+          background-position: right center;
+          border-radius: 24px;
+          margin: 20px auto 0;
+          max-width: 1400px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+        
+        .shop-banner-title {
+          font-family: var(--font-outfit);
+          font-size: 42px;
+          font-weight: 800;
+          color: #0f172a;
+          margin: 0;
+          letter-spacing: -0.5px;
+        }
+        
+        .shop-banner-desc {
+          font-size: 16px;
+          color: #334155;
+          margin-top: 12px;
+          max-width: 500px;
+          font-weight: 500;
+          line-height: 1.6;
+        }
+        
+        .shop-banner-content {
+          max-width: 1440px;
+          margin: 0;
+          padding: 40px 40px;
+          width: 100%;
+          position: relative;
+          z-index: 2;
+        }
+        
+        .shop-banner-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(90deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 45%, rgba(255, 255, 255, 0.15) 100%);
+          z-index: 1;
+        }
+        
+        @media (max-width: 768px) {
+          .shop-banner-section {
+            min-height: 160px;
+            background-position: right 25% center !important;
+          }
+          .shop-banner-title {
+            font-size: 26px !important;
+          }
+          .shop-banner-desc {
+            font-size: 13px !important;
+            margin-top: 8px !important;
+            max-width: 80% !important;
+          }
+          .shop-banner-content {
+            padding: 24px 20px !important;
+          }
+          .shop-banner-overlay {
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.92) 55%, rgba(255, 255, 255, 0.3) 100%) !important;
+          }
+        }
+        
+        @media (max-width: 480px) {
+          .shop-banner-title {
+            font-size: 22px !important;
+          }
+          .shop-banner-desc {
+            max-width: 70% !important;
+          }
+        }
       `}</style>
       {/* Shop Banner */}
       {(() => {
@@ -193,36 +283,18 @@ function ShopContent() {
         }
 
         return (
-          <section style={{
-            position: 'relative',
-            overflow: 'hidden',
-            minHeight: '220px',
-            display: 'flex',
-            alignItems: 'center',
-            backgroundImage: `url("${bgImg}")`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            borderRadius: '24px',
-            margin: '20px auto 0',
-            maxWidth: '1400px',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.08)'
-          }}>
-            <div style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'linear-gradient(90deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.8) 45%, rgba(255, 255, 255, 0.1) 100%)',
-              zIndex: 1,
-            }} />
-            <div style={{ maxWidth: '1440px', margin: '0', padding: '40px 40px', width: '100%', position: 'relative', zIndex: 2 }}>
+          <section className="shop-banner-section" style={{ backgroundImage: `url("${bgImg}")` }}>
+            <div className="shop-banner-overlay" />
+            <div className="shop-banner-content">
               <nav style={{ fontSize: '13px', color: '#64748b', marginBottom: '12px', fontWeight: '500' }}>
                 <Link href="/" style={{ textDecoration: 'none', color: '#64748b' }}>Home</Link> &gt; 
                 <span style={{ color: '#1a2332', fontWeight: '700', marginLeft: '6px' }}>Shop</span>
                 {cat && <span style={{ color: '#1a2332', fontWeight: '700', marginLeft: '6px' }}>&gt; {cat}</span>}
               </nav>
-              <h1 style={{ fontFamily: 'var(--font-outfit)', fontSize: '42px', fontWeight: '800', color: '#0f172a', margin: 0, letterSpacing: '-0.5px' }}>
+              <h1 className="shop-banner-title">
                 {title}
               </h1>
-              <p style={{ fontSize: '16px', color: '#334155', marginTop: '12px', maxWidth: '500px', fontWeight: '500', lineHeight: '1.6' }}>
+              <p className="shop-banner-desc">
                 {desc}
               </p>
             </div>
@@ -306,7 +378,7 @@ function ShopContent() {
               <div style={{ borderTop: '1.5px solid #f1f5f9', padding: '16px 0' }}>
                 <h4 style={{ fontFamily: 'var(--font-outfit)', fontSize: '14px', fontWeight: '700', color: '#1a2332', marginBottom: '12px' }}>Category</h4>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {['Skin Care', 'Hair Care', 'Body Care', 'Wellness', 'Baby Care', 'Combos'].map(cat => (
+                  {['Skin Care', 'Hair Care', 'Serum', 'Sheet Mask', 'Combos'].map(cat => (
                     <button
                       key={cat}
                       onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
@@ -329,8 +401,8 @@ function ShopContent() {
           {/* Product Listing Area */}
           <div style={{ flex: 1 }}>
             {/* View controls */}
-            <div className="glass" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderRadius: '16px', marginBottom: '24px', border: '1px solid rgba(221,244,255,0.8)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div className="glass shop-controls-bar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderRadius: '16px', marginBottom: '24px', border: '1px solid rgba(221,244,255,0.8)', position: 'relative', zIndex: 30 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <button
                   onClick={() => setIsMobileFilterOpen(true)}
                   style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#F7FBFD', border: '1.5px solid #e2e8f0', borderRadius: '9999px', padding: '6px 14px', fontSize: '13px', fontWeight: '600', color: '#374151', cursor: 'pointer' }}
@@ -358,21 +430,107 @@ function ShopContent() {
                 </span>
               </div>
 
-              {/* Sort by */}
+              {/* Custom Sort by UI */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '600' }}>Sort by</span>
-                <div style={{ position: 'relative' }}>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="mg-select"
-                    style={{ paddingTop: '6px', paddingBottom: '6px', paddingLeft: '14px', paddingRight: '36px', borderRadius: '9999px', fontSize: '13px', fontWeight: '600', border: '1.5px solid #e2e8f0', minWidth: '150px' }}
+                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '600' }} className="hide-mobile-sort-label">Sort by</span>
+                <div ref={sortRef} style={{ position: 'relative' }}>
+                  {/* Trigger Button */}
+                  <button
+                    onClick={() => setIsSortOpen(!isSortOpen)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      background: isSortOpen ? '#EAF8FF' : 'white',
+                      border: isSortOpen ? '1.5px solid #3BAE56' : '1.5px solid #e2e8f0',
+                      borderRadius: '9999px',
+                      padding: '6px 14px',
+                      fontSize: '13px',
+                      fontWeight: '600',
+                      color: '#1a2332',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      boxShadow: isSortOpen ? '0 2px 8px rgba(59,174,86,0.15)' : 'none',
+                    }}
                   >
-                    <option>Best Selling</option>
-                    <option>Price: Low to High</option>
-                    <option>Price: High to Low</option>
-                    <option>Newest</option>
-                  </select>
+                    <span>{sortBy}</span>
+                    <FiChevronDown 
+                      size={14} 
+                      style={{ 
+                        color: isSortOpen ? '#3BAE56' : '#64748b', 
+                        transform: isSortOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.2s ease',
+                        flexShrink: 0
+                      }} 
+                    />
+                  </button>
+
+                  {/* Floating Custom Menu */}
+                  {isSortOpen && (
+                    <div
+                      className="sort-dropdown-menu"
+                      style={{
+                        position: 'absolute',
+                        top: 'calc(100% + 8px)',
+                        right: 0,
+                        background: 'white',
+                        borderRadius: '16px',
+                        boxShadow: '0 12px 32px rgba(0, 0, 0, 0.15)',
+                        border: '1px solid #e2e8f0',
+                        padding: '6px',
+                        minWidth: '180px',
+                        width: 'max-content',
+                        maxWidth: 'calc(100vw - 32px)',
+                        zIndex: 1000,
+                      }}
+                    >
+                      {['Best Selling', 'Price: Low to High', 'Price: High to Low', 'Newest'].map((opt) => {
+                        const isSelected = sortBy === opt;
+                        return (
+                          <button
+                            key={opt}
+                            onClick={() => {
+                              setSortBy(opt);
+                              setIsSortOpen(false);
+                            }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              width: '100%',
+                              padding: '10px 14px',
+                              borderRadius: '10px',
+                              border: 'none',
+                              background: isSelected ? '#DDF7E3' : 'transparent',
+                              color: isSelected ? '#3BAE56' : '#374151',
+                              fontSize: '13px',
+                              fontWeight: isSelected ? '700' : '500',
+                              cursor: 'pointer',
+                              textAlign: 'left',
+                              transition: 'all 0.15s ease',
+                              marginBottom: '2px',
+                              whiteSpace: 'nowrap'
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!isSelected) {
+                                e.currentTarget.style.background = '#F7FBFD';
+                                e.currentTarget.style.color = '#3BAE56';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!isSelected) {
+                                e.currentTarget.style.background = 'transparent';
+                                e.currentTarget.style.color = '#374151';
+                              }
+                            }}
+                          >
+                            <span style={{ marginRight: '12px' }}>{opt}</span>
+                            {isSelected && <span style={{ color: '#3BAE56', fontWeight: '800' }}>✓</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -490,7 +648,7 @@ function ShopContent() {
           <div>
             <h4 style={{ fontFamily: 'var(--font-outfit)', fontSize: '14px', fontWeight: '700', color: '#1a2332', marginBottom: '12px' }}>Category</h4>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-              {['Skin Care', 'Hair Care', 'Body Care', 'Wellness', 'Baby Care', 'Combos'].map(cat => (
+              {['Skin Care', 'Hair Care', 'Serum', 'Sheet Mask', 'Combos'].map(cat => (
                 <button
                   key={cat}
                   onClick={() => { setSelectedCategory(selectedCategory === cat ? null : cat); setIsMobileFilterOpen(false); }}

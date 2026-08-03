@@ -122,22 +122,7 @@ const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggl
       borderRadius: '16px',
       boxShadow: isComboMode && isSelected ? '0 8px 24px rgba(28, 114, 185, 0.15)' : undefined
     }}>
-      <style>{`
-        .mg-product-tag {
-          font-size: 11px !important;
-          padding: 4px 10px !important;
-        }
-        @media (max-width: 576px) {
-          .mg-product-tag {
-            font-size: 9px !important;
-            padding: 3px 6px !important;
-            top: 8px !important;
-            letter-spacing: 0.01em !important;
-          }
-          .mg-tag-left { left: 6px !important; }
-          .mg-tag-right { right: 6px !important; }
-        }
-      `}</style>
+
       {isComboMode && isSelected && (
         <div style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 15, width: '28px', height: '28px', borderRadius: '50%', background: '#1c72b9', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
           <i className="fas fa-check" style={{ fontSize: '14px' }}></i>
@@ -267,13 +252,7 @@ const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggl
 
         {/* Action Buttons */}
         <div className="product-actions-container" style={{ marginTop: 'auto', display: 'flex', gap: '8px' }}>
-          <style>{`
-            @media (max-width: 576px) {
-              .product-actions-container { gap: 4px !important; }
-              .mg-product-action-btn { padding: 8px 0 !important; font-size: 10px !important; }
-              .mg-product-action-btn svg { width: 11px !important; height: 11px !important; margin-right: 2px !important; }
-            }
-          `}</style>
+
           {isComboMode ? (
             <button
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (resolvedProduct.stock > 0 && onToggleSelect) onToggleSelect(); }}

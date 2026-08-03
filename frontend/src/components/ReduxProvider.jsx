@@ -44,8 +44,6 @@ function StateHydrator() {
 
     // Session Restoration on Startup
     const initAuth = async () => {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://www.maxglowon.com/api';
-      
       // Optimistic session restoration from localStorage
       const localUser = localStorage.getItem('maxglow_user');
       if (localUser) {
@@ -59,7 +57,7 @@ function StateHydrator() {
       }
 
       try {
-        const profileRes = await axios.get(`${apiUrl}/auth/profile`, { withCredentials: true });
+        const profileRes = await axios.get(`${api.defaults.baseURL}/auth/profile`, { withCredentials: true });
         dispatch(setCredentials(profileRes.data.user));
       } catch (e) {
         // Only clear session if server explicitly says unauthorized (401/403)
@@ -80,7 +78,6 @@ function StateHydrator() {
       async (error) => {
         const originalRequest = error.config;
         if (error.response && error.response.status === 401 && !originalRequest._retry) {
-          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://www.maxglowon.com/api';
           // Don't retry if it's the login or refresh endpoint itself
           if (originalRequest.url && (originalRequest.url.includes('/login') || originalRequest.url.includes('/refresh'))) {
             return Promise.reject(error);
@@ -88,14 +85,16 @@ function StateHydrator() {
           
           originalRequest._retry = true;
           try {
-             await axios.post(`${apiUrl}/auth/refresh`, {}, { withCredentials: true });
+             await axios.post(`${api.defaults.baseURL}/auth/refresh`, {}, { withCredentials: true });
              // The backend set a new HttpOnly access token cookie, so retry the original request
              return api(originalRequest);
           } catch(err) {
-             // Refresh failed, user is definitely logged out
-             dispatch(setCredentials(null));
-             if (typeof window !== 'undefined') {
-                window.location.href = '/login?session_expired=true';
+             // Only log out if the server explicitly says the refresh token is invalid/expired (401/403)
+             if (err.response && (err.response.status === 401 || err.response.status === 403)) {
+                dispatch(setCredentials(null));
+                if (typeof window !== 'undefined') {
+                   window.location.href = '/login?session_expired=true';
+                }
              }
              return Promise.reject(err);
           }

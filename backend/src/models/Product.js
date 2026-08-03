@@ -69,6 +69,11 @@ productSchema.set('toObject', { virtuals: true });
 productSchema.index({ name: 'text', category: 'text', description: 'text' });
 productSchema.index({ createdAt: -1 });
 productSchema.index({ price: 1 });
+productSchema.index({ showOnHomepage: 1, stock: 1 });
+productSchema.index({ newArrival: 1, stock: 1 });
+productSchema.index({ isFeatured: 1, stock: 1 });
+productSchema.index({ totalSold: -1 });
+productSchema.index({ category: 1, stock: 1 });
 
 const Product = mongoose.model('Product', productSchema);
 export default Product;

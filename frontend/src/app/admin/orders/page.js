@@ -414,9 +414,14 @@ function AdminOrdersContent() {
                     <td>{new Date(ord.createdAt).toLocaleDateString()}</td>
                     <td className="fw-bold">₹{ord.totalAmount}</td>
                     <td>
-                      <span className={ord.paymentStatus === 'Paid' ? 'badge bg-success bg-opacity-10 text-success' : 'badge bg-warning bg-opacity-10 text-warning'}>
-                        {ord.paymentStatus}
-                      </span>
+                      <div className="d-flex flex-column gap-1">
+                        <span className="fw-semibold text-dark">
+                          {ord.paymentMode === 'COD' ? 'COD (Cash on Delivery)' : 'Online Transaction'}
+                        </span>
+                        <small className="text-muted fw-semibold">
+                          Status: <span className={ord.paymentStatus === 'Paid' ? 'text-success fw-bold' : 'text-warning fw-bold'}>{ord.paymentStatus}</span>
+                        </small>
+                      </div>
                     </td>
                     <td>
                       <span className={ord.orderStatus === 'Delivered' ? 'badge-status-green' : ord.orderStatus === 'Cancelled' ? 'badge-status-red' : 'badge-status-orange'}>
@@ -447,7 +452,14 @@ function AdminOrdersContent() {
           <div className="modal-dialog modal-lg modal-dialog-centered" onClick={(e) => e.stopPropagation()}>
             <div className="modal-content border-0 rounded-4 shadow-lg">
               <div className="modal-header border-bottom py-3">
-                <h5 className="modal-title fw-bold">Order Details (#{selectedOrder._id.substring(0, 12).toUpperCase()})</h5>
+                <div>
+                  <h5 className="modal-title fw-bold m-0">Order Details (#{selectedOrder._id.substring(0, 12).toUpperCase()})</h5>
+                  <div className="mt-1">
+                    <span className="fw-bold text-dark fs-8">
+                      {selectedOrder.paymentMode === 'COD' ? '💵 Cash on Delivery (COD)' : `💳 Online Transaction (${selectedOrder.paymentMode || 'Prepaid'})`}
+                    </span>
+                  </div>
+                </div>
                 <div className="d-flex gap-2 align-items-center">
                   {(selectedOrder.orderStatus === 'Confirmed' || selectedOrder.orderStatus === 'Packed' || selectedOrder.orderStatus === 'Shipped' || selectedOrder.orderStatus === 'Delivered') && (
                     <button onClick={handlePrint} className="btn btn-sm btn-outline-dark d-flex align-items-center gap-1">
@@ -460,6 +472,79 @@ function AdminOrdersContent() {
               
               <div className="modal-body p-4" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
                 {actionSuccess && <div className="alert alert-success p-2 fs-8 mb-3">{actionSuccess}</div>}
+
+                {/* Workflow Action Bar */}
+                <div className="p-3 mb-4 rounded-3 border bg-light shadow-sm">
+                  <div className="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <div>
+                      <span className="text-muted fs-8 text-uppercase fw-bold d-block mb-1">Payment Method & Status</span>
+                      <div className="d-flex align-items-center gap-2 flex-wrap">
+                        <span className="fw-bold text-dark fs-7">
+                          {selectedOrder.paymentMode === 'COD' ? 'Cash on Delivery (COD)' : 'Online Transaction'}
+                        </span>
+                        <span className="fs-7 text-muted">
+                          Status: <strong className="text-dark">{selectedOrder.orderStatus}</strong> | Payment: <strong className={selectedOrder.paymentStatus === 'Paid' ? 'text-success' : 'text-warning'}>{selectedOrder.paymentStatus}</strong>
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="d-flex gap-2 align-items-center">
+                      {/* Step 1 for COD: Confirm Order */}
+                      {selectedOrder.orderStatus === 'Placed' && (
+                        <button 
+                          onClick={() => handleStatusChange(selectedOrder._id, 'Confirmed')}
+                          className="btn btn-primary btn-sm px-3 py-2 fw-bold d-flex align-items-center gap-2 shadow-sm"
+                        >
+                          <CheckCircle size={16} /> Confirm Order
+                        </button>
+                      )}
+
+                      {/* Step 2: Confirmed -> Mark as Packed */}
+                      {selectedOrder.orderStatus === 'Confirmed' && (
+                        <button 
+                          onClick={() => handleStatusChange(selectedOrder._id, 'Packed')}
+                          className="btn btn-info text-white btn-sm px-3 py-2 fw-bold d-flex align-items-center gap-2 shadow-sm"
+                        >
+                          <Package size={16} /> Mark as Packed
+                        </button>
+                      )}
+
+                      {/* Step 3: Packed -> Generate Shipment */}
+                      {selectedOrder.orderStatus === 'Packed' && (!selectedOrder.shipments || selectedOrder.shipments.length === 0) && (
+                        <button 
+                          onClick={() => handleCreateDelhiveryShipment(selectedOrder._id)}
+                          className="btn btn-dark btn-sm px-3 py-2 fw-bold d-flex align-items-center gap-2 shadow-sm"
+                        >
+                          <Truck size={16} /> {warehouses && warehouses.length > 1 ? 'Generate Split Shipments' : 'Generate Shipment'}
+                        </button>
+                      )}
+
+                      {/* Step 4: Shipped -> Mark as Delivered */}
+                      {selectedOrder.orderStatus === 'Shipped' && (
+                        <button 
+                          onClick={() => handleStatusChange(selectedOrder._id, 'Delivered')}
+                          className="btn btn-success btn-sm px-3 py-2 fw-bold d-flex align-items-center gap-2 shadow-sm"
+                        >
+                          <CheckCircle size={16} /> Mark as Delivered
+                        </button>
+                      )}
+
+                      {/* Completed state */}
+                      {selectedOrder.orderStatus === 'Delivered' && (
+                        <span className="badge bg-success px-3 py-2 fs-7 fw-bold d-inline-flex align-items-center gap-1">
+                          <CheckCircle size={16} /> Order Delivered
+                        </span>
+                      )}
+
+                      {/* Cancelled state */}
+                      {selectedOrder.orderStatus === 'Cancelled' && (
+                        <span className="badge bg-danger px-3 py-2 fs-7 fw-bold d-inline-flex align-items-center gap-1">
+                          <AlertTriangle size={16} /> Order Cancelled
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
 
                 <div className="row g-4 mb-4">
                   {/* Summary */}
@@ -505,12 +590,13 @@ function AdminOrdersContent() {
                 <div className="bg-light p-3 rounded border mb-4 d-flex flex-column gap-3">
                   {(!selectedOrder.shipments || selectedOrder.shipments.length === 0) ? (
                     <div>
-                      <p className="fs-7 text-muted m-0 mb-2">No active shipments for this order.</p>
-                      {(selectedOrder.orderStatus === 'Packed' || selectedOrder.orderStatus === 'Confirmed' || selectedOrder.orderStatus === 'Placed') && (
-                        <button onClick={() => handleCreateDelhiveryShipment(selectedOrder._id)} className="btn btn-sm btn-dark d-flex align-items-center gap-2">
-                          <Truck size={14} /> {warehouses && warehouses.length > 1 ? 'Generate Split Shipments' : 'Generate Shipment'}
-                        </button>
-                      )}
+                      <p className="fs-7 text-muted m-0 mb-2">
+                        {selectedOrder.orderStatus === 'Packed' 
+                          ? 'Order is packed. Use the action bar above to generate shipment.' 
+                          : selectedOrder.orderStatus === 'Confirmed' 
+                            ? 'Order is confirmed. Please mark as Packed before generating shipment.' 
+                            : 'No active shipments for this order.'}
+                      </p>
                     </div>
                   ) : (
                     <div className="d-flex flex-column gap-3">
@@ -562,7 +648,7 @@ function AdminOrdersContent() {
                   )}
                 <div className="fs-8 text-muted border-top pt-3 mt-3">
                   <div className="mb-2">
-                    Current Status: <strong className="text-dark">{selectedOrder.orderStatus}</strong> | Payment Status: <strong className="text-dark">{selectedOrder.paymentStatus}</strong>
+                    Payment Method: <strong className="text-dark">{selectedOrder.paymentMode === 'COD' ? 'Cash on Delivery (COD)' : 'Online Transaction (' + (selectedOrder.paymentMode || 'Prepaid') + ')'}</strong> | Current Status: <strong className="text-dark">{selectedOrder.orderStatus}</strong> | Payment Status: <strong className="text-dark">{selectedOrder.paymentStatus}</strong>
                   </div>
                   {(selectedOrder.razorpayOrderId || selectedOrder.razorpayPaymentId) && (
                     <div className="bg-light p-3 rounded border mt-3">

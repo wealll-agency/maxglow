@@ -32,7 +32,13 @@ export const protect = async (req, res, next) => {
     if (cachedUser && (Date.now() - cachedUser.timestamp < CACHE_TTL)) {
       req.user = cachedUser.data;
     } else {
-      const user = await User.findById(decoded.id).select('-password');
+      let user;
+      try {
+        user = await User.findById(decoded.id).select('-password');
+      } catch (dbError) {
+        console.error(`Database error during auth verification: ${dbError.message}`);
+        return res.status(500).json({ success: false, message: 'Internal server error, database connection failure' });
+      }
       if (!user) {
         return res.status(401).json({ success: false, message: 'User no longer exists' });
       }

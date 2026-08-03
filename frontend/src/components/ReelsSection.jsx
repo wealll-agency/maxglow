@@ -288,7 +288,7 @@ const ReelsSection = () => {
       </div>
 
       {/* ── Scoped Styles ── */}
-      <style jsx global>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         /* Section */
         .reels-section {
           padding: 48px 0 56px;
@@ -498,7 +498,7 @@ const ReelsSection = () => {
             height: 26px;
           }
         }
-      `}</style>
+      ` }} />
     </section>
   );
 };

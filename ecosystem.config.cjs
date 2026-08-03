@@ -3,8 +3,8 @@ module.exports = {
     {
       name: 'maxglow-backend',
       script: './backend/src/server.js',
-      instances: 1,
-      exec_mode: 'fork',
+      instances: 'max',
+      exec_mode: 'cluster',
       autorestart: true,
       watch: false,
       max_memory_restart: '1G',
@@ -21,8 +21,8 @@ module.exports = {
       script: 'node_modules/next/dist/bin/next',
       args: 'start -p 7053',
       cwd: './frontend',
-      instances: 1,
-      exec_mode: 'fork',
+      instances: 'max',
+      exec_mode: 'cluster',
       autorestart: true,
       watch: false,
       env_production: {

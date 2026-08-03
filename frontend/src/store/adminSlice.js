@@ -346,7 +346,7 @@ const adminSlice = createSlice({
   name: 'admin',
   initialState: {
     stats: null,
-    salesOverview: [],
+    salesOverview: { yearly: [], monthly: [], weekly: [] },
     topProducts: [],
     lowStockDetails: [],
     products: [],
@@ -377,7 +377,9 @@ const adminSlice = createSlice({
     builder
       // Dashboard stats
       .addCase(fetchDashboardStats.pending, (state) => {
-        state.loading = true;
+        if (!state.stats) {
+          state.loading = true;
+        }
         state.error = null;
       })
       .addCase(fetchDashboardStats.fulfilled, (state, action) => {
@@ -428,7 +430,9 @@ const adminSlice = createSlice({
       })
       // Admin products list
       .addCase(fetchAdminProducts.pending, (state) => {
-        state.productsLoading = true;
+        if (!state.products || state.products.length === 0) {
+          state.productsLoading = true;
+        }
         state.error = null;
       })
       .addCase(fetchAdminProducts.fulfilled, (state, action) => {
@@ -465,7 +469,9 @@ const adminSlice = createSlice({
       })
       // Admin orders list
       .addCase(fetchAdminOrders.pending, (state) => {
-        state.ordersLoading = true;
+        if (!state.orders || state.orders.length === 0) {
+          state.ordersLoading = true;
+        }
       })
       .addCase(fetchAdminOrders.fulfilled, (state, action) => {
         state.ordersLoading = false;

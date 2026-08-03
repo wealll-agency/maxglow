@@ -52,49 +52,7 @@ const ShopByPurpose = () => {
           <p className="mg-section-subtitle">Discover products tailored to your wellness goals</p>
         </div>
 
-        <style>{`
-          .purpose-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 20px;
-          }
-          @media (max-width: 768px) {
-            .purpose-grid {
-              display: grid !important;
-              grid-template-columns: repeat(4, 1fr) !important;
-              gap: 8px !important;
-              overflow-x: hidden !important;
-              margin: 0 !important;
-              padding: 0 !important;
-            }
-            .purpose-card-inner {
-              padding: 12px 4px !important;
-              border-radius: 12px !important;
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              text-align: center;
-            }
-            .purpose-icon-wrapper {
-              width: 40px !important;
-              height: 40px !important;
-              border-radius: 10px !important;
-              margin-bottom: 8px !important;
-            }
-            .purpose-icon-wrapper svg {
-              width: 20px !important;
-              height: 20px !important;
-            }
-            .purpose-card-title {
-              font-size: 10px !important;
-              line-height: 1.2 !important;
-              margin-bottom: 0 !important;
-            }
-            .purpose-card-desc, .purpose-card-explore {
-              display: none !important;
-            }
-          }
-        `}</style>
+
         {/* Cards Grid */}
         <div className="purpose-grid">
           {purposes.map((item, idx) => (
