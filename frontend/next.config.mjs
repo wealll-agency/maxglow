@@ -1,4 +1,5 @@
 import dns from 'dns';
+import path from 'path';
 
 try {
   dns.setDefaultResultOrder('ipv4first');
@@ -7,9 +8,9 @@ try {
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
   experimental: {
     optimizePackageImports: ['lucide-react', 'react-icons', 'bootstrap'],
+    outputFileTracingRoot: path.resolve(process.cwd(), '..'),
   },
   images: {
     remotePatterns: [
