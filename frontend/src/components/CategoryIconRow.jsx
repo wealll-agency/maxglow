@@ -150,10 +150,11 @@ const CategoryIconRow = () => {
             padding: 0 1px !important;
           }
           .category-circle-wrapper {
-            width: 16.5vw !important;
-            height: 16.5vw !important;
-            min-width: 16.5vw !important;
-            min-height: 16.5vw !important;
+            width: 100% !important;
+            height: auto !important;
+            aspect-ratio: 1 / 1 !important;
+            min-width: unset !important;
+            min-height: unset !important;
             max-width: 68px !important;
             max-height: 68px !important;
           }
@@ -162,7 +163,7 @@ const CategoryIconRow = () => {
             height: 60% !important;
           }
           .category-label-text {
-            font-size: clamp(9.5px, 2.8vw, 11.5px) !important;
+            font-size: clamp(9px, 2.6vw, 11.5px) !important;
             font-weight: 700 !important;
             color: #1a2332 !important;
             letter-spacing: -0.02em !important;
