@@ -211,7 +211,7 @@ function ShopDetailsContent() {
     if (!url) return '/top_product1.png';
     if (url.startsWith('http')) return url;
     if (url.startsWith('/uploads/')) {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'https://www.maxglowon.com';
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'https://maxglow.in';
       return `${baseUrl}${url}`;
     }
     return url.replace('/assets/images/', '/');

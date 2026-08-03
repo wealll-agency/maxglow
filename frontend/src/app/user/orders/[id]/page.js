@@ -58,7 +58,7 @@ export default function OrderTrackingPage() {
 
     const fetchGlobalSettings = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://www.maxglowon.com/api';
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://maxglow.in/api';
         const res = await fetch(`${apiUrl}/auth/settings?t=${Date.now()}`);
         const data = await res.json();
         if (data.success) {

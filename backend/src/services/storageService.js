@@ -75,8 +75,6 @@ export const uploadFile = async (file) => {
   const localPath = path.join(uploadsDir, fileName);
   fs.writeFileSync(localPath, file.buffer);
 
-  // Return local server URL (Express will serve public statically)
-  const port = process.env.PORT || 5000;
-  const baseUrl = process.env.BACKEND_URL || `http://localhost:${port}`;
-  return `${baseUrl}/uploads/${fileName}`;
+  // Return relative path (client side will prepend host URL or route via proxy)
+  return `/uploads/${fileName}`;
 };

@@ -8,17 +8,14 @@ export default function AdminReportsPage() {
   const [endDate, setEndDate] = useState('');
   
   const handleExportPDF = () => {
-    let url = `${process.env.NEXT_PUBLIC_API_URL || 'https://www.maxglowon.com/api'}/reports/export/pdf`;
-    const params = [];
-    if (startDate) params.push(`startDate=${startDate}`);
-    if (endDate) params.push(`endDate=${endDate}`);
-    if (params.length > 0) url += `?${params.join('&')}`;
-
+    let url = `${process.env.NEXT_PUBLIC_API_URL || 'https://maxglow.in/api'}/reports/export/pdf`;
+    if (startDate) url += `?startDate=${startDate}`;
+    if (endDate) url += `${startDate ? '&' : '?'}endDate=${endDate}`;
     window.open(url, '_blank');
   };
 
   const handleExportExcel = () => {
-    let url = `${process.env.NEXT_PUBLIC_API_URL || 'https://www.maxglowon.com/api'}/reports/export/excel`;
+    let url = `${process.env.NEXT_PUBLIC_API_URL || 'https://maxglow.in/api'}/reports/export/excel`;
     const params = [];
     if (startDate) params.push(`startDate=${startDate}`);
     if (endDate) params.push(`endDate=${endDate}`);

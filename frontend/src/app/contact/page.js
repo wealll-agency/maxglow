@@ -7,7 +7,7 @@ import {
   FiFacebook, FiInstagram, FiTwitter, FiYoutube 
 } from 'react-icons/fi';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://www.maxglowon.com/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://maxglow.in/api';
 
 export default function ContactPage() {
   const [form, setForm] = useState({ 

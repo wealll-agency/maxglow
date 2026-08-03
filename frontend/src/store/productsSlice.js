@@ -1,8 +1,8 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/products` : 'https://www.maxglowon.com/api/products';
-const REVIEWS_URL = process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/reviews` : 'https://www.maxglowon.com/api/reviews';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/products` : 'https://maxglow.in/api/products';
+const REVIEWS_URL = process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/reviews` : 'https://maxglow.in/api/reviews';
 
 export const fetchProducts = createAsyncThunk(
   'products/fetchAll',

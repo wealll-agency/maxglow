@@ -90,6 +90,8 @@ const allowedOrigins = [
   'http://127.0.0.1:3000', 
   'http://127.0.0.1:3001', 
   'http://127.0.0.1:7053',
+  'https://maxglow.in',
+  'https://www.maxglow.in',
   'https://maxglowon.com',
   'https://www.maxglowon.com'
 ];

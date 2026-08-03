@@ -705,7 +705,7 @@ function AdminOrdersContent() {
               <div className="col-4 text-end d-flex align-items-center justify-content-end gap-2">
                 <div style={{ fontSize: '9px', fontWeight: 'bold' }}>e-Invoice</div>
                 <Image 
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=${encodeURIComponent('https://www.maxglowon.com/invoice/' + selectedOrder._id)}`} 
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=${encodeURIComponent('https://maxglow.in/invoice/' + selectedOrder._id)}`} 
                   alt="e-invoice QR" 
                   width={60}
                   height={60}

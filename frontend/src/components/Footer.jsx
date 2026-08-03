@@ -157,7 +157,7 @@ const Footer = () => {
               </h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {[
-                  { icon: <FiMail size={14} />, text: 'support@maxglowon.com' },
+                  { icon: <FiMail size={14} />, text: 'support@maxglow.in' },
                   { icon: <FiMapPin size={14} />, text: 'Delhi, India' },
                 ].map((item, idx) => (
                   <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#94a3b8', fontSize: '13px' }}>
