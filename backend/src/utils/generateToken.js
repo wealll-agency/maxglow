@@ -13,11 +13,12 @@ const generateToken = (res, userId, rememberMe = true) => {
     { expiresIn: rememberMe ? '30d' : '1d' }
   );
 
+  const isProd = process.env.NODE_ENV === 'production' || process.env.COOKIE_SECURE === 'true';
   const cookieOptions = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: isProd,
     sameSite: 'lax',
-    ...(process.env.NODE_ENV === 'production' && { domain: process.env.COOKIE_DOMAIN || '.maxglow.in' })
+    ...(isProd && { domain: process.env.COOKIE_DOMAIN || '.maxglow.in' })
   };
 
   if (rememberMe) {
