@@ -73,6 +73,10 @@ export default function AdminProductsPage() {
   
   const [subImageFiles, setSubImageFiles] = useState([null, null, null]);
   const [subImagePreviews, setSubImagePreviews] = useState(['', '', '']);
+  
+  const [videoFile, setVideoFile] = useState(null);
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState('');
+  const [showInReels, setShowInReels] = useState(false);
 
   useEffect(() => {
     const mrp = parseFloat(price) || 0;
@@ -176,6 +180,9 @@ export default function AdminProductsPage() {
     setImagePreviewUrl('');
     setSubImageFiles([null, null, null]);
     setSubImagePreviews(['', '', '']);
+    setVideoFile(null);
+    setVideoPreviewUrl('');
+    setShowInReels(false);
     setEditMode(false);
     setEditId('');
     setShowForm(false);
@@ -220,6 +227,10 @@ export default function AdminProductsPage() {
     }
     setSubImagePreviews(previews);
     setSubImageFiles([null, null, null]);
+    
+    setVideoPreviewUrl(product.videos && product.videos.length > 0 ? product.videos[0] : '');
+    setVideoFile(null);
+    setShowInReels(product.showInReels || false);
     
     setEditMode(true);
     setShowForm(true);
@@ -348,6 +359,14 @@ export default function AdminProductsPage() {
       }
     });
 
+    if (videoFile) {
+      payload.append('video', videoFile);
+    } else if (videoPreviewUrl) {
+      payload.append('videos', videoPreviewUrl);
+    }
+    
+    payload.append('showInReels', showInReels);
+
     if (editMode) {
       dispatch(editProduct({ id: editId, data: payload }))
         .unwrap()
@@ -389,6 +408,14 @@ export default function AdminProductsPage() {
       const newPreviews = [...subImagePreviews];
       newPreviews[index] = URL.createObjectURL(file);
       setSubImagePreviews(newPreviews);
+    }
+  };
+
+  const handleVideoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setVideoFile(file);
+      setVideoPreviewUrl(URL.createObjectURL(file));
     }
   };
 
@@ -674,6 +701,33 @@ export default function AdminProductsPage() {
                     </div>
                   </div>
                   
+                  {/* Video & Reels Section */}
+                  <div className="col-md-12 mt-4">
+                    <h6 className="fw-bold mb-3 text-brand">Product Video (Reels)</h6>
+                    <div className="row g-3 align-items-center">
+                      <div className="col-md-6">
+                        <label className="form-label text-muted fs-7 mb-1">Video File (MP4/WebM) - Optional</label>
+                        <input 
+                          type="file" 
+                          className="form-control" 
+                          accept="video/*"
+                          onChange={handleVideoChange}
+                        />
+                        {videoPreviewUrl && (
+                          <div className="mt-3">
+                            <video src={videoPreviewUrl} className="img-thumbnail" width={100} height={100} style={{ height: '100px', objectFit: 'cover' }} controls muted />
+                          </div>
+                        )}
+                      </div>
+                      <div className="col-md-6">
+                        <div className="form-check form-switch d-flex align-items-center h-100 pt-3">
+                          <label className="form-check-label fs-7 fw-medium mb-0 me-3">Show in Reels Section</label>
+                          <input className="form-check-input cursor-pointer" type="checkbox" checked={showInReels} onChange={(e) => setShowInReels(e.target.checked)} style={{ transform: 'scale(1.2)' }} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="col-md-12">
                     <label className="fw-medium mb-1 fs-7">Batch Number</label>
                     <input type="text" required className="form-control" value={batchNumber} onChange={(e) => setBatchNumber(e.target.value)} />

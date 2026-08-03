@@ -206,6 +206,8 @@ function ShopDetailsContent() {
 
   const isInWishlist = wishlistItems.some(item => item._id === realProduct._id);
   const images = realProduct.images && realProduct.images.length > 0 ? realProduct.images : ['/top_product1.png'];
+  const mediaItems = [...(realProduct.videos || []), ...images];
+  const isVideo = (url) => url && (url.toLowerCase().endsWith('.mp4') || url.toLowerCase().endsWith('.webm') || (realProduct.videos && realProduct.videos.includes(url)));
 
   const getImageUrl = (url) => {
     if (!url) return '/top_product1.png';
@@ -420,32 +422,57 @@ function ShopDetailsContent() {
               >
                 <Heart size={20} fill={isInWishlist ? '#ef4444' : 'none'} color={isInWishlist ? '#ef4444' : '#64748b'} />
               </button>
-              <Image
-                src={getImageUrl(images[activeImageIndex])}
-                alt={realProduct.name}
-                width={400}
-                height={400}
-                style={{ objectFit: 'cover', width: '100%', height: '100%' }}
-                priority
-              />
+              {isVideo(mediaItems[activeImageIndex]) ? (
+                <video
+                  src={getImageUrl(mediaItems[activeImageIndex])}
+                  style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                  controls
+                  autoPlay
+                  muted
+                />
+              ) : (
+                <Image
+                  src={getImageUrl(mediaItems[activeImageIndex])}
+                  alt={realProduct.name}
+                  width={400}
+                  height={400}
+                  style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                  priority
+                />
+              )}
             </div>
 
             {/* Thumbnails */}
-            {images.length > 1 && (
+            {mediaItems.length > 1 && (
               <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
-                {images.map((imgUrl, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setActiveImageIndex(index)}
-                    style={{
-                      width: '64px', height: '64px', borderRadius: '12px', background: 'white',
-                      border: activeImageIndex === index ? '2px solid #3BAE56' : '1px solid #e2e8f0',
-                      padding: '0', cursor: 'pointer', flexShrink: 0,
-                    }}
-                  >
-                    <Image src={getImageUrl(imgUrl)} alt="" width={56} height={56} style={{ objectFit: 'cover', width: '100%', height: '100%', borderRadius: '12px' }} />
-                  </button>
-                ))}
+                {mediaItems.map((mediaUrl, index) => {
+                  const isVid = isVideo(mediaUrl);
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => setActiveImageIndex(index)}
+                      style={{
+                        position: 'relative',
+                        width: '64px', height: '64px', borderRadius: '12px', background: 'white',
+                        border: activeImageIndex === index ? '2px solid #3BAE56' : '1px solid #e2e8f0',
+                        padding: '0', cursor: 'pointer', flexShrink: 0, overflow: 'hidden'
+                      }}
+                    >
+                      <Image 
+                        src={isVid ? getImageUrl(images[0]) : getImageUrl(mediaUrl)} 
+                        alt="" width={56} height={56} 
+                        style={{ objectFit: 'cover', width: '100%', height: '100%', borderRadius: '12px', opacity: isVid ? 0.7 : 1 }} 
+                      />
+                      {isVid && (
+                        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <div style={{ width: '24px', height: '24px', background: 'rgba(0,0,0,0.5)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z" /></svg>
+                          </div>
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             )}
 

@@ -3,6 +3,8 @@ import { useRouter } from 'next/navigation';
 
 
 import React, { useRef, useState, useCallback, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { addToCart } from '@/store/slices/cartSlice';
 
 import { Swiper, SwiperSlide, useSwiper } from 'swiper/react';
 import { Autoplay, FreeMode } from 'swiper/modules';
@@ -89,6 +91,7 @@ const ReelCard = ({ reel }) => {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const router = useRouter();
+  const dispatch = useDispatch();
   const swiper = useSwiper();
   const [isMobile, setIsMobile] = useState(false);
 
@@ -151,7 +154,23 @@ const ReelCard = ({ reel }) => {
 
   const handleBuyClick = (e) => {
     e.stopPropagation();
-    router.push(reel.link);
+    
+    // Add product to cart
+    dispatch(addToCart({
+      product: {
+        _id: reel.originalProduct._id,
+        name: reel.originalProduct.name,
+        price: reel.originalProduct.price,
+        discount: reel.originalProduct.discount || 0,
+        image: reel.originalProduct.images?.[0] || reel.poster,
+        stock: reel.originalProduct.stock
+      },
+      quantity: 1,
+      size: `${reel.originalProduct.unitValue || 1} ${reel.originalProduct.unit || 'Pack'}`
+    }));
+    
+    // Redirect to checkout
+    router.push('/checkout');
   };
 
   return (
@@ -159,6 +178,8 @@ const ReelCard = ({ reel }) => {
       className="reel-card"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onClick={() => router.push(reel.link)}
+      style={{ cursor: 'pointer' }}
     >
       {/* Video element — hidden poster, shown on hover */}
       <video
@@ -207,26 +228,46 @@ const ReelCard = ({ reel }) => {
 
 /* ── Main Section ── */
 const ReelsSection = () => {
-  const [reelsState, setReelsState] = useState(reels);
+  const [reelsState, setReelsState] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchReels = async () => {
       try {
         const { default: api } = await import('../utils/axiosConfig');
-        const res = await api.get('/auth/settings');
-        if (res.data.success && res.data.settings?.media_reels?.length > 0) {
-          const customReels = res.data.settings.media_reels;
-          setReelsState(prev => prev.map((reel, idx) => {
-            if (customReels[idx] && customReels[idx].trim() !== '') {
-              return { ...reel, video: customReels[idx] };
-            }
-            return reel;
-          }));
+        const res = await api.get('/products?showInReels=true&inStock=true');
+        if (res.data.success && res.data.products) {
+          const fetchedReels = res.data.products
+            .filter(p => p.videos && p.videos.length > 0)
+            .map((p, idx) => {
+              let finalPrice = p.price;
+              if (p.discount > 0) {
+                finalPrice = p.discountType === 'Percent'
+                  ? Math.round(p.price * (1 - p.discount / 100))
+                  : Math.max(0, p.price - p.discount);
+              }
+              return {
+                id: p._id || idx,
+                video: p.videos[0],
+                poster: p.images && p.images.length > 0 ? p.images[0] : 'https://placehold.co/400x600/0a1628/ffffff',
+                title: p.name,
+                tag: p.category || 'Product',
+                link: `/shop-details?name=${encodeURIComponent(p.name)}`,
+                originalProduct: { ...p, price: finalPrice }
+              };
+            });
+          setReelsState(fetchedReels);
         }
-      } catch (err) {}
+      } catch (err) {
+        console.error("Failed to fetch reels", err);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchReels();
   }, []);
+
+  if (loading || reelsState.length === 0) return null;
 
   return (
     <section className="reels-section">

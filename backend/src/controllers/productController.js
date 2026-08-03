@@ -10,7 +10,7 @@ import { uploadFile } from '../services/storageService.js';
 // @access  Public
 export const getProducts = async (req, res, next) => {
   try {
-    const { keyword, category, subCategory, subSubCategory, brand, minPrice, maxPrice, sort, page = 1, limit = 12, homepage, topSelling, newArrival, healthyProduct, featured, inStock } = req.query;
+    const { keyword, category, subCategory, subSubCategory, brand, minPrice, maxPrice, sort, page = 1, limit = 12, homepage, topSelling, newArrival, healthyProduct, featured, inStock, showInReels } = req.query;
 
     const query = {};
 
@@ -62,6 +62,9 @@ export const getProducts = async (req, res, next) => {
     }
     if (healthyProduct === 'true') {
       query.healthyProduct = true;
+    }
+    if (showInReels === 'true') {
+      query.showInReels = true;
     }
 
     // Top Selling Filter
@@ -130,12 +133,13 @@ export const createProduct = async (req, res, next) => {
   const { 
     name, category, subCategory, subSubCategory, brand, productType, sku, unit, unitValue, searchTags, 
     price, purchasePrice, minOrderQty, discount, discountType, taxAmount, taxCalculation, 
-    shippingCost, shippingMultiplyWithQty, isFeatured, isActive, showOnHomepage, manualTopSelling, newArrival,
+    shippingCost, shippingMultiplyWithQty, isFeatured, isActive, showOnHomepage, showInReels, manualTopSelling, newArrival,
     description, ingredients, benefits, images, videos, batchNumber, expiryDate, stock, packSizes, warehouse
   } = req.body;
 
   try {
     let finalImages = images ? (Array.isArray(images) ? images : [images]) : [];
+    let finalVideos = videos ? (Array.isArray(videos) ? videos : [videos]) : [];
 
     // If an image file was uploaded, process it
     if (req.files && req.files.image) {
@@ -149,6 +153,12 @@ export const createProduct = async (req, res, next) => {
         const s3Url = await uploadFile(file);
         finalImages.push(s3Url);
       }
+    }
+
+    if (req.files && req.files.video) {
+      const file = req.files.video[0];
+      const s3Url = await uploadFile(file);
+      finalVideos.push(s3Url);
     }
 
     const product = new Product({
@@ -174,13 +184,14 @@ export const createProduct = async (req, res, next) => {
       isFeatured: isFeatured === 'true' || isFeatured === true,
       isActive: isActive === 'false' || isActive === false ? false : true,
       showOnHomepage: showOnHomepage === 'false' || showOnHomepage === false ? false : true,
+      showInReels: showInReels === 'true' || showInReels === true,
       manualTopSelling: manualTopSelling === 'true' || manualTopSelling === true,
       newArrival: newArrival === 'true' || newArrival === true,
       description,
       ingredients: typeof ingredients === 'string' ? ingredients.split(',').map(i => i.trim()).filter(Boolean) : (ingredients || []),
       benefits: typeof benefits === 'string' ? benefits.split(',').map(b => b.trim()).filter(Boolean) : (benefits || []),
       images: finalImages,
-      videos: videos || [],
+      videos: finalVideos,
       batchNumber,
       expiryDate: expiryDate ? new Date(expiryDate) : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // Default 1 year expiry
       stock: Number(stock) || 0,
@@ -251,6 +262,7 @@ export const updateProduct = async (req, res, next) => {
       product.isFeatured = req.body.isFeatured !== undefined ? (req.body.isFeatured === 'true' || req.body.isFeatured === true) : product.isFeatured;
       product.isActive = req.body.isActive !== undefined ? (req.body.isActive !== 'false' && req.body.isActive !== false) : product.isActive;
       product.showOnHomepage = req.body.showOnHomepage !== undefined ? (req.body.showOnHomepage !== 'false' && req.body.showOnHomepage !== false) : product.showOnHomepage;
+      product.showInReels = req.body.showInReels !== undefined ? (req.body.showInReels === 'true' || req.body.showInReels === true) : product.showInReels;
       product.manualTopSelling = req.body.manualTopSelling !== undefined ? (req.body.manualTopSelling === 'true' || req.body.manualTopSelling === true) : product.manualTopSelling;
       product.healthyProduct = req.body.healthyProduct !== undefined ? (req.body.healthyProduct === 'true' || req.body.healthyProduct === true) : product.healthyProduct;
       product.newArrival = req.body.newArrival !== undefined ? (req.body.newArrival === 'true' || req.body.newArrival === true) : product.newArrival;
@@ -260,6 +272,7 @@ export const updateProduct = async (req, res, next) => {
       product.benefits = typeof req.body.benefits === 'string' ? req.body.benefits.split(',').map(b => b.trim()).filter(Boolean) : (req.body.benefits || product.benefits);
       
       let finalImages = req.body.images ? (Array.isArray(req.body.images) ? req.body.images : [req.body.images]) : product.images;
+      let finalVideos = req.body.videos ? (Array.isArray(req.body.videos) ? req.body.videos : [req.body.videos]) : product.videos;
       
       if (req.files) {
         let newImages = [];
@@ -283,10 +296,15 @@ export const updateProduct = async (req, res, next) => {
           // Filter duplicates just in case
           finalImages = [...new Set(finalImages)];
         }
+        if (req.files.video) {
+          const file = req.files.video[0];
+          const s3Url = await uploadFile(file);
+          finalVideos = [s3Url]; // Override existing video with the new one
+        }
       }
       
       product.images = finalImages;
-      product.videos = req.body.videos || product.videos;
+      product.videos = finalVideos;
       
       const oldStock = product.stock;
       if (req.body.stock !== undefined) {
