@@ -46,20 +46,32 @@ function StateHydrator() {
       const initAuth = async () => {
         // Optimistic session restoration from localStorage
         const localUser = localStorage.getItem('maxglow_user');
+        let parsedUser = null;
         if (localUser) {
           try {
-            dispatch(setCredentials(JSON.parse(localUser)));
-            
-            // Only fetch profile to validate session if we have a localUser,
-            // otherwise we unnecessarily trigger a 401 Unauthorized log in the console for guests.
-            const profileRes = await api.get(`/auth/profile`);
-            dispatch(setCredentials(profileRes.data.user));
+            parsedUser = JSON.parse(localUser);
+            dispatch(setCredentials(parsedUser));
           } catch (e) {
+            localStorage.removeItem('maxglow_user');
+          }
+        }
+        
+        if (!parsedUser) {
+          dispatch(setCredentials(null));
+          return;
+        }
+
+        // Only fetch profile to validate session if we have a localUser,
+        // otherwise we unnecessarily trigger a 401 Unauthorized log in the console for guests.
+        try {
+          const profileRes = await api.get(`/auth/profile`);
+          dispatch(setCredentials(profileRes.data.user));
+        } catch (e) {
+          // If the server explicitly rejects the token, log them out.
+          if (e.response && (e.response.status === 401 || e.response.status === 403)) {
             localStorage.removeItem('maxglow_user');
             dispatch(setCredentials(null));
           }
-        } else {
-          dispatch(setCredentials(null));
         }
       };
       initAuth();
