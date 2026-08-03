@@ -93,8 +93,29 @@ function ShopContent() {
     // Category filter (selectedCategory state or categoryQuery URL parameter)
     const catFilter = selectedCategory || categoryQuery;
     if (catFilter) {
-      const matchCategory = (product.category || '').toLowerCase().trim() === catFilter.toLowerCase().trim() ||
-                            product.name.toLowerCase().includes(catFilter.toLowerCase());
+      const pName = (product.name || '').toLowerCase();
+      const pCat = (product.category || '').toLowerCase();
+      const targetCat = catFilter.toLowerCase().trim();
+
+      let matchCategory = pCat === targetCat || pName.includes(targetCat);
+
+      // Smart Mappings for standard shop categories:
+      if (!matchCategory) {
+        if (targetCat === 'skin care' || targetCat === 'face care') {
+          matchCategory = pCat === 'skin care' || pCat === 'face care' || pCat === 'facial' || pCat === 'face' || pCat === 'skin' || pName.includes('skin') || pName.includes('face') || pName.includes('facial');
+        } else if (targetCat === 'body care' || targetCat === 'body care & moisture') {
+          matchCategory = pCat === 'body care' || pCat === 'body' || pName.includes('body') || pName.includes('lotion');
+        } else if (targetCat === 'hair care') {
+          matchCategory = pCat === 'hair care' || pCat === 'hair' || pName.includes('hair') || pName.includes('scalp') || pName.includes('shampoo');
+        } else if (targetCat === 'serum') {
+          matchCategory = pCat === 'serum' || pName.includes('serum') || pName.includes('oil');
+        } else if (targetCat === 'sheet mask') {
+          matchCategory = pCat === 'sheet mask' || pName.includes('mask') || pName.includes('sheet');
+        } else if (targetCat === 'combos' || targetCat === 'combo') {
+          matchCategory = pCat === 'combo' || pCat === 'combos' || pName.includes('combo') || pName.includes('pack') || pName.includes('gifting');
+        }
+      }
+
       if (!matchCategory) return false;
     }
 
