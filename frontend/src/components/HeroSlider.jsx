@@ -69,10 +69,9 @@ export default function HeroSlider() {
           .hero-banner-section {
             margin-bottom: 20px;
           }
-          .carousel-mask { min-height: 350px; }
           @media (max-width: 991px) {
             .hero-banner-section { margin-bottom: 0px !important; padding-bottom: 0px !important; }
-            .carousel-mask { min-height: unset; aspect-ratio: 2.4/1 !important; }
+            .carousel-mask { min-height: unset; aspect-ratio: auto !important; }
           }
         ` }} />
         <div
@@ -83,7 +82,7 @@ export default function HeroSlider() {
             boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
             position: 'relative',
             width: '100%',
-            aspectRatio: '2.4 / 1',
+            height: '100%', // Allows it to collapse or expand safely
             backgroundColor: '#e5e7eb',
           }}
         />
@@ -150,20 +149,18 @@ export default function HeroSlider() {
           boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
           position: 'relative',
           width: '100%',
-          aspectRatio: '2.4 / 1', // 1920x800 Aspect Ratio
         }}
       >
         <style dangerouslySetInnerHTML={{ __html: `
           .hero-banner-section {
             margin-bottom: 20px;
           }
-          .carousel-mask { min-height: 350px; }
           @media (max-width: 991px) {
             .hero-banner-section { margin-bottom: 0px !important; padding-bottom: 0px !important; }
-            .carousel-mask { min-height: unset; aspect-ratio: 2.4/1 !important; }
+            .carousel-mask { min-height: unset; aspect-ratio: auto !important; }
           }
           /* Ensure images do not bleed out or cause collapse */
-          .hero-slider-track { height: 100%; min-height: 100%; }
+          .hero-slider-track { height: 100%; }
           .slider-nav-btn {
             position: absolute;
             top: 50%;
@@ -213,15 +210,15 @@ export default function HeroSlider() {
               height: '100%',
               flexShrink: 0,
               position: 'relative',
+              display: 'flex'
             }}>
               <img
                 src={img}
                 alt={`MaxGlow Premium Herbal Wellness ${idx + 1}`}
                 style={{
                   width: '100%',
-                  height: '100%',
-                  objectFit: 'cover', // ensure it perfectly fills the panoramic shape
-                  objectPosition: 'center',
+                  height: 'auto',
+                  objectFit: 'contain',
                   display: 'block'
                 }}
               />
