@@ -1,5 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../utils/axiosConfig';
+import { hydrateCart, clearCart } from './cartSlice';
+import { hydrateWishlist, clearWishlist } from './wishlistSlice';
 
 const getInitialUser = () => {
   return null;
@@ -7,9 +9,13 @@ const getInitialUser = () => {
 
 export const registerUser = createAsyncThunk(
   'auth/register',
-  async ({ name, email, password, phone }, { rejectWithValue }) => {
+  async ({ name, email, password, phone }, { rejectWithValue, dispatch }) => {
     try {
-      const response = await api.post(`/auth/register`, { name, email, password, phone });
+      const localCart = JSON.parse(localStorage.getItem('maxglow_cart') || '[]');
+      const localWishlist = JSON.parse(localStorage.getItem('maxglow_wishlist') || '[]');
+      const response = await api.post(`/auth/register`, { name, email, password, phone, localCart, localWishlist });
+      if (response.data.cart) dispatch(hydrateCart(response.data.cart));
+      if (response.data.wishlist) dispatch(hydrateWishlist(response.data.wishlist));
       return response.data.user;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Registration failed');
@@ -19,9 +25,13 @@ export const registerUser = createAsyncThunk(
 
 export const loginUser = createAsyncThunk(
   'auth/login',
-  async ({ email, password, rememberMe }, { rejectWithValue }) => {
+  async ({ email, password, rememberMe }, { rejectWithValue, dispatch }) => {
     try {
-      const response = await api.post(`/auth/login`, { email, password, rememberMe });
+      const localCart = JSON.parse(localStorage.getItem('maxglow_cart') || '[]');
+      const localWishlist = JSON.parse(localStorage.getItem('maxglow_wishlist') || '[]');
+      const response = await api.post(`/auth/login`, { email, password, rememberMe, localCart, localWishlist });
+      if (response.data.cart) dispatch(hydrateCart(response.data.cart));
+      if (response.data.wishlist) dispatch(hydrateWishlist(response.data.wishlist));
       return response.data.user;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Login failed');
@@ -31,9 +41,11 @@ export const loginUser = createAsyncThunk(
 
 export const logoutUser = createAsyncThunk(
   'auth/logout',
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, dispatch }) => {
     try {
       await api.post(`/auth/logout`);
+      dispatch(clearCart());
+      dispatch(clearWishlist());
       return null;
     } catch (error) {
       return rejectWithValue('Logout failed');

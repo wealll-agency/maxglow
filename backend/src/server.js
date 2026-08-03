@@ -36,6 +36,7 @@ import notificationRoutes from './routes/notificationRoutes.js';
 import delhiveryRoutes from './routes/delhivery.routes.js';
 import warehouseRoutes from './routes/warehouse.routes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -141,6 +142,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/delhivery', delhiveryRoutes);
 app.use('/api/warehouses', warehouseRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/user', userRoutes);
 // Health check route
 app.get('/api/health', (req, res) => {
   const dbStatus = mongoose.connection.readyState === 1 ? 'healthy' : 'unhealthy';

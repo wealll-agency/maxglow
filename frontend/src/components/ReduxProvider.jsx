@@ -66,6 +66,14 @@ function StateHydrator() {
         try {
           const profileRes = await api.get(`/auth/profile`);
           dispatch(setCredentials(profileRes.data.user));
+
+          try {
+            const userDataRes = await api.get(`/user/data`);
+            if (userDataRes.data.cart) dispatch(hydrateCart(userDataRes.data.cart));
+            if (userDataRes.data.wishlist) dispatch(hydrateWishlist(userDataRes.data.wishlist));
+          } catch (err) {
+            console.error("Failed to fetch user cart and wishlist", err);
+          }
         } catch (e) {
           // If the server explicitly rejects the token, log them out.
           if (e.response && (e.response.status === 401 || e.response.status === 403)) {

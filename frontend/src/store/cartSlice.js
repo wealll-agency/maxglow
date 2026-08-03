@@ -1,8 +1,56 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import api from '../utils/axiosConfig';
 
 const getInitialCart = () => {
   return [];
 };
+
+export const addToCart = createAsyncThunk(
+  'cart/addToCart',
+  async (payload, { getState, dispatch }) => {
+    dispatch(addToCartLocal(payload));
+    const token = getState().auth?.token || localStorage.getItem('maxglow_token');
+    if (token) {
+      try {
+        await api.post('/user/cart', { 
+          product: payload.product._id, 
+          quantity: payload.quantity, 
+          selectedAttributes: { size: payload.size } 
+        });
+      } catch (err) { console.error('Cart sync error:', err); }
+    }
+  }
+);
+
+export const removeFromCart = createAsyncThunk(
+  'cart/removeFromCart',
+  async (payload, { getState, dispatch }) => {
+    dispatch(removeFromCartLocal(payload));
+    const token = getState().auth?.token || localStorage.getItem('maxglow_token');
+    if (token) {
+      try {
+        await api.delete(`/user/cart/${payload.product}`);
+      } catch (err) { console.error('Cart sync error:', err); }
+    }
+  }
+);
+
+export const updateCartQuantity = createAsyncThunk(
+  'cart/updateCartQuantity',
+  async (payload, { getState, dispatch }) => {
+    dispatch(updateCartQuantityLocal(payload));
+    const token = getState().auth?.token || localStorage.getItem('maxglow_token');
+    if (token) {
+      try {
+        await api.post('/user/cart', { 
+          product: payload.product, 
+          quantity: payload.quantity, 
+          selectedAttributes: { size: payload.size } 
+        });
+      } catch (err) { console.error('Cart sync error:', err); }
+    }
+  }
+);
 
 const calculateTotals = (items, discountPercentage = 0, applicableProducts = [], isCombo = false) => {
   let subtotal = 0;
@@ -58,7 +106,7 @@ const cartSlice = createSlice({
     discountableSubtotal: 0
   },
   reducers: {
-    addToCart: (state, action) => {
+    addToCartLocal: (state, action) => {
       const { product, quantity, size } = action.payload;
       const activePrice = product.price;
 
@@ -87,7 +135,7 @@ const cartSlice = createSlice({
       const totals = calculateTotals(state.items, state.discountPercentage, state.applicableProducts, state.isCombo);
       Object.assign(state, totals);
     },
-    removeFromCart: (state, action) => {
+    removeFromCartLocal: (state, action) => {
       const { product, size } = action.payload;
       state.items = state.items.filter(item => !(item.product === product && item.size === size));
 
@@ -98,7 +146,7 @@ const cartSlice = createSlice({
       const totals = calculateTotals(state.items, state.discountPercentage, state.applicableProducts, state.isCombo);
       Object.assign(state, totals);
     },
-    updateCartQuantity: (state, action) => {
+    updateCartQuantityLocal: (state, action) => {
       const { product, size, quantity } = action.payload;
       const item = state.items.find(item => item.product === product && item.size === size);
       if (item) {
@@ -146,5 +194,5 @@ const cartSlice = createSlice({
   }
 });
 
-export const { addToCart, removeFromCart, updateCartQuantity, applyCouponCode, clearCart, recalculateCart, hydrateCart } = cartSlice.actions;
+export const { addToCartLocal, removeFromCartLocal, updateCartQuantityLocal, applyCouponCode, clearCart, recalculateCart, hydrateCart } = cartSlice.actions;
 export default cartSlice.reducer;

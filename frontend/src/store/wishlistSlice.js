@@ -1,8 +1,22 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import api from '../utils/axiosConfig';
 
 const getInitialWishlist = () => {
   return [];
 };
+
+export const toggleWishlist = createAsyncThunk(
+  'wishlist/toggleWishlist',
+  async (payload, { getState, dispatch }) => {
+    dispatch(toggleWishlistLocal(payload));
+    const token = getState().auth?.token || localStorage.getItem('maxglow_token');
+    if (token) {
+      try {
+        await api.post('/user/wishlist', { productId: payload._id });
+      } catch (err) { console.error('Wishlist sync error:', err); }
+    }
+  }
+);
 
 const wishlistSlice = createSlice({
   name: 'wishlist',
@@ -10,7 +24,7 @@ const wishlistSlice = createSlice({
     items: getInitialWishlist()
   },
   reducers: {
-    toggleWishlist: (state, action) => {
+    toggleWishlistLocal: (state, action) => {
       const product = action.payload; // Contains product object {_id, name, price, images, discount, category}
       const existingIndex = state.items.findIndex(item => item._id === product._id);
 
@@ -36,5 +50,5 @@ const wishlistSlice = createSlice({
   }
 });
 
-export const { toggleWishlist, clearWishlist, hydrateWishlist } = wishlistSlice.actions;
+export const { toggleWishlistLocal, clearWishlist, hydrateWishlist } = wishlistSlice.actions;
 export default wishlistSlice.reducer;

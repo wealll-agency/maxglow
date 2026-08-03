@@ -4,11 +4,13 @@ import { logActivity } from '../middleware/logger.js';
 import jwt from 'jsonwebtoken';
 import SystemSetting from '../models/SystemSetting.js';
 
+import { performSync } from './userController.js';
+
 // @desc    Register a new user
 // @route   POST /api/auth/register
 // @access  Public
 export const registerUser = async (req, res, next) => {
-  const { name, email, password, phone } = req.body;
+  const { name, email, password, phone, localCart = [], localWishlist = [] } = req.body;
 
   try {
     if (password && password.length < 6) {
@@ -37,9 +39,16 @@ export const registerUser = async (req, res, next) => {
       const token = generateToken(res, user._id);
       await logActivity(user._id, 'REGISTER', `User successfully registered with email: ${email}`, req);
 
+      let syncedData = { cart: [], wishlist: [] };
+      if (localCart.length > 0 || localWishlist.length > 0) {
+        syncedData = await performSync(user._id, localCart, localWishlist);
+      }
+
       res.status(201).json({
         success: true,
         token,
+        cart: syncedData.cart,
+        wishlist: syncedData.wishlist,
         user: {
           _id: user._id,
           name: user.name,
@@ -62,7 +71,7 @@ export const registerUser = async (req, res, next) => {
 // @route   POST /api/auth/login
 // @access  Public
 export const loginUser = async (req, res, next) => {
-  const { email, password, rememberMe } = req.body;
+  const { email, password, rememberMe, localCart = [], localWishlist = [] } = req.body;
 
   try {
     const user = await User.findOne({ email });
@@ -71,9 +80,19 @@ export const loginUser = async (req, res, next) => {
       const token = generateToken(res, user._id, rememberMe !== false);
       await logActivity(user._id, 'LOGIN', `User logged in`, req);
 
+      let syncedData = { cart: [], wishlist: [] };
+      if (localCart.length > 0 || localWishlist.length > 0) {
+        syncedData = await performSync(user._id, localCart, localWishlist);
+      } else {
+        // Just fetch them if not syncing
+        syncedData = await performSync(user._id, [], []);
+      }
+
       res.json({
         success: true,
         token,
+        cart: syncedData.cart,
+        wishlist: syncedData.wishlist,
         user: {
           _id: user._id,
           name: user.name,
