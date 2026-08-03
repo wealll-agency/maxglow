@@ -29,7 +29,7 @@ const CategoryIconRow = () => {
             letterSpacing: '-0.02em',
             margin: 0
           }}>
-            Shop By Category
+            Shop By Product
           </h2>
           <div style={{ width: '40px', height: '3px', background: '#3BAE56', margin: '8px auto 0', borderRadius: '2px' }} />
         </div>
