@@ -144,7 +144,7 @@ function LoginContent() {
             {/* Submit */}
             <button
               type="submit"
-              disabled={mounted ? (isSubmitting || loading) : false}
+              disabled={mounted ? isSubmitting : false}
               className="btn-mg-green"
               style={{ width: '100%', justifyContent: 'center', fontSize: '15px', padding: '12px', marginTop: '4px', opacity: isSubmitting ? 0.7 : 1 }}
             >

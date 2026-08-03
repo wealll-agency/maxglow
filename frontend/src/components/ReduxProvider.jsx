@@ -60,11 +60,9 @@ function StateHydrator() {
         const profileRes = await api.get(`/auth/profile`);
         dispatch(setCredentials(profileRes.data.user));
       } catch (e) {
-        // Only clear session if server explicitly says unauthorized (401/403)
-        // If it's a network error (no response) or 500 error, keep the user logged in
-        if (e.response && (e.response.status === 401 || e.response.status === 403)) {
-          dispatch(setCredentials(null));
-        }
+        // Clear session if unauthorized OR if it's a network error so the app doesn't freeze in loading state forever.
+        // If it's a network error, they are effectively offline/unauthenticated for this session until they login again.
+        dispatch(setCredentials(null));
       }
     };
     initAuth();
@@ -92,7 +90,7 @@ function StateHydrator() {
              // Only log out if the server explicitly says the refresh token is invalid/expired (401/403)
              if (err.response && (err.response.status === 401 || err.response.status === 403)) {
                 dispatch(setCredentials(null));
-                if (typeof window !== 'undefined') {
+                if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
                    window.location.href = '/login?session_expired=true';
                 }
              }
