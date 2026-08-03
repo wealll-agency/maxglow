@@ -43,29 +43,26 @@ function StateHydrator() {
     }
 
     // Session Restoration on Startup
-    const initAuth = async () => {
-      // Optimistic session restoration from localStorage
-      const localUser = localStorage.getItem('maxglow_user');
-      if (localUser) {
-        try {
-          dispatch(setCredentials(JSON.parse(localUser)));
-        } catch (e) {
-          localStorage.removeItem('maxglow_user');
+      const initAuth = async () => {
+        // Optimistic session restoration from localStorage
+        const localUser = localStorage.getItem('maxglow_user');
+        if (localUser) {
+          try {
+            dispatch(setCredentials(JSON.parse(localUser)));
+            
+            // Only fetch profile to validate session if we have a localUser,
+            // otherwise we unnecessarily trigger a 401 Unauthorized log in the console for guests.
+            const profileRes = await api.get(`/auth/profile`);
+            dispatch(setCredentials(profileRes.data.user));
+          } catch (e) {
+            localStorage.removeItem('maxglow_user');
+            dispatch(setCredentials(null));
+          }
+        } else {
+          dispatch(setCredentials(null));
         }
-      } else {
-        dispatch(setCredentials(null));
-      }
-
-      try {
-        const profileRes = await api.get(`/auth/profile`);
-        dispatch(setCredentials(profileRes.data.user));
-      } catch (e) {
-        // Clear session if unauthorized OR if it's a network error so the app doesn't freeze in loading state forever.
-        // If it's a network error, they are effectively offline/unauthenticated for this session until they login again.
-        dispatch(setCredentials(null));
-      }
-    };
-    initAuth();
+      };
+      initAuth();
   }, [dispatch]);
 
   // Global Axios 401 Interceptor - Kept in a separate useEffect so it properly 
