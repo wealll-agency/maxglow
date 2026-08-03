@@ -43,6 +43,16 @@ export default function HeroSlider() {
     router.push(BANNER_DESTINATION);
   };
 
+  const handlePrev = (e) => {
+    e.stopPropagation();
+    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
+  const handleNext = (e) => {
+    e.stopPropagation();
+    setCurrentIndex((prev) => (prev + 1) % images.length);
+  };
+
   if (images.length === 0) {
     return (
       <section
@@ -154,6 +164,38 @@ export default function HeroSlider() {
           }
           /* Ensure images do not bleed out or cause collapse */
           .hero-slider-track { height: 100%; min-height: 100%; }
+          .slider-nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.75) !important;
+            border: none !important;
+            border-radius: 50% !important;
+            width: 44px !important;
+            height: 44px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+          }
+          .slider-nav-btn:hover {
+            background: rgba(255, 255, 255, 0.95) !important;
+            transform: translateY(-50%) scale(1.1) !important;
+          }
+          .slider-nav-prev { left: 20px !important; }
+          .slider-nav-next { right: 20px !important; }
+          @media (max-width: 768px) {
+            .slider-nav-btn {
+              width: 32px !important;
+              height: 32px !important;
+            }
+            .slider-nav-prev { left: 10px !important; }
+            .slider-nav-next { right: 10px !important; }
+            .slider-nav-btn span { font-size: 14px !important; }
+          }
         ` }} />
         <div
           className="hero-slider-track"
@@ -198,6 +240,22 @@ export default function HeroSlider() {
             </div>
           ))}
         </div>
+
+        {/* Left Nav Button */}
+        <button
+          onClick={handlePrev}
+          className="slider-nav-btn slider-nav-prev"
+        >
+          <span>&larr;</span>
+        </button>
+
+        {/* Right Nav Button */}
+        <button
+          onClick={handleNext}
+          className="slider-nav-btn slider-nav-next"
+        >
+          <span>&rarr;</span>
+        </button>
 
 
         {/* CLOSE CAROUSEL MASK */}
