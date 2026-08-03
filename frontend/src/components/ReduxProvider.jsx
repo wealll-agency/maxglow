@@ -57,7 +57,7 @@ function StateHydrator() {
       }
 
       try {
-        const profileRes = await axios.get(`${api.defaults.baseURL}/auth/profile`, { withCredentials: true });
+        const profileRes = await api.get(`/auth/profile`);
         dispatch(setCredentials(profileRes.data.user));
       } catch (e) {
         // Only clear session if server explicitly says unauthorized (401/403)

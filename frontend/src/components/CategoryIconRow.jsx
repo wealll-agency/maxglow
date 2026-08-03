@@ -5,13 +5,13 @@ import Image from 'next/image';
 import React, { memo } from 'react';
 
 const categories = [
-  { label: 'Skin Care', image: '/category-icons/skin-care.png', query: 'Skin Care', popColor: '#00A3FF', glowColor: 'rgba(0, 163, 255, 0.45)' },
-  { label: 'Hair Care', image: '/category-icons/hair-care.png', query: 'Hair Care', popColor: '#10B981', glowColor: 'rgba(16, 185, 129, 0.45)' },
-  { label: 'Serum', image: '/category-icons/wellness.png', query: 'Serum', popColor: '#8B5CF6', glowColor: 'rgba(139, 92, 246, 0.45)' },
-  { label: 'Sheet Mask', image: '/category-icons/baby-care.png', query: 'Sheet Mask', popColor: '#EC4899', glowColor: 'rgba(236, 72, 153, 0.45)' },
-  { label: 'Combos', image: '/category-icons/combos.png', query: 'Combo', popColor: '#059669', glowColor: 'rgba(5, 150, 105, 0.45)' },
-  { label: 'Gifting', image: '/category-icons/gifting.png', query: 'Gifting', popColor: '#F59E0B', glowColor: 'rgba(245, 158, 11, 0.45)' },
-  { label: 'Offers', image: '/category-icons/offers.png', query: 'sale', popColor: '#EF4444', isOffer: true, glowColor: 'rgba(239, 68, 68, 0.45)' },
+  { label: 'Skin Care', image: '/category-icons/skin-care.png', query: 'Skin Care', color: '#DDF4FF', glowColor: 'rgba(74, 144, 226, 0.35)' },
+  { label: 'Hair Care', image: '/category-icons/hair-care.png', query: 'Hair Care', color: '#DDF7E3', glowColor: 'rgba(59, 174, 86, 0.35)' },
+  { label: 'Serum', image: '/category-icons/wellness.png', query: 'Serum', color: '#F0E6FF', glowColor: 'rgba(155, 81, 224, 0.35)' },
+  { label: 'Sheet Mask', image: '/category-icons/baby-care.png', query: 'Sheet Mask', color: '#FFF0F5', glowColor: 'rgba(255, 105, 180, 0.35)' },
+  { label: 'Combos', image: '/category-icons/combos.png', query: 'Combo', color: '#E8F5E9', glowColor: 'rgba(46, 125, 50, 0.35)' },
+  { label: 'Gifting', image: '/category-icons/gifting.png', query: 'Gifting', color: '#FFF8E1', glowColor: 'rgba(255, 160, 0, 0.35)' },
+  { label: 'Offers', image: '/category-icons/offers.png', query: 'sale', color: '#FFEBEE', isOffer: true, glowColor: 'rgba(239, 68, 68, 0.35)' },
 ];
 
 const CategoryIconRow = () => {
@@ -45,7 +45,8 @@ const CategoryIconRow = () => {
                 className="category-link-item"
                 style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', width: '110px', flexShrink: 0 }}
               >
-              <div className="category-circle category-circle-wrapper" style={{ background: '#ffffff', border: `3px solid ${cat.popColor}`, width: '100px', height: '100px', minWidth: '100px', minHeight: '100px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 8px 24px ${cat.glowColor}`, transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }}>
+              {/* Circle */}
+              <div className="category-circle category-circle-wrapper" style={{ background: cat.color, width: '100px', height: '100px', minWidth: '100px', minHeight: '100px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 8px 24px ${cat.glowColor}`, transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }}>
                 <Image
                   src={cat.image}
                   alt={cat.label}

@@ -6,7 +6,7 @@ const getBaseUrl = () => {
   }
   if (typeof window !== 'undefined') {
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      return 'http://127.0.0.1:7052/api';
+      return `http://${window.location.hostname}:7052/api`;
     }
     return `${window.location.origin}/api`;
   }
