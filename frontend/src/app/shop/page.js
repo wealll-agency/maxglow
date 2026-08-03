@@ -283,22 +283,16 @@ function ShopContent() {
         }
 
         return (
-          <section className="shop-banner-section" style={{ backgroundImage: `url("${bgImg}")` }}>
-            <div className="shop-banner-overlay" />
-            <div className="shop-banner-content">
-              <nav style={{ fontSize: '13px', color: '#64748b', marginBottom: '12px', fontWeight: '500' }}>
+          <>
+            <div style={{ maxWidth: '1400px', margin: '20px auto 0', padding: '0 20px' }}>
+              <nav style={{ fontSize: '13px', color: '#64748b', fontWeight: '500' }}>
                 <Link href="/" style={{ textDecoration: 'none', color: '#64748b' }}>Home</Link> &gt; 
-                <span style={{ color: '#1a2332', fontWeight: '700', marginLeft: '6px' }}>Shop</span>
+                <Link href="/shop" style={{ textDecoration: 'none', color: '#64748b', marginLeft: '6px' }}>Shop</Link>
                 {cat && <span style={{ color: '#1a2332', fontWeight: '700', marginLeft: '6px' }}>&gt; {cat}</span>}
               </nav>
-              <h1 className="shop-banner-title">
-                {title}
-              </h1>
-              <p className="shop-banner-desc">
-                {desc}
-              </p>
             </div>
-          </section>
+            <section className="shop-banner-section" style={{ backgroundImage: `url("${bgImg}")` }} />
+          </>
         );
       })()}
 
