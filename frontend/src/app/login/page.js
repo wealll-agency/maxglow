@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser, clearError } from '../../store/authSlice';
-import { FiMail, FiLock, FiLogIn, FiEye, FiEyeOff } from 'react-icons/fi';
+import { FiMail, FiLock, FiLogIn } from 'react-icons/fi';
 import { Leaf } from 'lucide-react';
 
 export default function LoginPage() {
@@ -20,11 +20,15 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const { user, loading, error } = useSelector((state) => state.auth);
   const redirect = searchParams.get('redirect') || '';
@@ -106,33 +110,13 @@ function LoginContent() {
               <div style={{ position: 'relative' }}>
                 <FiLock size={16} color="#94a3b8" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type="password"
                   required
                   className="mg-input"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  style={{ paddingLeft: '40px', paddingRight: '40px' }}
+                  style={{ paddingLeft: '40px' }}
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  style={{
-                    position: 'absolute',
-                    right: '14px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: 0,
-                    color: '#94a3b8',
-                    outline: 'none'
-                  }}
-                >
-                  {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
-                </button>
               </div>
             </div>
 
@@ -141,7 +125,7 @@ function LoginContent() {
               <input
                 type="checkbox"
                 id="rememberMeCheck"
-                checked={rememberMe}
+                checked={mounted ? rememberMe : true}
                 onChange={(e) => setRememberMe(e.target.checked)}
                 style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#3BAE56' }}
               />
@@ -151,7 +135,7 @@ function LoginContent() {
             </div>
 
             {/* Error */}
-            {error && (
+            {mounted && error && (
               <div style={{ background: '#fff0f0', border: '1px solid #fecaca', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', color: '#ef4444' }}>
                 {error}
               </div>
@@ -160,18 +144,18 @@ function LoginContent() {
             {/* Submit */}
             <button
               type="submit"
-              disabled={isSubmitting || loading}
+              disabled={mounted ? (isSubmitting || loading) : false}
               className="btn-mg-green"
               style={{ width: '100%', justifyContent: 'center', fontSize: '15px', padding: '12px', marginTop: '4px', opacity: isSubmitting ? 0.7 : 1 }}
             >
               <FiLogIn size={16} />
-              {isSubmitting ? 'Logging In...' : 'Log In'}
+              {mounted && isSubmitting ? 'Logging In...' : 'Log In'}
             </button>
           </form>
 
           <p style={{ textAlign: 'center', fontSize: '14px', color: '#64748b', marginTop: '16px', marginBottom: 0 }}>
             Don't have an account?{' '}
-            <Link href={`/register${redirect ? `?redirect=${redirect}` : ''}`} style={{ color: '#3BAE56', fontWeight: '700', textDecoration: 'none' }}>
+            <Link href={`/register${mounted && redirect ? `?redirect=${redirect}` : ''}`} style={{ color: '#3BAE56', fontWeight: '700', textDecoration: 'none' }}>
               Sign Up
             </Link>
           </p>
