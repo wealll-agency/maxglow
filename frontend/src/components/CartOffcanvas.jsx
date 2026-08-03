@@ -7,6 +7,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { addToCart, removeFromCart } from '../store/cartSlice';
 import { FiShoppingBag, FiX, FiTrash2, FiPlus, FiMinus, FiArrowRight } from 'react-icons/fi';
 import { Leaf } from 'lucide-react';
+import { getImageUrl } from '../utils/imageConfig';
 
 const CartOffcanvas = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
@@ -35,12 +36,6 @@ const CartOffcanvas = ({ isOpen, onClose }) => {
   const progressPercent = Math.min((total / freeShippingThreshold) * 100, 100);
   const totalMrp = subtotal + discount;
 
-  const getImageUrl = (img) => {
-    if (!img) return '/top_product1.png';
-    if (img.startsWith('http') || img.startsWith('/')) return img;
-    const base = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : '';
-    return `${base}${img}`;
-  };
 
   if (!isOpen) return null;
 

@@ -14,6 +14,7 @@ import { MapPin, CreditCard, ShoppingBag, Plus } from 'lucide-react';
 import MgButton from '../../components/ui/MgButton';
 import MgCard from '../../components/ui/MgCard';
 import { useNotification } from '../../context/NotificationContext';
+import { getImageUrl } from '../../utils/imageConfig';
 
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
@@ -708,12 +709,7 @@ export default function CheckoutPage() {
                 {recommendedProducts.map(product => {
                   const activePrice = product.price;
 
-                  let imageSrc = '/placeholder.png';
-                  if (product.images && product.images.length > 0) {
-                    imageSrc = product.images[0].replace('/assets/images/', '/');
-                  } else if (product.image) {
-                    imageSrc = product.image.replace('/assets/images/', '/');
-                  }
+                  let imageSrc = getImageUrl(product.images?.[0] || product.image);
 
                   return (
                     <div key={product._id} className="col-6 col-md-4">

@@ -5,6 +5,7 @@ import Image from 'next/image';
 import React, { useEffect, useState, useRef, Suspense, memo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProducts } from '../../store/productsSlice';
+import { getImageUrl } from '../../utils/imageConfig';
 import ProductCard from '../../components/ProductCard';
 import { FiGrid, FiList, FiChevronDown, FiFilter, FiX } from 'react-icons/fi';
 import { Leaf } from 'lucide-react';
@@ -576,7 +577,7 @@ function ShopContent() {
                     return (
                       <div key={product._id} className="mg-card" style={{ padding: '16px', display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
                         <div style={{ width: '120px', height: '120px', flexShrink: 0, position: 'relative', background: '#F7FBFD', borderRadius: '12px', overflow: 'hidden' }}>
-                          <Image src={product.images?.[0] || product.image || '/placeholder.png'} alt={product.name} fill sizes="120px" style={{ objectFit: 'contain', padding: '8px' }} />
+                          <Image src={getImageUrl(product.images?.[0] || product.image)} alt={product.name} fill sizes="120px" style={{ objectFit: 'contain', padding: '8px' }} />
                         </div>
                         <div style={{ flex: 1, minWidth: '240px' }}>
                           <div style={{ fontSize: '10px', fontWeight: '700', color: '#3BAE56', letterSpacing: '0.08em', marginBottom: '4px' }}>MAXGLOW</div>

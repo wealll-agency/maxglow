@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 
 
 import Image from 'next/image';
+import { getImageUrl } from '../../../utils/imageConfig';
 
 
 
@@ -136,7 +137,7 @@ export default function OrderHistoryPage() {
                             >
                               {item.product && item.product.images && item.product.images.length > 0 ? (
                                 <Image 
-                                  src={item.product.images[0].replace('/assets/images/', '/')} 
+                                  src={getImageUrl(item.product.images[0])} 
                                   alt={item.name} 
                                   width={60}
                                   height={60}

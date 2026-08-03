@@ -8,6 +8,7 @@ import { fetchOrderDetails, trackDelhiveryShipment, createRefundRequest } from '
 import { clearCart } from '../../../../store/cartSlice';
 import { ShieldCheck, MapPin, Truck, Check, Calendar, ArrowLeft, ShoppingBag, CheckCircle2, Clock, Package, ChevronDown } from 'lucide-react';
 import { useNotification } from '../../../../context/NotificationContext';
+import { getImageUrl } from '../../../../utils/imageConfig';
 
 const getStatusBadge = (status) => {
   const badgeStyle = "d-inline-flex align-items-center gap-1 px-2.5 py-1.5 rounded-pill text-nowrap fw-semibold";
@@ -436,7 +437,7 @@ export default function OrderTrackingPage() {
                     >
                       {item.product && item.product.images && item.product.images.length > 0 ? (
                         <Image 
-                          src={item.product.images[0].replace('/assets/images/', '/')} 
+                          src={getImageUrl(item.product.images[0])} 
                           alt={item.name} 
                           width={70}
                           height={70}

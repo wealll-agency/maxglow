@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import React, { useState, useEffect, memo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { getImageUrl } from '../../utils/imageConfig';
 import { removeFromCart, updateCartQuantity, applyCouponCode, recalculateCart } from '../../store/cartSlice';
 import api from '../../utils/axiosConfig';
 import { FiTrash2, FiShoppingBag, FiPlus, FiMinus, FiArrowRight, FiPercent } from 'react-icons/fi';
@@ -80,12 +81,6 @@ function CartPage() {
     }
   };
 
-  const getImageUrl = (url) => {
-    if (!url) return '/top_product1.png';
-    if (url.startsWith('http') || url.startsWith('/')) return url;
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : '';
-    return `${baseUrl}${url}`;
-  };
 
   if (items.length === 0) {
     return (

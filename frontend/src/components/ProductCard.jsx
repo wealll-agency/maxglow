@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addToCart } from '../store/cartSlice';
 import { toggleWishlist } from '../store/wishlistSlice';
 import { fetchProducts } from '../store/productsSlice';
+import { getImageUrl } from '../utils/imageConfig';
 import { FiHeart, FiShoppingCart, FiZap, FiStar } from 'react-icons/fi';
 
 const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggleSelect = null }) => {
@@ -111,8 +112,8 @@ const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggl
     ? resolvedProduct.images
     : (resolvedProduct.image ? [resolvedProduct.image] : ['/placeholder.png']);
 
-  const primaryImage = allImages[0]?.replace('/assets/images/', '/') || '/placeholder.png';
-  const secondImage = allImages[1]?.replace('/assets/images/', '/') || primaryImage;
+  const primaryImage = getImageUrl(allImages[0]);
+  const secondImage = getImageUrl(allImages[1] || allImages[0]);
 
   return (
     <div className="mg-product-card" style={{ 
