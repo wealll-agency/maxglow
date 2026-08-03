@@ -18,6 +18,11 @@ const Product = mongoose.model('Product', new mongoose.Schema({
   images: [{ type: String }]
 }, { strict: false }));
 
+const SystemSetting = mongoose.model('SystemSetting', new mongoose.Schema({
+  key: { type: String },
+  value: { type: mongoose.Schema.Types.Mixed }
+}, { strict: false }));
+
 async function run() {
   try {
     console.log('Connecting to database...');
@@ -55,6 +60,41 @@ async function run() {
     }
 
     console.log(`Successfully migrated ${updatedCount} products to relative image paths.`);
+
+    const settings = await SystemSetting.find({});
+    console.log(`Found ${settings.length} system settings. Scanning for absolute localhost/legacy URLs...`);
+    let settingsUpdatedCount = 0;
+
+    for (const setting of settings) {
+      let val = setting.value;
+      let updated = false;
+
+      const cleanString = (str) => {
+        if (typeof str === 'string' && str.includes('/uploads/')) {
+          const idx = str.indexOf('/uploads/');
+          const cleaned = str.substring(idx);
+          if (cleaned !== str) {
+            updated = true;
+            return cleaned;
+          }
+        }
+        return str;
+      };
+
+      if (Array.isArray(val)) {
+        val = val.map(item => cleanString(item));
+      } else if (typeof val === 'string') {
+        val = cleanString(val);
+      }
+
+      if (updated) {
+        await SystemSetting.updateOne({ _id: setting._id }, { $set: { value: val } });
+        console.log(`Updated system setting: ${setting.key}`);
+        settingsUpdatedCount++;
+      }
+    }
+    console.log(`Successfully migrated ${settingsUpdatedCount} system settings to relative paths.`);
+
     process.exit(0);
   } catch (error) {
     console.error('Migration failed:', error);

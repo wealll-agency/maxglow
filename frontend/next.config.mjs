@@ -36,7 +36,7 @@ const nextConfig = {
     return [
       {
         source: '/uploads/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'http://localhost:7052'}/uploads/:path*`,
+        destination: 'http://127.0.0.1:7052/uploads/:path*',
       },
     ];
   },
