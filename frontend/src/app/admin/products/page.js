@@ -31,6 +31,10 @@ export default function AdminProductsPage() {
   const [viewingProduct, setViewingProduct] = useState(null);
   const [viewingBarcode, setViewingBarcode] = useState(null);
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
+
   // Category Management States
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showSubCategoryModal, setShowSubCategoryModal] = useState(false);
@@ -103,6 +107,7 @@ export default function AdminProductsPage() {
       subSubCategory: filterSubSubCategory !== 'Select Sub Sub Category' ? filterSubSubCategory : '',
       keyword: searchKeyword
     }));
+    setCurrentPage(1);
   };
 
   useEffect(() => {
@@ -429,6 +434,12 @@ export default function AdminProductsPage() {
   };
   const displayedProducts = showLimitedStockOnly ? products.filter(p => p.stock <= 10) : products;
 
+  // Pagination Logic
+  const totalPages = Math.ceil(displayedProducts.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = displayedProducts.slice(indexOfFirstItem, indexOfLastItem);
+
   return (
     <div className="animate-fade-in position-relative">
       {/* View Product Modal */}
@@ -488,7 +499,6 @@ export default function AdminProductsPage() {
           </div>
           <div className="card-body">
             <div className="row g-3 align-items-end">
-              {/* Brand filter removed */}
               <div className="col-md-3">
                 <label className="fw-medium mb-1 fs-7">Category</label>
                 <select className="form-select" value={filterCategory} onChange={(e) => {
@@ -527,6 +537,7 @@ export default function AdminProductsPage() {
                     setFilterSubSubCategory('Select Sub Sub Category');
                     setSearchKeyword('');
                     dispatch(fetchAdminProducts({})); // instantly reload all
+                    setCurrentPage(1); // Reset page on clear
                   }}
                 >
                   Reset
@@ -558,7 +569,7 @@ export default function AdminProductsPage() {
               <button onClick={handleExport} className="btn btn-outline-brand d-flex align-items-center gap-2" style={{ borderColor: '#1c72b9', color: '#1c72b9' }}>
                 <Download size={16} /> Export
               </button>
-              <button onClick={() => setShowLimitedStockOnly(!showLimitedStockOnly)} className="btn d-flex align-items-center" style={{ backgroundColor: showLimitedStockOnly ? '#00b8b8' : '#00d2d3', color: '#fff', border: 'none' }}>
+              <button onClick={() => { setShowLimitedStockOnly(!showLimitedStockOnly); setCurrentPage(1); }} className="btn d-flex align-items-center" style={{ backgroundColor: showLimitedStockOnly ? '#00b8b8' : '#00d2d3', color: '#fff', border: 'none' }}>
                 Limited Sotcks {showLimitedStockOnly && '(Active)'}
               </button>
               <button onClick={() => setShowCategoryModal(true)} className="btn btn-outline-brand d-flex align-items-center gap-2">
@@ -894,95 +905,143 @@ export default function AdminProductsPage() {
 
       {/* Products list grid */}
       {!showForm && (
-        <div className="card shadow-sm border-0 rounded-4 bg-white">
+        <div className="card shadow-sm border-0 rounded-4 bg-white mb-5">
           {productsLoading ? (
             <p className="text-muted text-center py-4">Loading catalog list...</p>
           ) : (
-            <div className="table-responsive">
-              <table className="table table-borderless align-middle m-0 fs-7">
-                <thead>
-                  <tr className="border-bottom text-muted">
-                    <th>SL</th>
-                    <th>Product Name</th>
-                    <th>Product Type</th>
-                    <th>MRP Price</th>
-                    <th>Selling Price</th>
-                    <th className="text-center">Show As Featured</th>
-                    <th className="text-center">Active Status</th>
-                    {user.role !== 'Staff' && <th className="text-center">Action</th>}
-                  </tr>
-                </thead>
-                <tbody>
-                  {displayedProducts.map((prod, index) => (
-                    <tr key={prod._id} className="border-bottom">
-                      <td className="text-muted">{index + 1}</td>
-                      <td className="py-3">
-                        <div className="d-flex align-items-center gap-2">
-                          <Image
-                            src={prod.images[0] || 'https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=80'}
-                            alt={prod.name}
-                            className="rounded object-fit-cover"
-                            width={36}
-                            height={36}
-                            style={{ width: '36px', height: '36px' }}
-                          />
-                          <span className="fw-bold text-dark">{prod.name}</span>
-                        </div>
-                      </td>
-                      <td>{prod.productType || 'Physical'}</td>
-                      <td>₹{prod.price || 0}</td>
-                      <td className="fw-semibold">
-                        ₹{prod.discount > 0 ? (
-                          prod.discountType === 'Percent' 
-                            ? Math.round(prod.price * (1 - prod.discount / 100))
-                            : Math.max(0, prod.price - prod.discount)
-                        ) : prod.price}
-                      </td>
-                      <td className="text-center">
-                        <div className="form-check form-switch d-inline-block">
-                          <input 
-                            className="form-check-input cursor-pointer" 
-                            type="checkbox" 
-                            checked={prod.isFeatured || false} 
-                            onChange={(e) => handleToggle(prod._id, 'isFeatured', e.target.checked)} 
-                          />
-                        </div>
-                      </td>
-                      <td className="text-center">
-                        <div className="form-check form-switch d-inline-block">
-                          <input 
-                            className="form-check-input cursor-pointer" 
-                            type="checkbox" 
-                            checked={prod.isActive !== false} 
-                            onChange={(e) => handleToggle(prod._id, 'isActive', e.target.checked)} 
-                          />
-                        </div>
-                      </td>
-                      {user.role !== 'Staff' && (
-                        <td className="text-center">
-                          <div className="d-inline-flex gap-2">
-                            <button onClick={() => setViewingBarcode(prod)} className="btn btn-sm bg-white" style={{ border: '1px solid #00d2d3', color: '#00d2d3', padding: '0.25rem 0.4rem', borderRadius: '4px' }} title="Barcode">
-                              <LayoutGrid size={14} />
-                            </button>
-                            <button onClick={() => setViewingProduct(prod)} className="btn btn-sm bg-white" style={{ border: '1px solid #00d2d3', color: '#00d2d3', padding: '0.25rem 0.4rem', borderRadius: '4px' }} title="View">
-                              <Eye size={14} />
-                            </button>
-                            <button onClick={() => handleEditClick(prod)} className="btn btn-sm bg-white" style={{ border: '1px solid #1c72b9', color: '#1c72b9', padding: '0.25rem 0.4rem', borderRadius: '4px' }} title="Edit">
-                              <Edit size={14} />
-                            </button>
-                            {user.role === 'Super Admin' && (
-                              <button onClick={() => handleDeleteClick(prod._id)} className="btn btn-sm bg-white" style={{ border: '1px solid #f1416c', color: '#f1416c', padding: '0.25rem 0.4rem', borderRadius: '4px' }} title="Delete">
-                                <Trash2 size={14} />
-                              </button>
-                            )}
+            <>
+              <div className="table-responsive">
+                <table className="table table-borderless align-middle m-0 fs-7">
+                  <thead>
+                    <tr className="border-bottom text-muted">
+                      <th>SL</th>
+                      <th>Product Name</th>
+                      <th>Product Type</th>
+                      <th>MRP Price</th>
+                      <th>Selling Price</th>
+                      <th className="text-center">Show As Featured</th>
+                      <th className="text-center">Active Status</th>
+                      {user.role !== 'Staff' && <th className="text-center">Action</th>}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentItems.map((prod, index) => (
+                      <tr key={prod._id} className="border-bottom">
+                        <td className="text-muted">{indexOfFirstItem + index + 1}</td>
+                        <td className="py-3">
+                          <div className="d-flex align-items-center gap-2">
+                            <Image
+                              src={prod.images[0] || 'https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=80'}
+                              alt={prod.name}
+                              className="rounded object-fit-cover"
+                              width={36}
+                              height={36}
+                              style={{ width: '36px', height: '36px' }}
+                            />
+                            <span className="fw-bold text-dark">{prod.name}</span>
                           </div>
                         </td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                        <td>{prod.productType || 'Physical'}</td>
+                        <td>₹{prod.price || 0}</td>
+                        <td className="fw-semibold">
+                          ₹{prod.discount > 0 ? (
+                            prod.discountType === 'Percent' 
+                              ? Math.round(prod.price * (1 - prod.discount / 100))
+                              : Math.max(0, prod.price - prod.discount)
+                          ) : prod.price}
+                        </td>
+                        <td className="text-center">
+                          <div className="form-check form-switch d-inline-block">
+                            <input 
+                              className="form-check-input cursor-pointer" 
+                              type="checkbox" 
+                              checked={prod.isFeatured || false} 
+                              onChange={(e) => handleToggle(prod._id, 'isFeatured', e.target.checked)} 
+                            />
+                          </div>
+                        </td>
+                        <td className="text-center">
+                          <div className="form-check form-switch d-inline-block">
+                            <input 
+                              className="form-check-input cursor-pointer" 
+                              type="checkbox" 
+                              checked={prod.isActive !== false} 
+                              onChange={(e) => handleToggle(prod._id, 'isActive', e.target.checked)} 
+                            />
+                          </div>
+                        </td>
+                        {user.role !== 'Staff' && (
+                          <td className="text-center">
+                            <div className="d-inline-flex gap-2">
+                              <button onClick={() => setViewingBarcode(prod)} className="btn btn-sm bg-white" style={{ border: '1px solid #00d2d3', color: '#00d2d3', padding: '0.25rem 0.4rem', borderRadius: '4px' }} title="Barcode">
+                                <LayoutGrid size={14} />
+                              </button>
+                              <button onClick={() => setViewingProduct(prod)} className="btn btn-sm bg-white" style={{ border: '1px solid #00d2d3', color: '#00d2d3', padding: '0.25rem 0.4rem', borderRadius: '4px' }} title="View">
+                                <Eye size={14} />
+                              </button>
+                              <button onClick={() => handleEditClick(prod)} className="btn btn-sm bg-white" style={{ border: '1px solid #1c72b9', color: '#1c72b9', padding: '0.25rem 0.4rem', borderRadius: '4px' }} title="Edit">
+                                <Edit size={14} />
+                              </button>
+                              {user.role === 'Super Admin' && (
+                                <button onClick={() => handleDeleteClick(prod._id)} className="btn btn-sm bg-white" style={{ border: '1px solid #f1416c', color: '#f1416c', padding: '0.25rem 0.4rem', borderRadius: '4px' }} title="Delete">
+                                  <Trash2 size={14} />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                    {currentItems.length === 0 && (
+                      <tr>
+                        <td colSpan="8" className="text-center text-muted py-4">No products found.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="d-flex flex-wrap justify-content-between align-items-center px-4 py-3 border-top">
+                  <span className="text-muted fs-7 mb-2 mb-md-0">
+                    Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, displayedProducts.length)} of {displayedProducts.length} entries
+                  </span>
+                  <nav>
+                    <ul className="pagination pagination-sm m-0">
+                      <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                        <button className="page-link" onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}>Previous</button>
+                      </li>
+                      
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => {
+                        // Logic for displaying limited page numbers (e.g. 1 2 ... 5)
+                        if (
+                          number === 1 || 
+                          number === totalPages || 
+                          (number >= currentPage - 1 && number <= currentPage + 1)
+                        ) {
+                          return (
+                            <li key={number} className={`page-item ${currentPage === number ? 'active' : ''}`}>
+                              <button className="page-link" onClick={() => setCurrentPage(number)}>{number}</button>
+                            </li>
+                          );
+                        } else if (
+                          number === currentPage - 2 || 
+                          number === currentPage + 2
+                        ) {
+                          return <li key={number} className="page-item disabled"><span className="page-link">...</span></li>;
+                        }
+                        return null;
+                      })}
+                      
+                      <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                        <button className="page-link" onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}>Next</button>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

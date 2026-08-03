@@ -26,6 +26,8 @@ const reels = [
     poster: 'https://placehold.co/400x600/0a1628/ffffff?text=Aloe+Vera',
     title: 'Aloe Vera Glow Routine',
     tag: 'Skin Care',
+    price: 349,
+    originalPrice: 499,
     link: '/shop-details?name=Aloe%20Vera%20Gel'
   },
   {
@@ -34,6 +36,8 @@ const reels = [
     poster: 'https://placehold.co/400x600/0a1628/ffffff?text=Hair+Oil',
     title: 'Herbal Hair Oil Massage',
     tag: 'Hair Care',
+    price: 499,
+    originalPrice: 699,
     link: '/shop-details?name=Herbal%20Hair%20Oil'
   },
   {
@@ -42,6 +46,8 @@ const reels = [
     poster: 'https://placehold.co/400x600/0a1628/ffffff?text=Neem+Wash',
     title: 'Neem Face Wash Benefits',
     tag: 'Face Care',
+    price: 299,
+    originalPrice: 399,
     link: '/shop-details?name=Neem%20Face%20Wash'
   },
   {
@@ -50,6 +56,8 @@ const reels = [
     poster: 'https://placehold.co/400x600/0a1628/ffffff?text=Body+Scrub',
     title: 'Body Scrub Tutorial',
     tag: 'Body Care',
+    price: 399,
+    originalPrice: 549,
     link: '/shop-details?name=Body%20Scrub'
   },
   {
@@ -58,6 +66,8 @@ const reels = [
     poster: 'https://placehold.co/400x600/0a1628/ffffff?text=Glow+Mask',
     title: 'Turmeric Glow Mask',
     tag: 'Wellness',
+    price: 449,
+    originalPrice: 599,
     link: '/shop-details?name=Turmeric%20Glow%20Mask'
   },
   {
@@ -66,6 +76,8 @@ const reels = [
     poster: 'https://placehold.co/400x600/0a1628/ffffff?text=Rose+Mist',
     title: 'Rose Water Mist Ritual',
     tag: 'Skin Care',
+    price: 249,
+    originalPrice: 349,
     link: '/shop-details?name=Rose%20Water%20Mist'
   },
   {
@@ -74,6 +86,8 @@ const reels = [
     poster: 'https://placehold.co/400x600/0a1628/ffffff?text=Tea+Tree',
     title: 'Tea Tree Spot Treatment',
     tag: 'Face Care',
+    price: 329,
+    originalPrice: 449,
     link: '/shop-details?name=Tea%20Tree%20Spot%20Treatment'
   },
   {
@@ -82,6 +96,8 @@ const reels = [
     poster: 'https://placehold.co/400x600/0a1628/ffffff?text=Sleep+Spray',
     title: 'Lavender Sleep Spray',
     tag: 'Wellness',
+    price: 399,
+    originalPrice: 499,
     link: '/shop-details?name=Lavender%20Sleep%20Spray'
   },
 ];
@@ -152,25 +168,25 @@ const ReelCard = ({ reel }) => {
     }
   };
 
+  const handleCardClick = (e) => {
+    const video = videoRef.current;
+    if (video) {
+      if (video.paused) {
+        video.currentTime = 0;
+        video.play().catch(() => {});
+        setIsPlaying(true);
+        if (swiper && swiper.autoplay) swiper.autoplay.stop();
+      } else {
+        video.pause();
+        setIsPlaying(false);
+        if (swiper && swiper.autoplay) swiper.autoplay.start();
+      }
+    }
+  };
+
   const handleBuyClick = (e) => {
     e.stopPropagation();
-    
-    // Add product to cart
-    dispatch(addToCart({
-      product: {
-        _id: reel.originalProduct._id,
-        name: reel.originalProduct.name,
-        price: reel.originalProduct.price,
-        discount: reel.originalProduct.discount || 0,
-        image: reel.originalProduct.images?.[0] || reel.poster,
-        stock: reel.originalProduct.stock
-      },
-      quantity: 1,
-      size: `${reel.originalProduct.unitValue || 1} ${reel.originalProduct.unit || 'Pack'}`
-    }));
-    
-    // Redirect to checkout
-    router.push('/checkout');
+    router.push(reel.link);
   };
 
   return (
@@ -178,8 +194,7 @@ const ReelCard = ({ reel }) => {
       className="reel-card"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      onClick={() => router.push(reel.link)}
-      style={{ cursor: 'pointer' }}
+      onClick={handleCardClick}
     >
       {/* Video element — hidden poster, shown on hover */}
       <video
@@ -204,12 +219,20 @@ const ReelCard = ({ reel }) => {
       {/* Bottom glass overlay */}
       <div className="reel-overlay">
         <div className="d-flex justify-content-between align-items-end w-100">
-          <div>
+          <div style={{ minWidth: 0, flex: 1, paddingRight: '8px' }}>
             <span className="reel-tag">{reel.tag}</span>
             <p className="reel-title">{reel.title}</p>
+            {reel.price !== undefined && reel.price !== null && (
+              <div className="reel-price-wrapper">
+                <span className="reel-price">₹{reel.price}</span>
+                {reel.originalPrice && (
+                  <span className="reel-original-price">₹{reel.originalPrice}</span>
+                )}
+              </div>
+            )}
           </div>
           <button className="reel-buy-btn" onClick={handleBuyClick}>
-            Buy
+            Buy Now
           </button>
         </div>
       </div>
@@ -241,6 +264,7 @@ const ReelsSection = () => {
             .filter(p => p.videos && p.videos.length > 0)
             .map((p, idx) => {
               let finalPrice = p.price;
+              let originalPrice = p.price;
               if (p.discount > 0) {
                 finalPrice = p.discountType === 'Percent'
                   ? Math.round(p.price * (1 - p.discount / 100))
@@ -252,6 +276,8 @@ const ReelsSection = () => {
                 poster: p.images && p.images.length > 0 ? p.images[0] : 'https://placehold.co/400x600/0a1628/ffffff',
                 title: p.name,
                 tag: p.category || 'Product',
+                price: finalPrice,
+                originalPrice: p.discount > 0 ? originalPrice : null,
                 link: `/shop-details?name=${encodeURIComponent(p.name)}`,
                 originalProduct: { ...p, price: finalPrice }
               };
@@ -452,6 +478,28 @@ const ReelsSection = () => {
           line-height: 1.35;
           margin: 0;
           text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        
+        .reel-price-wrapper {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin-top: 4px;
+        }
+        .reel-price {
+          color: #61c454;
+          font-weight: 800;
+          font-size: 14px;
+          text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+        }
+        .reel-original-price {
+          color: rgba(255, 255, 255, 0.65);
+          text-decoration: line-through;
+          font-size: 11px;
+          font-weight: 500;
         }
         
         .reel-buy-btn {

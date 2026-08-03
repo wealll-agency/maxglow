@@ -6,7 +6,7 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchDashboardStats } from '../../../store/adminSlice.js';
 import Link from 'next/link';
-import { DollarSign, ShoppingBag, Users, AlertTriangle, Star, RefreshCw, Store, Box, Package, Truck, CheckCircle, XCircle, Clock, RotateCcw, ShieldAlert, FileText, Activity } from 'lucide-react';
+import { IndianRupee, ShoppingBag, Users, AlertTriangle, Star, RefreshCw, Store, Box, Package, Truck, CheckCircle, XCircle, Clock, RotateCcw, ShieldAlert, FileText, Activity } from 'lucide-react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 
@@ -61,7 +61,7 @@ export default function DashboardPage() {
               <h3 className="fw-bold m-0 text-dark">₹{stats.totalSales.toLocaleString()}</h3>
             </div>
             <div className="rounded-circle p-3 bg-success bg-opacity-10 text-success">
-              <DollarSign size={24} />
+              <IndianRupee size={24} />
             </div>
           </div>
         </div>

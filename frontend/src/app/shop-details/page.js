@@ -206,7 +206,7 @@ function ShopDetailsContent() {
 
   const isInWishlist = wishlistItems.some(item => item._id === realProduct._id);
   const images = realProduct.images && realProduct.images.length > 0 ? realProduct.images : ['/top_product1.png'];
-  const mediaItems = [...(realProduct.videos || []), ...images];
+  const mediaItems = [...images, ...(realProduct.videos || [])];
   const isVideo = (url) => url && (url.toLowerCase().endsWith('.mp4') || url.toLowerCase().endsWith('.webm') || (realProduct.videos && realProduct.videos.includes(url)));
 
   const getImageUrl = (url) => {

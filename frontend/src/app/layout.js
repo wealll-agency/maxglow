@@ -1,4 +1,5 @@
 import React, { Suspense } from 'react';
+// Force Next.js dev server rebuild
 import { Inter, Outfit } from 'next/font/google';
 import Script from 'next/script';
 import './globals.css';

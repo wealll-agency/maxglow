@@ -10,7 +10,8 @@ import { performSync } from './userController.js';
 // @route   POST /api/auth/register
 // @access  Public
 export const registerUser = async (req, res, next) => {
-  const { name, email, password, phone, localCart = [], localWishlist = [] } = req.body;
+  let { name, email, password, phone, localCart = [], localWishlist = [] } = req.body;
+  if (email) email = email.toLowerCase().trim();
 
   try {
     if (password && password.length < 6) {
@@ -71,7 +72,8 @@ export const registerUser = async (req, res, next) => {
 // @route   POST /api/auth/login
 // @access  Public
 export const loginUser = async (req, res, next) => {
-  const { email, password, rememberMe, localCart = [], localWishlist = [] } = req.body;
+  let { email, password, rememberMe, localCart = [], localWishlist = [] } = req.body;
+  if (email) email = email.toLowerCase().trim();
 
   try {
     const user = await User.findOne({ email });
@@ -403,7 +405,7 @@ export const getSystemSettings = async (req, res, next) => {
       });
     }
 
-    const keys = ['cod', 'refund', 'topSellingSource', 'media_hero', 'media_new_arrivals', 'media_offers', 'media_category_banner', 'media_reels'];
+    const keys = ['cod', 'refund', 'topSellingSource', 'media_hero', 'media_new_arrivals', 'media_offers', 'media_category_banner', 'media_category_banners', 'media_reels'];
     const docs = await SystemSetting.find({ key: { $in: keys } }).lean();
     const map = new Map(docs.map(d => [d.key, d.value]));
 
@@ -415,6 +417,7 @@ export const getSystemSettings = async (req, res, next) => {
       media_new_arrivals: map.has('media_new_arrivals') ? map.get('media_new_arrivals') : null,
       media_offers: map.has('media_offers') ? map.get('media_offers') : null,
       media_category_banner: map.has('media_category_banner') ? map.get('media_category_banner') : null,
+      media_category_banners: map.has('media_category_banners') ? map.get('media_category_banners') : {},
       media_reels: map.has('media_reels') ? map.get('media_reels') : null,
     };
 
@@ -447,6 +450,7 @@ export const updateSystemSettings = async (req, res, next) => {
         { key: 'media_new_arrivals', type: 'string' },
         { key: 'media_offers', type: 'array' },
         { key: 'media_category_banner', type: 'string' },
+        { key: 'media_category_banners', type: 'object' },
         { key: 'media_reels', type: 'array' }
       ];
 
@@ -456,6 +460,7 @@ export const updateSystemSettings = async (req, res, next) => {
           if (field.type === 'boolean') valueToSave = Boolean(settings[field.key]);
           if (field.type === 'string') valueToSave = String(settings[field.key]);
           if (field.type === 'array') valueToSave = Array.isArray(settings[field.key]) ? settings[field.key] : [];
+          if (field.type === 'object') valueToSave = typeof settings[field.key] === 'object' && settings[field.key] !== null ? settings[field.key] : {};
 
           await SystemSetting.findOneAndUpdate(
             { key: field.key },

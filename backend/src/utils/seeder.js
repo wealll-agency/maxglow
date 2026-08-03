@@ -130,7 +130,7 @@ const seedData = async () => {
     const users = await User.create([
       {
         name: 'MaxGlow Admin',
-        email: 'maxglow2026@gmail.com',
+        email: 'maxglow2026@admin.com',
         password: 'MaxGlow@2026', // gets hashed automatically in pre-save
         phone: '9999999999',
         role: 'Super Admin'

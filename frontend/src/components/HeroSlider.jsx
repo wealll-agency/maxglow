@@ -198,28 +198,37 @@ export default function HeroSlider() {
           className="hero-slider-track"
           style={{
             display: 'flex',
+            flexWrap: 'nowrap', /* Industry standard for sliders */
+            alignItems: 'center', 
             width: '100%',
             height: '100%',
-            transition: 'transform 1.2s cubic-bezier(0.77, 0, 0.175, 1)',
+            transition: 'transform 0.8s cubic-bezier(0.25, 1, 0.5, 1)', 
             transform: `translateX(-${currentIndex * 100}%)`,
           }}
         >
           {images.map((img, idx) => (
             <div key={idx} style={{
-              minWidth: '100%',
+              flex: '0 0 100%', /* Industry standard exact sizing */
+              width: '100%',
+              maxWidth: '100%',
               height: '100%',
-              flexShrink: 0,
               position: 'relative',
-              display: 'flex'
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#f8fafc' 
             }}>
               <img
                 src={img}
                 alt={`MaxGlow Premium Herbal Wellness ${idx + 1}`}
                 style={{
+                  maxWidth: '100%',
+                  maxHeight: '100%',
                   width: '100%',
                   height: 'auto',
-                  objectFit: 'contain',
-                  display: 'block'
+                  objectFit: 'contain', 
+                  display: 'block',
+                  margin: '0 auto'
                 }}
               />
               {/* Animated Shop Now Button in Bottom Left */}

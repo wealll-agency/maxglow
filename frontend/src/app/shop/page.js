@@ -162,14 +162,18 @@ function ShopContent() {
   const isAnyFilterActive = priceFrom || priceTo || selectedStock || selectedBrand || selectedDiscount || selectedCategory;
 
   const [customCategoryBanner, setCustomCategoryBanner] = useState('');
+  const [customCategoryBannersMap, setCustomCategoryBannersMap] = useState({});
 
   useEffect(() => {
     const fetchSettings = async () => {
       try {
         const res = await api.get('/auth/settings');
-        if (res.data.success && res.data.settings?.media_category_banner) {
-          if (res.data.settings.media_category_banner.trim() !== '') {
+        if (res.data.success && res.data.settings) {
+          if (res.data.settings.media_category_banner && res.data.settings.media_category_banner.trim() !== '') {
             setCustomCategoryBanner(res.data.settings.media_category_banner);
+          }
+          if (res.data.settings.media_category_banners && typeof res.data.settings.media_category_banners === 'object') {
+            setCustomCategoryBannersMap(res.data.settings.media_category_banners);
           }
         }
       } catch (err) {}
@@ -280,29 +284,45 @@ function ShopContent() {
         if (cat) {
           const c = cat.toLowerCase().trim();
           if (c.includes('skin') || c.includes('face')) {
-            bgImg = '/banner_skin_care.png';
             title = 'Premium Skin Care';
             desc = 'Reveal your natural glow with our deeply nourishing, botanical-rich face care formulations.';
+            bgImg = '/banner_skin_care.png';
           } else if (c.includes('hair')) {
-            bgImg = '/banner_hair_care.png';
             title = 'Luxury Hair Care';
             desc = 'Transform your hair with our salon-quality, natural herbal blends for strength and shine.';
+            bgImg = '/banner_hair_care.png';
           } else if (c.includes('body')) {
-            bgImg = '/banner_body_care.png';
             title = 'Nourishing Body Care';
             desc = 'Indulge in our luxurious spa-grade body lotions and scrubs for smooth, radiant skin.';
+            bgImg = '/banner_body_care.png';
           } else if (c.includes('wellness')) {
-            bgImg = '/banner_wellness.png';
             title = 'Holistic Wellness';
             desc = 'Find your balance with our peaceful aromatherapy and natural wellness essentials.';
+            bgImg = '/banner_wellness.png';
           } else {
             title = `${cat} Products`;
           }
-        }
 
-        if (customCategoryBanner) {
+          // Check if admin uploaded a custom banner for this category
+          const catKey = Object.keys(customCategoryBannersMap).find(k => k.toLowerCase().trim() === cat.toLowerCase().trim());
+          if (catKey && customCategoryBannersMap[catKey] && customCategoryBannersMap[catKey].trim() !== '') {
+            bgImg = customCategoryBannersMap[catKey];
+          }
+        } else if (customCategoryBanner) {
           bgImg = customCategoryBanner;
         }
+
+        const resolveUrl = (url) => {
+          if (!url) return '/trending_banner.png';
+          if (url.startsWith('http') || url.startsWith('blob:')) return url;
+          if (url.startsWith('/uploads/')) {
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'http://localhost:7052';
+            return `${baseUrl}${url}`;
+          }
+          return url;
+        };
+
+        const finalBgUrl = resolveUrl(bgImg);
 
         return (
           <>
@@ -313,7 +333,13 @@ function ShopContent() {
                 {cat && <span style={{ color: '#1a2332', fontWeight: '700', marginLeft: '6px' }}>&gt; {cat}</span>}
               </nav>
             </div>
-            <section className="shop-banner-section" style={{ backgroundImage: `url("${bgImg}")` }} />
+            <section className="shop-banner-section" style={{ backgroundImage: `url("${finalBgUrl}")` }}>
+              <div className="shop-banner-overlay" />
+              <div className="shop-banner-content">
+                <h1 className="shop-banner-title">{title}</h1>
+                <p className="shop-banner-desc">{desc}</p>
+              </div>
+            </section>
           </>
         );
       })()}
