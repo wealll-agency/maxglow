@@ -145,20 +145,27 @@ const CategoryIconRow = () => {
           }
         }
         @media (max-width: 576px) {
+          .category-link-item {
+            gap: 4px !important;
+            padding: 0 1px !important;
+          }
           .category-circle-wrapper {
-            width: 68px !important;
-            height: 68px !important;
-            min-width: 68px !important;
-            min-height: 68px !important;
+            width: 16.5vw !important;
+            height: 16.5vw !important;
+            min-width: 16.5vw !important;
+            min-height: 16.5vw !important;
+            max-width: 68px !important;
+            max-height: 68px !important;
           }
           .category-circle-wrapper img {
-            width: 48px !important;
-            height: 48px !important;
+            width: 60% !important;
+            height: 60% !important;
           }
           .category-label-text {
-            font-size: 11.5px !important;
+            font-size: clamp(9.5px, 2.8vw, 11.5px) !important;
             font-weight: 700 !important;
             color: #1a2332 !important;
+            letter-spacing: -0.02em !important;
           }
         }
       `}} />
