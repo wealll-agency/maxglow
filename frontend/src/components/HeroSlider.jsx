@@ -67,7 +67,7 @@ export default function HeroSlider() {
       >
         <style dangerouslySetInnerHTML={{ __html: `
           .hero-banner-section {
-            margin-bottom: 20px;
+            margin-bottom: 0px;
           }
           @media (max-width: 991px) {
             .hero-banner-section { margin-bottom: 0px !important; padding-bottom: 0px !important; }
@@ -153,7 +153,7 @@ export default function HeroSlider() {
       >
         <style dangerouslySetInnerHTML={{ __html: `
           .hero-banner-section {
-            margin-bottom: 20px;
+            margin-bottom: 0px;
           }
           @media (max-width: 991px) {
             .hero-banner-section { margin-bottom: 0px !important; padding-bottom: 0px !important; }

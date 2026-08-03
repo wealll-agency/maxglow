@@ -47,8 +47,6 @@ export default function Home() {
       {/* Hero Section */}
       <HeroSlider />
 
-      {/* Strict physical spacer to prevent any overlap bugs */}
-      <div className="hero-category-spacer"></div>
 
       {/* Category Icons Row */}
       <CategoryIconRow />
