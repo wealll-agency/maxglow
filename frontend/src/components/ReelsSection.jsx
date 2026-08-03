@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { addToCart } from '@/store/slices/cartSlice';
+import { addToCart } from '../store/cartSlice';
 
 import { Swiper, SwiperSlide, useSwiper } from 'swiper/react';
 import { Autoplay, FreeMode } from 'swiper/modules';
