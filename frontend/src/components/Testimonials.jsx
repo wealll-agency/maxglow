@@ -1,8 +1,9 @@
 "use client";
-import React, { useState, memo } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { FiStar, FiChevronDown } from 'react-icons/fi';
+import api from '../utils/axiosConfig';
 
-const testimonials = [
+const defaultTestimonials = [
   {
     name: 'Priya Sharma',
     location: 'Mumbai',
@@ -41,8 +42,37 @@ const testimonials = [
   },
 ];
 
+const bgs = ['#DDF4FF', '#DDF7E3', '#FEF9E7', '#F0E6FF'];
+
 const Testimonials = () => {
+  const [reviewsList, setReviewsList] = useState([]);
   const [openIndices, setOpenIndices] = useState([0]);
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const res = await api.get('/reviews/featured');
+        if (res.data.success && res.data.reviews.length > 0) {
+          const formatted = res.data.reviews.map((r, i) => ({
+            name: r.user?.name || 'Customer',
+            location: 'Verified Buyer',
+            text: r.comment,
+            rating: r.rating || 5,
+            avatar: r.user?.name ? r.user.name.charAt(0).toUpperCase() : '👤',
+            product: r.product?.name || 'MaxGlow Product',
+            bg: bgs[i % bgs.length]
+          }));
+          setReviewsList(formatted);
+        } else {
+          setReviewsList(defaultTestimonials);
+        }
+      } catch (err) {
+        console.error('Failed to fetch reviews', err);
+        setReviewsList(defaultTestimonials);
+      }
+    };
+    fetchReviews();
+  }, []);
 
   const toggleReview = (index) => {
     setOpenIndices(prev =>
@@ -69,18 +99,19 @@ const Testimonials = () => {
         <div style={{
           display: 'flex',
           flexDirection: 'column',
-          gap: '16px',
+          gap: '12px',
           maxWidth: '900px',
           margin: '0 auto',
         }}>
-          {testimonials.map((review, idx) => {
+          {reviewsList.map((review, idx) => {
             const isOpen = openIndices.includes(idx);
             return (
               <div 
                 key={idx} 
-                className="mg-card" 
+                className="testimonial-card" 
                 style={{ 
                   padding: 0, 
+                  margin: 0,
                   borderRadius: '16px',
                   overflow: 'hidden',
                   background: 'white',

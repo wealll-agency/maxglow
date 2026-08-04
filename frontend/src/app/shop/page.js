@@ -335,11 +335,7 @@ function ShopContent() {
               </nav>
             </div>
             <section className="shop-banner-section" style={{ backgroundImage: `url("${finalBgUrl}")` }}>
-              <div className="shop-banner-overlay" />
-              <div className="shop-banner-content">
-                <h1 className="shop-banner-title">{title}</h1>
-                <p className="shop-banner-desc">{desc}</p>
-              </div>
+              {/* Default overlay and texts removed as requested */}
             </section>
           </>
         );

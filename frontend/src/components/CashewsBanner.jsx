@@ -1,27 +1,37 @@
 "use client";
 import Link from 'next/link';
-import React, { memo } from 'react';
+import React, { memo, useState, useEffect } from 'react';
+import api from '../utils/axiosConfig';
 
 const CashewsBanner = () => {
+  const [bannerImg, setBannerImg] = useState('/trending_banner.png');
+
+  useEffect(() => {
+    const fetchBanner = async () => {
+      try {
+        const res = await api.get('/auth/settings');
+        if (res.data.success && res.data.settings?.media_trending_banner) {
+          setBannerImg(res.data.settings.media_trending_banner);
+        }
+      } catch (err) {}
+    };
+    fetchBanner();
+  }, []);
+
+  const getImageUrl = (url) => {
+    if (!url) return '/trending_banner.png';
+    if (url.startsWith('http') || url.startsWith('blob:')) return url;
+    if (url.startsWith('/uploads/')) {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'https://api.maxglow.in';
+      return `${baseUrl}${url}`;
+    }
+    return url;
+  };
   return (
     <section className="mg-section-spacing" style={{ background: 'white' }}>
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
         
-        {/* Section Title matching the reference layout */}
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <h2 style={{
-            fontFamily: 'var(--font-outfit), sans-serif',
-            fontSize: '24px',
-            fontWeight: '800',
-            color: '#0f1e35',
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            margin: 0,
-          }}>
-            TRENDING NOW
-          </h2>
-          <div style={{ height: '3px', width: '60px', background: '#3BAE56', margin: '12px auto 0', borderRadius: '9999px' }} />
-        </div>
+        {/* Default text removed as requested */}
 
         <Link href="/shop" className="trending-banner-card">
           <style dangerouslySetInnerHTML={{ __html: `
@@ -47,7 +57,7 @@ const CashewsBanner = () => {
             }
           ` }} />
           <img
-            src="/trending_banner.png"
+            src={getImageUrl(bannerImg)}
             alt="Trending Now Banner"
             className="trending-banner-img"
           />

@@ -51,9 +51,10 @@ const ProductCarouselSection = ({ title, products = [] }) => {
               nextEl: `.next-${title?.replace(/\s/g, '')}`,
             }}
             breakpoints={{
-              480: { slidesPerView: 2 },
-              768: { slidesPerView: 3 },
-              1024: { slidesPerView: 4 },
+              480: { slidesPerView: 2, spaceBetween: 16 },
+              768: { slidesPerView: 3, spaceBetween: 16 },
+              1024: { slidesPerView: 4, spaceBetween: 20 },
+              1280: { slidesPerView: 4, spaceBetween: 20 },
             }}
             style={{ padding: '4px 2px 8px' }}
           >

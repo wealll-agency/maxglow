@@ -104,43 +104,6 @@ export default function HeroSlider() {
         overflow: 'hidden'
       }}
     >
-      <style dangerouslySetInnerHTML={{ __html: `
-        .shop-now-animated {
-          animation: pulse-glow 2s infinite;
-          background: rgba(255, 255, 255, 0.9);
-          color: #111;
-          border: none;
-          padding: 12px 30px;
-          font-size: 18px;
-          font-weight: 700;
-          border-radius: 30px;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          letter-spacing: 1px;
-          text-transform: uppercase;
-        }
-        .shop-now-animated .arrow-icon {
-          font-size: 20px;
-        }
-        @media (max-width: 768px) {
-          .shop-now-animated {
-            padding: 8px 16px !important;
-            font-size: 11px !important;
-            letter-spacing: 0.5px !important;
-            gap: 4px !important;
-          }
-          .shop-now-animated .arrow-icon {
-            font-size: 14px !important;
-          }
-        }
-        @keyframes pulse-glow {
-          0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.7); }
-          50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255,255,255,0); }
-          100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0); }
-        }
-      ` }} />
       <div
         className="carousel-mask"
         style={{
@@ -231,18 +194,7 @@ export default function HeroSlider() {
                   margin: '0 auto'
                 }}
               />
-              {/* Animated Shop Now Button in Bottom Left */}
-              <div style={{
-                position: 'absolute',
-                bottom: '10%',
-                left: '8%',
-                zIndex: 5
-              }}>
-                <button className="shop-now-animated">
-                  Shop Now
-                  <span className="arrow-icon">&rarr;</span>
-                </button>
-              </div>
+              {/* Removed Animated Shop Now Button as per request */}
             </div>
           ))}
         </div>

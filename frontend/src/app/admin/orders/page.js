@@ -99,6 +99,10 @@ function AdminOrdersContent() {
   const [trackingNumber, setTrackingNumber] = useState('');
   const [actionSuccess, setActionSuccess] = useState('');
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
+
   let totalQty = 0;
   let totalTaxable = 0;
   let totalCGST = 0;
@@ -135,7 +139,7 @@ function AdminOrdersContent() {
   }
 
   useEffect(() => {
-    dispatch(fetchAdminOrders());
+    dispatch(fetchAdminOrders({ limit: 1000 }));
     dispatch(fetchWarehouses());
   }, [dispatch]);
 
@@ -146,7 +150,7 @@ function AdminOrdersContent() {
       .then((updatedOrder) => {
         setActionSuccess(`Order status advanced to ${status}!`);
         setSelectedOrder(updatedOrder);
-        dispatch(fetchAdminOrders());
+        dispatch(fetchAdminOrders({ limit: 1000 }));
       })
       .catch((err) => {
         showAlert(err || 'Failed to update order status', 'error');
@@ -162,7 +166,7 @@ function AdminOrdersContent() {
         .then((updatedOrder) => {
           setActionSuccess('Order cancelled and refund recorded. Please process actual refund via Razorpay.');
           setSelectedOrder(updatedOrder);
-          dispatch(fetchAdminOrders());
+          dispatch(fetchAdminOrders({ limit: 1000 }));
         })
         .catch((err) => {
           showAlert(err || 'Refund processing failed', 'error');
@@ -178,7 +182,7 @@ function AdminOrdersContent() {
         .unwrap()
         .then((res) => {
           setActionSuccess('Shipments created successfully!');
-          dispatch(fetchAdminOrders());
+          dispatch(fetchAdminOrders({ limit: 1000 }));
           // Update local selectedOrder with new shipments
           const updated = {...selectedOrder, shipments: res.shipments, orderStatus: 'Shipped'};
           setSelectedOrder(updated);
@@ -195,7 +199,7 @@ function AdminOrdersContent() {
         .unwrap()
         .then(() => {
           setActionSuccess('Shipment cancelled.');
-          dispatch(fetchAdminOrders());
+          dispatch(fetchAdminOrders({ limit: 1000 }));
           // Update the specific shipment in the local object
           const updatedShipments = selectedOrder.shipments.map(s => s.waybill === waybill ? { ...s, status: 'Cancelled' } : s);
           const updated = {...selectedOrder, shipments: updatedShipments};
@@ -293,6 +297,12 @@ function AdminOrdersContent() {
   const displayOrders = filterStatus 
     ? orders.filter(ord => ord.orderStatus === filterStatus)
     : orders;
+
+  // Pagination Logic
+  const totalPages = Math.ceil(displayOrders.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = displayOrders.slice(indexOfFirstItem, indexOfLastItem);
 
   const handlePrint = () => {
     const printContent = document.getElementById('printable-invoice').innerHTML;
@@ -395,14 +405,14 @@ function AdminOrdersContent() {
                 </tr>
               </thead>
               <tbody>
-                {displayOrders.length === 0 ? (
+                {currentItems.length === 0 ? (
                   <tr>
                     <td colSpan="7" className="text-center py-5 text-muted">
                       No orders found{filterStatus ? ` for status: ${filterStatus}` : ''}.
                     </td>
                   </tr>
                 ) : (
-                  displayOrders.map((ord) => (
+                  currentItems.map((ord) => (
                     <tr key={ord._id} className="border-bottom">
                     <td className="py-3 fw-bold font-monospace">#{ord._id.substring(0, 10).toUpperCase()}</td>
                     <td>
@@ -441,6 +451,46 @@ function AdminOrdersContent() {
               )}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {!ordersLoading && totalPages > 0 && (
+          <div className="d-flex flex-wrap justify-content-between align-items-center pt-4">
+            <span className="text-muted fs-7 mb-2 mb-md-0">
+              Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, displayOrders.length)} of {displayOrders.length} entries
+            </span>
+            <nav>
+              <ul className="pagination m-0 d-flex align-items-center" style={{ gap: '6px' }}>
+                <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                  <button className="page-link shadow-none fw-medium" style={{ borderRadius: '8px', border: '1px solid #e2e8f0', color: currentPage === 1 ? '#94a3b8' : '#475569', padding: '6px 14px', fontSize: '14px', backgroundColor: currentPage === 1 ? '#f8fafc' : '#ffffff', cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }} onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}>Previous</button>
+                </li>
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => {
+                  if (
+                    number === 1 || 
+                    number === totalPages || 
+                    (number >= currentPage - 1 && number <= currentPage + 1)
+                  ) {
+                    return (
+                      <li key={number} className={`page-item ${currentPage === number ? 'active' : ''}`}>
+                        <button className="page-link shadow-none fw-bold" style={{ borderRadius: '8px', border: currentPage === number ? '1px solid #00d2d3' : '1px solid #e2e8f0', color: currentPage === number ? '#ffffff' : '#475569', padding: '6px 14px', fontSize: '14px', backgroundColor: currentPage === number ? '#00d2d3' : '#ffffff' }} onClick={() => setCurrentPage(number)}>{number}</button>
+                      </li>
+                    );
+                  } else if (
+                    number === currentPage - 2 || 
+                    number === currentPage + 2
+                  ) {
+                    return <li key={number} className="page-item disabled"><span className="page-link shadow-none" style={{ borderRadius: '8px', border: '1px solid #e2e8f0', color: '#94a3b8', padding: '6px 14px', fontSize: '14px', backgroundColor: '#f8fafc' }}>...</span></li>;
+                  }
+                  return null;
+                })}
+                
+                <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                  <button className="page-link shadow-none fw-medium" style={{ borderRadius: '8px', border: '1px solid #e2e8f0', color: currentPage === totalPages ? '#94a3b8' : '#475569', padding: '6px 14px', fontSize: '14px', backgroundColor: currentPage === totalPages ? '#f8fafc' : '#ffffff', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }} onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}>Next</button>
+                </li>
+              </ul>
+            </nav>
           </div>
         )}
       </div>

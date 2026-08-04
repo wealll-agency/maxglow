@@ -49,7 +49,7 @@ const ShopByPurpose = () => {
             CURATED FOR YOU
           </span>
           <h2 className="mg-section-title">Shop By Purpose</h2>
-          <p className="mg-section-subtitle">Discover products tailored to your wellness goals</p>
+          <p className="mg-section-subtitle">Discover products tailored to your goals</p>
         </div>
 
 

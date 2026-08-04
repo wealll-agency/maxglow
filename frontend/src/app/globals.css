@@ -918,6 +918,201 @@ main {
   margin-left: 0 !important;
   margin-top: 0 !important;
   flex-shrink: 0 !important;
+  .product-actions-container { gap: 4px !important; }
+  .mg-product-action-btn { padding: 8px 0 !important; font-size: 10px !important; }
+  .mg-product-action-btn svg { width: 11px !important; height: 11px !important; margin-right: 2px !important; }
+}
+
+/* Product Details Mobile/Tablet Action Buttons & Quantity Alignment */
+.product-details-action-btn {
+  white-space: nowrap !important;
+}
+
+@media (max-width: 991px) {
+  .product-details-action-btn {
+    white-space: nowrap !important;
+    font-size: 13px !important;
+    padding: 12px 8px !important;
+    letter-spacing: -0.01em !important;
+  }
+}
+
+/* Shop Page View Controls & Custom Sort Dropdown Responsive Fixes */
+@media (max-width: 768px) {
+  .shop-controls-bar {
+    padding: 10px 12px !important;
+  }
+  .hide-mobile-sort-label {
+    display: none !important;
+  }
+  .sort-dropdown-menu {
+    right: 0 !important;
+    min-width: 170px !important;
+    max-width: calc(100vw - 32px) !important;
+  }
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.carousel-nav-btn:hover {
+  background: #3BAE56 !important;
+  border-color: #3BAE56 !important;
+}
+.carousel-nav-btn:hover svg { color: white !important; }
+.swiper-button-next, .swiper-button-prev { display: none !important; }
+
+
+.popular-search-tag {
+  display: inline-block;
+  padding: 7px 16px;
+  background: white;
+  border: 1.5px solid rgba(221,244,255,0.8);
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(74,144,226,0.06);
+  text-decoration: none;
+}
+.popular-search-tag:hover {
+  background: #DDF7E3;
+  border-color: #3BAE56;
+  color: #3BAE56;
+}
+.view-all-btn {
+  display: none;
+}
+.purpose-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+}
+@media (max-width: 768px) {
+  .purpose-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 8px !important;
+    overflow-x: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .purpose-card-inner {
+    padding: 12px 4px !important;
+    border-radius: 12px !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .purpose-icon-wrapper {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 10px !important;
+    margin-bottom: 8px !important;
+  }
+  .purpose-icon-wrapper svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+  .purpose-card-title {
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+    margin-bottom: 0 !important;
+  }
+  .purpose-card-desc, .purpose-card-explore {
+    display: none !important;
+  }
+}
+@media (max-width: 768px) {
+  .popular-tags-wrapper a:nth-child(n+5):not(.view-all-btn) {
+    display: none !important;
+  }
+  .view-all-btn {
+    display: inline-flex !important;
+    padding: 7px 16px;
+    background: #F0E6FF;
+    border: 1.5px solid #8b5cf6;
+    border-radius: 9999px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #8b5cf6;
+    text-decoration: none;
+    align-items: center;
+    gap: 4px;
+  }
+  .trust-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 8px !important;
+    padding: 0 4px !important;
+  }
+  .trust-item {
+    flex-direction: column !important;
+    text-align: center !important;
+    gap: 6px !important;
+  }
+  .trust-icon {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 16px !important;
+    border-radius: 10px !important;
+    margin: 0 auto !important;
+  }
+  .trust-title {
+    font-size: 9.5px !important;
+    text-align: center !important;
+    line-height: 1.1 !important;
+  }
+  .trust-sub {
+    display: none !important;
+  }
+  .stats-container {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 4px !important;
+    padding: 16px 8px !important;
+    border-radius: 12px !important;
+  }
+  .stat-item {
+    text-align: center;
+  }
+  .stat-icon {
+    font-size: 18px !important;
+    margin-bottom: 2px !important;
+  }
+  .stat-value {
+    font-size: 12px !important;
+  }
+  .stat-label {
+    font-size: 9px !important;
+    line-height: 1.1 !important;
+  }
+}
+
+/* ═══════════════════════════════════════════
+   Standard Form Checkbox & Flex Alignment Reset
+   ═══════════════════════════════════════════ */
+.form-check {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.6rem !important;
+  margin-bottom: 0.75rem;
+  padding-left: 0 !important;
+}
+
+.form-check .form-check-input {
+  float: none !important;
+  margin-left: 0 !important;
+  margin-top: 0 !important;
+  flex-shrink: 0 !important;
   width: 1.15rem !important;
   height: 1.15rem !important;
   cursor: pointer;
@@ -933,5 +1128,35 @@ main {
   display: inline-flex !important;
 }
 
+/* ═══════════════════════════════════════════
+   Mobile Sizing for Product Action Buttons 
+   ═══════════════════════════════════════════ */
+@media (max-width: 480px) {
+  /* Home Page ONLY: Keep buttons large and prominent as requested */
+  .mg-swiper-container .mg-product-action-btn {
+    padding: 16px 0 !important;
+    font-size: 15px !important;
+    gap: 6px !important;
+  }
+  .mg-swiper-container .mg-product-action-btn svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
 
-
+  /* Shop Page ONLY: Make buttons fit perfectly side-by-side in the narrow 2-column mobile grid */
+  .shop-grid .product-actions-container {
+    flex-direction: row !important;
+    gap: 4px !important;
+  }
+  .shop-grid .mg-product-action-btn {
+    flex: 1 !important;
+    padding: 8px 0 !important;
+    font-size: 9.5px !important;
+    white-space: nowrap !important;
+    letter-spacing: -0.02em !important;
+  }
+  .shop-grid .mg-product-action-btn svg {
+    width: 11px !important;
+    height: 11px !important;
+  }
+}

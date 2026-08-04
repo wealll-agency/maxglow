@@ -105,13 +105,14 @@ export default function AdminProductsPage() {
       category: filterCategory !== 'Select category' ? filterCategory : '',
       subCategory: filterSubCategory !== 'Select Sub Category' ? filterSubCategory : '',
       subSubCategory: filterSubSubCategory !== 'Select Sub Sub Category' ? filterSubSubCategory : '',
-      keyword: searchKeyword
+      keyword: searchKeyword,
+      limit: 1000
     }));
     setCurrentPage(1);
   };
 
   useEffect(() => {
-    dispatch(fetchAdminProducts({}));
+    dispatch(fetchAdminProducts({ limit: 1000 }));
     dispatch(fetchWarehouses());
     dispatch(fetchCategories());
   }, [dispatch]);
@@ -536,7 +537,7 @@ export default function AdminProductsPage() {
                     setFilterSubCategory('Select Sub Category');
                     setFilterSubSubCategory('Select Sub Sub Category');
                     setSearchKeyword('');
-                    dispatch(fetchAdminProducts({})); // instantly reload all
+                    dispatch(fetchAdminProducts({ limit: 1000 })); // instantly reload all
                     setCurrentPage(1); // Reset page on clear
                   }}
                 >
@@ -1002,19 +1003,18 @@ export default function AdminProductsPage() {
               </div>
 
               {/* Pagination Controls */}
-              {totalPages > 1 && (
+              {totalPages > 0 && (
                 <div className="d-flex flex-wrap justify-content-between align-items-center px-4 py-3 border-top">
                   <span className="text-muted fs-7 mb-2 mb-md-0">
                     Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, displayedProducts.length)} of {displayedProducts.length} entries
                   </span>
                   <nav>
-                    <ul className="pagination pagination-sm m-0">
+                    <ul className="pagination m-0 d-flex align-items-center" style={{ gap: '6px' }}>
                       <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                        <button className="page-link" onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}>Previous</button>
+                        <button className="page-link shadow-none fw-medium" style={{ borderRadius: '8px', border: '1px solid #e2e8f0', color: currentPage === 1 ? '#94a3b8' : '#475569', padding: '6px 14px', fontSize: '14px', backgroundColor: currentPage === 1 ? '#f8fafc' : '#ffffff', cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }} onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}>Previous</button>
                       </li>
                       
                       {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => {
-                        // Logic for displaying limited page numbers (e.g. 1 2 ... 5)
                         if (
                           number === 1 || 
                           number === totalPages || 
@@ -1022,20 +1022,20 @@ export default function AdminProductsPage() {
                         ) {
                           return (
                             <li key={number} className={`page-item ${currentPage === number ? 'active' : ''}`}>
-                              <button className="page-link" onClick={() => setCurrentPage(number)}>{number}</button>
+                              <button className="page-link shadow-none fw-bold" style={{ borderRadius: '8px', border: currentPage === number ? '1px solid #00d2d3' : '1px solid #e2e8f0', color: currentPage === number ? '#ffffff' : '#475569', padding: '6px 14px', fontSize: '14px', backgroundColor: currentPage === number ? '#00d2d3' : '#ffffff' }} onClick={() => setCurrentPage(number)}>{number}</button>
                             </li>
                           );
                         } else if (
                           number === currentPage - 2 || 
                           number === currentPage + 2
                         ) {
-                          return <li key={number} className="page-item disabled"><span className="page-link">...</span></li>;
+                          return <li key={number} className="page-item disabled"><span className="page-link shadow-none" style={{ borderRadius: '8px', border: '1px solid #e2e8f0', color: '#94a3b8', padding: '6px 14px', fontSize: '14px', backgroundColor: '#f8fafc' }}>...</span></li>;
                         }
                         return null;
                       })}
                       
                       <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-                        <button className="page-link" onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}>Next</button>
+                        <button className="page-link shadow-none fw-medium" style={{ borderRadius: '8px', border: '1px solid #e2e8f0', color: currentPage === totalPages ? '#94a3b8' : '#475569', padding: '6px 14px', fontSize: '14px', backgroundColor: currentPage === totalPages ? '#f8fafc' : '#ffffff', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }} onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}>Next</button>
                       </li>
                     </ul>
                   </nav>

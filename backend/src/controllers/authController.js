@@ -405,7 +405,7 @@ export const getSystemSettings = async (req, res, next) => {
       });
     }
 
-    const keys = ['cod', 'refund', 'topSellingSource', 'media_hero', 'media_new_arrivals', 'media_offers', 'media_category_banner', 'media_category_banners', 'media_reels'];
+    const keys = ['cod', 'refund', 'topSellingSource', 'media_hero', 'media_new_arrivals', 'media_trending_banner', 'media_offers', 'media_category_banner', 'media_category_banners', 'media_reels'];
     const docs = await SystemSetting.find({ key: { $in: keys } }).lean();
     const map = new Map(docs.map(d => [d.key, d.value]));
 
@@ -415,6 +415,7 @@ export const getSystemSettings = async (req, res, next) => {
       topSellingSource: map.has('topSellingSource') ? map.get('topSellingSource') : 'automatic',
       media_hero: map.has('media_hero') ? map.get('media_hero') : null,
       media_new_arrivals: map.has('media_new_arrivals') ? map.get('media_new_arrivals') : null,
+      media_trending_banner: map.has('media_trending_banner') ? map.get('media_trending_banner') : null,
       media_offers: map.has('media_offers') ? map.get('media_offers') : null,
       media_category_banner: map.has('media_category_banner') ? map.get('media_category_banner') : null,
       media_category_banners: map.has('media_category_banners') ? map.get('media_category_banners') : {},
@@ -448,6 +449,7 @@ export const updateSystemSettings = async (req, res, next) => {
         { key: 'topSellingSource', type: 'string' },
         { key: 'media_hero', type: 'array' },
         { key: 'media_new_arrivals', type: 'string' },
+        { key: 'media_trending_banner', type: 'string' },
         { key: 'media_offers', type: 'array' },
         { key: 'media_category_banner', type: 'string' },
         { key: 'media_category_banners', type: 'object' },

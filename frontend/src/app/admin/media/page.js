@@ -13,6 +13,7 @@ export default function AdminMedia() {
   // States
   const [heroImages, setHeroImages] = useState(['/hero_final_1.png', '/hero_final_2.png', '/hero_final_3.png']);
   const [newArrivals, setNewArrivals] = useState('/new_arrival_banner.png');
+  const [trendingBanner, setTrendingBanner] = useState('/trending_banner.png');
   const [offers, setOffers] = useState(['/mg-offer1.jpg', '/mg-offer2.jpg', '/mg-offer3.jpg']);
   const [categoryBanner, setCategoryBanner] = useState('/trending_banner.png');
   const [categoryBanners, setCategoryBanners] = useState({
@@ -21,6 +22,15 @@ export default function AdminMedia() {
     'Body Care': '/banner_body_care.png',
     'Serum': '/banner_wellness.png'
   });
+  const [shopByProducts, setShopByProducts] = useState([
+    { label: 'Skin Care', image: '/category-icons/skin-care.png', query: 'Skin Care', color: '#DDF4FF', glowColor: 'rgba(74, 144, 226, 0.35)' },
+    { label: 'Hair Care', image: '/category-icons/hair-care.png', query: 'Hair Care', color: '#DDF7E3', glowColor: 'rgba(59, 174, 86, 0.35)' },
+    { label: 'Serum', image: '/category-icons/wellness.png', query: 'Serum', color: '#F0E6FF', glowColor: 'rgba(155, 81, 224, 0.35)' },
+    { label: 'Sheet Mask', image: '/category-icons/baby-care.png', query: 'Sheet Mask', color: '#FFF0F5', glowColor: 'rgba(255, 105, 180, 0.35)' },
+    { label: 'Combos', image: '/category-icons/combos.png', query: 'Combo', color: '#E8F5E9', glowColor: 'rgba(46, 125, 50, 0.35)' },
+    { label: 'Gifting', image: '/category-icons/gifting.png', query: 'Gifting', color: '#FFF8E1', glowColor: 'rgba(255, 160, 0, 0.35)' },
+    { label: 'Offers', image: '/category-icons/offers.png', query: 'sale', color: '#FFEBEE', isOffer: true, glowColor: 'rgba(239, 68, 68, 0.35)' },
+  ]);
   const [categories, setCategories] = useState([]);
   const [reels, setReels] = useState([
     'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
@@ -59,13 +69,17 @@ export default function AdminMedia() {
       ]);
 
       if (settingsRes.data.success && settingsRes.data.settings) {
-        const { media_hero, media_new_arrivals, media_offers, media_category_banner, media_category_banners, media_reels } = settingsRes.data.settings;
+        const { media_hero, media_new_arrivals, media_trending_banner, media_offers, media_category_banner, media_category_banners, media_reels } = settingsRes.data.settings;
         if (Array.isArray(media_hero) && media_hero.length) setHeroImages(media_hero);
         if (media_new_arrivals) setNewArrivals(media_new_arrivals);
+        if (media_trending_banner) setTrendingBanner(media_trending_banner);
         if (Array.isArray(media_offers) && media_offers.length) setOffers(media_offers);
         if (media_category_banner) setCategoryBanner(media_category_banner);
         if (media_category_banners && typeof media_category_banners === 'object') {
           setCategoryBanners(prev => ({ ...prev, ...media_category_banners }));
+        }
+        if (settingsRes.data.settings.media_shop_by_products && Array.isArray(settingsRes.data.settings.media_shop_by_products)) {
+          setShopByProducts(settingsRes.data.settings.media_shop_by_products);
         }
         if (Array.isArray(media_reels) && media_reels.length) setReels(media_reels);
       }
@@ -156,6 +170,39 @@ export default function AdminMedia() {
           ...prev,
           [categoryName]: url
         }));
+      } else {
+        throw new Error(res.data.message || 'Upload failed');
+      }
+    } catch (err) {
+      showAlert(err.response?.data?.message || err.message || 'Upload failed', 'error');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleShopByProductIconUpload = async (e, index) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    setUploading(true);
+    showAlert(`Uploading icon...`, 'info');
+
+    try {
+      const res = await api.post('/uploads', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      if (res.data.success) {
+        showAlert('Upload successful!', 'success');
+        const url = res.data.url;
+        setShopByProducts(prev => {
+          const newArr = [...prev];
+          newArr[index] = { ...newArr[index], image: url };
+          return newArr;
+        });
       } else {
         throw new Error(res.data.message || 'Upload failed');
       }
@@ -277,6 +324,49 @@ export default function AdminMedia() {
                       className="form-control" 
                       accept="image/*"
                       onChange={(e) => handleFileUpload(e, setNewArrivals)} 
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 2.5 Trending Now Banner */}
+        <div className="col-12">
+          <div className="card shadow-sm border-0 rounded-4">
+            <div className="card-header bg-white border-0 pt-4 pb-2 d-flex justify-content-between align-items-center">
+              <div>
+                <h5 className="fw-bold text-dark mb-1">Trending Now Banner</h5>
+                <p className="text-muted small mb-0">Recommended Dimensions: <strong>1400 × 300px</strong>. Displayed inside Trending Now homepage section.</p>
+              </div>
+              <button className="btn btn-sm btn-success px-4 rounded-pill fw-bold" onClick={() => handleSaveSection('Trending Banner', { media_trending_banner: trendingBanner })} disabled={saving || uploading}>
+                Save Section
+              </button>
+            </div>
+            <div className="card-body">
+              <div className="p-3 bg-light rounded-3 border">
+                <div className="d-flex align-items-center justify-content-between mb-2">
+                  <span className="fw-bold small text-dark">Trending Now Main Banner (Required Size: 1400×300px)</span>
+                </div>
+                <div className="d-flex gap-3 align-items-center flex-wrap">
+                  {trendingBanner && (
+                    <div className="d-flex align-items-center gap-2 bg-white p-2 rounded border">
+                      <img 
+                        src={getImageUrl(trendingBanner)} 
+                        alt="Trending Banner Preview" 
+                        style={{ width: '140px', height: '60px', objectFit: 'cover', borderRadius: '6px' }}
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                      <span className="small text-truncate" style={{ maxWidth: '180px' }}>{trendingBanner.split('/').pop()}</span>
+                    </div>
+                  )}
+                  <div className="flex-grow-1" style={{ maxWidth: '300px' }}>
+                    <input 
+                      type="file" 
+                      className="form-control" 
+                      accept="image/*"
+                      onChange={(e) => handleFileUpload(e, setTrendingBanner)} 
                     />
                   </div>
                 </div>
@@ -479,6 +569,69 @@ export default function AdminMedia() {
                 </div>
               ))}
               <button className="btn btn-outline-success btn-sm mt-2 rounded-pill fw-semibold" onClick={() => addArrayItem(setReels, reels)}>+ Upload Another Reel Video</button>
+            </div>
+          </div>
+        </div>
+
+        {/* 6. Shop By Product Icons */}
+        <div className="col-12 mb-5">
+          <div className="card shadow-sm border-0 rounded-4">
+            <div className="card-header bg-white border-0 pt-4 pb-2 d-flex justify-content-between align-items-center">
+              <div>
+                <h5 className="fw-bold text-dark mb-1">6. Shop By Product Icons</h5>
+                <p className="text-muted small mb-0">Recommended Dimensions: <strong>Square (e.g. 200 × 200px)</strong>. Upload circular icons for the homepage categories.</p>
+              </div>
+              <button className="btn btn-sm btn-success px-4 rounded-pill fw-bold" onClick={() => handleSaveSection('Shop By Product Icons', { media_shop_by_products: shopByProducts })} disabled={saving || uploading}>
+                Save Icons
+              </button>
+            </div>
+            <div className="card-body">
+              {shopByProducts.map((cat, idx) => {
+                return (
+                  <div key={idx} className="mb-3 p-3 bg-light rounded-3 border">
+                    <div className="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
+                      <span className="fw-bold small text-dark">Category #{idx + 1}</span>
+                      <button 
+                        className="btn btn-outline-danger btn-sm"
+                        onClick={() => {
+                          setShopByProducts(prev => prev.filter((_, i) => i !== idx));
+                        }}
+                      >
+                        Remove Category
+                      </button>
+                    </div>
+                    <div className="row g-3">
+                      <div className="col-md-4">
+                        <label className="form-label small fw-bold">Label Name</label>
+                        <input type="text" className="form-control" value={cat.label || ''} onChange={e => setShopByProducts(prev => { const arr = [...prev]; arr[idx].label = e.target.value; return arr; })} placeholder="e.g. Skin Care" />
+                      </div>
+                      <div className="col-md-4">
+                        <label className="form-label small fw-bold">Search Query / Target</label>
+                        <input type="text" className="form-control" value={cat.query || ''} onChange={e => setShopByProducts(prev => { const arr = [...prev]; arr[idx].query = e.target.value; return arr; })} placeholder="e.g. Skin Care" />
+                      </div>
+                      <div className="col-md-2">
+                        <label className="form-label small fw-bold">Circle Color</label>
+                        <input type="color" className="form-control form-control-color w-100" value={cat.color || '#F0F0F0'} onChange={e => setShopByProducts(prev => { const arr = [...prev]; arr[idx].color = e.target.value; return arr; })} />
+                      </div>
+                      <div className="col-md-12">
+                        <label className="form-label small fw-bold">Icon Image (200x200px recommended)</label>
+                        <div className="d-flex gap-3 align-items-center">
+                          {cat.image && (
+                            <img src={getImageUrl(cat.image)} alt="Icon" style={{ width: '50px', height: '50px', objectFit: 'contain', borderRadius: '50%' }} onError={(e) => { e.target.style.display = 'none'; }} />
+                          )}
+                          <input type="file" className="form-control" accept="image/*" onChange={(e) => handleShopByProductIconUpload(e, idx)} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              <button 
+                className="btn btn-outline-primary btn-sm mt-2 rounded-pill fw-semibold" 
+                onClick={() => setShopByProducts(prev => [...prev, { label: 'New Category', image: '', query: '', color: '#F0F0F0', glowColor: 'rgba(0,0,0,0.1)' }])}
+              >
+                + Add New Category
+              </button>
             </div>
           </div>
         </div>

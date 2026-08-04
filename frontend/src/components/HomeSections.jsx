@@ -5,6 +5,7 @@ import React, { memo } from 'react';
 import { FiArrowRight, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 
 /* ═══════════════════════════════════════════
    HERBAL OFFER BANNERS SLIDER
@@ -15,8 +16,10 @@ export const NuttyDelightOffers = () => {
     { img: '/mg-offer2.jpg', title: 'Wellness Special', badge: '30% OFF', color: '#DDF7E3' },
     { img: '/mg-offer3.jpg', title: 'Combo Deals', badge: '50% OFF', color: '#FEF9E7' },
   ]);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 150);
     const fetchOffers = async () => {
       try {
         const { default: api } = await import('../utils/axiosConfig');
@@ -30,9 +33,10 @@ export const NuttyDelightOffers = () => {
             return offer;
           }));
         }
-      } catch (err) {}
+      } catch (err) { }
     };
     fetchOffers();
+    return () => clearTimeout(timer);
   }, []);
 
   const offers = offersState;
@@ -42,41 +46,38 @@ export const NuttyDelightOffers = () => {
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
           <h2 className="mg-section-title">Exclusive Herbal Offers</h2>
-          <p className="mg-section-subtitle">Hand-picked deals on premium wellness products</p>
+          <p className="mg-section-subtitle">Hand-picked deals on premium products</p>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+        <div
+          style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}
+        >
           {offers.map((offer, idx) => (
-            <Link
+            <div
               key={idx}
-              href="/shop"
-              style={{ textDecoration: 'none' }}
+              style={{
+                opacity: mounted ? 1 : 0,
+                transform: mounted ? 'translateX(0) scale(1)' : 'translateX(-50px) scale(0.95)',
+                transition: `all 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) ${idx * 0.15 + 0.1}s`
+              }}
             >
-              <div className="mg-card" style={{
-                position: 'relative', overflow: 'hidden', cursor: 'pointer',
-                background: offer.color, aspectRatio: '16/9',
-              }}>
-                <Image
-                  src={offer.img}
-                  alt={offer.title}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  style={{ objectFit: 'cover' }}
-                />
-                <div style={{
-                  position: 'absolute', inset: 0,
-                  background: 'linear-gradient(135deg, rgba(0,0,0,0.5) 0%, transparent 60%)',
-                  display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '24px',
+              <Link
+                href="/shop"
+                style={{ textDecoration: 'none', display: 'block' }}
+              >
+                <div className="mg-card" style={{
+                  position: 'relative', overflow: 'hidden', cursor: 'pointer',
+                  background: offer.color, aspectRatio: '16/9',
                 }}>
-                  <div style={{
-                    background: 'linear-gradient(135deg, #3BAE56, #61C454)',
-                    borderRadius: '9999px', padding: '4px 14px',
-                    fontSize: '13px', fontWeight: '800', color: 'white',
-                    display: 'inline-block', marginBottom: '8px', width: 'fit-content',
-                  }}>{offer.badge}</div>
-                  <div style={{ color: 'white', fontSize: '18px', fontWeight: '700', fontFamily: 'var(--font-outfit)' }}>{offer.title}</div>
+                  <Image
+                    src={offer.img}
+                    alt={offer.title}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    style={{ objectFit: 'cover' }}
+                  />
                 </div>
-              </div>
-            </Link>
+              </Link>
+            </div>
           ))}
         </div>
       </div>
@@ -125,7 +126,8 @@ export const ShopByCategoryCards = () => {
 
   return (
     <section className="mg-section-spacing" style={{ background: 'white' }}>
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .shop-by-cat-grid {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -254,7 +256,7 @@ export const ShopByCategoryCards = () => {
         <div className="shop-by-cat-grid">
           {categories.map((cat, idx) => (
             <Link key={idx} href={`/shop?category=${encodeURIComponent(cat.query)}`} style={{ textDecoration: 'none' }}>
-              <div 
+              <div
                 className="cat-card-container"
                 style={{
                   '--bg': cat.bg,
@@ -314,7 +316,7 @@ export const RecentBlogs = () => {
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
           <h2 className="mg-section-title">From Our Blog</h2>
-          <p className="mg-section-subtitle">Tips, guides and insights on herbal wellness</p>
+          <p className="mg-section-subtitle">Tips, guides and insights on herbal </p>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
           {posts.map((post, idx) => (

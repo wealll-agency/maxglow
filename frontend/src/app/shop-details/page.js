@@ -243,7 +243,7 @@ function ShopDetailsContent() {
             box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
             padding: 12px 16px;
             padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-            z-index: 9999;
+            z-index: 1020;
             transform: translate3d(0, 0, 0);
             will-change: transform;
           }

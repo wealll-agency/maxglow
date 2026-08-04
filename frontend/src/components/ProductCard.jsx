@@ -28,10 +28,10 @@ const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggl
   const resolvedProduct = product._id && /^[0-9a-fA-F]{24}$/.test(product._id)
     ? product
     : dbProducts.find(p => {
-        const pName = p.name.toLowerCase().replace(/[^a-zA-Z0-9]/g, '');
-        const cardName = product.name.toLowerCase().replace(/\.\.\./g, '').replace(/[^a-zA-Z0-9]/g, '');
-        return pName.includes(cardName) || cardName.includes(pName);
-      }) || product;
+      const pName = p.name.toLowerCase().replace(/[^a-zA-Z0-9]/g, '');
+      const cardName = product.name.toLowerCase().replace(/\.\.\./g, '').replace(/[^a-zA-Z0-9]/g, '');
+      return pName.includes(cardName) || cardName.includes(pName);
+    }) || product;
 
   const productId = resolvedProduct._id || product.name;
   const isWishlisted = wishlistItems.some(i => i._id === productId);
@@ -116,8 +116,8 @@ const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggl
   const secondImage = getImageUrl(allImages[1] || allImages[0]);
 
   return (
-    <div className="mg-product-card" style={{ 
-      height: '100%', 
+    <div className="mg-product-card" style={{
+      height: '100%',
       position: 'relative',
       border: isComboMode && isSelected ? '2px solid #1c72b9' : '2px solid transparent',
       borderRadius: '16px',
@@ -148,7 +148,7 @@ const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggl
         </button>
 
         {/* Discount Badge */}
-          {discountLabel && (
+        {discountLabel && (
           <div className="mg-product-tag mg-tag-left" style={{
             position: 'absolute', top: '12px', left: '12px', zIndex: 10,
             background: 'linear-gradient(135deg, #3BAE56, #61C454)',
@@ -163,10 +163,10 @@ const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggl
 
         {(() => {
           const rawTags = resolvedProduct.searchTags;
-          const customTag = Array.isArray(rawTags) && rawTags.length > 0 && rawTags[0].trim() !== '' 
-            ? rawTags[0] 
+          const customTag = Array.isArray(rawTags) && rawTags.length > 0 && rawTags[0].trim() !== ''
+            ? rawTags[0]
             : (typeof rawTags === 'string' && rawTags.trim() !== '' ? rawTags : null);
-            
+
           if (customTag) {
             return (
               <div className="mg-product-tag mg-tag-right" style={{
@@ -291,14 +291,14 @@ const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggl
                 style={{
                   flex: 1, padding: '10px 0', border: 'none', cursor: 'pointer',
                   background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
-                  color: 'white', borderRadius: '9999px', fontSize: '11px', fontWeight: '800',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2px',
+                  color: 'white', borderRadius: '9999px', fontSize: '12px', fontWeight: '800',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
                   transition: 'all 0.2s ease', letterSpacing: '0.01em',
                 }}
                 onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
                 onMouseLeave={e => e.currentTarget.style.opacity = '1'}
               >
-                <FiShoppingCart size={13} /> CART
+                <FiShoppingCart size={15} /> CART
               </button>
               <button
                 onClick={handleBuyNow}
@@ -306,15 +306,15 @@ const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggl
                 style={{
                   flex: 1, padding: '10px 0', border: 'none', cursor: 'pointer',
                   background: 'linear-gradient(135deg, #3BAE56 0%, #61C454 100%)',
-                  color: 'white', borderRadius: '9999px', fontSize: '11px', fontWeight: '800',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2px',
+                  color: 'white', borderRadius: '9999px', fontSize: '12px', fontWeight: '800',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
                   transition: 'all 0.2s ease', letterSpacing: '0.01em',
                   boxShadow: '0 4px 12px rgba(59,174,86,0.25)',
                 }}
                 onMouseEnter={e => e.currentTarget.style.boxShadow = '0 6px 16px rgba(59,174,86,0.4)'}
                 onMouseLeave={e => e.currentTarget.style.boxShadow = '0 4px 12px rgba(59,174,86,0.25)'}
               >
-                <FiZap size={13} /> BUY NOW
+                <FiZap size={15} /> BUY
               </button>
             </>
           )}

@@ -39,8 +39,20 @@ const Header = () => {
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    const handleResize = () => {
+      if (window.innerWidth >= 992) {
+        setIsMobileMenuOpen(false);
+      }
+    };
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('resize', handleResize, { passive: true });
+    
+    handleResize(); // Check initially
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   useEffect(() => {
@@ -353,7 +365,7 @@ const Header = () => {
         </nav>
 
         {/* Mobile Footer */}
-        <div style={{ padding: '16px', borderTop: '1px solid #f1f5f9' }}>
+        <div style={{ padding: '16px', paddingBottom: '40px', borderTop: '1px solid #f1f5f9' }}>
           {user ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <Link href="/user/profile" className="btn-mg-outline" onClick={() => setIsMobileMenuOpen(false)} style={{ justifyContent: 'center', fontSize: '14px', padding: '10px 20px' }}>

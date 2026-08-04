@@ -12,6 +12,10 @@ export default function RefundsPageClient({ status }) {
   const [selectedRefund, setSelectedRefund] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
+
   useEffect(() => {
     dispatch(fetchRefundRequests(status));
   }, [dispatch, status]);
@@ -26,6 +30,12 @@ export default function RefundsPageClient({ status }) {
       ref._id.toLowerCase().includes(term)
     );
   }) || [];
+
+  // Pagination Logic
+  const totalPages = Math.ceil(filteredRefunds.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredRefunds.slice(indexOfFirstItem, indexOfLastItem);
 
   return (
     <div className="container-fluid py-4 px-4">
@@ -57,7 +67,10 @@ export default function RefundsPageClient({ status }) {
                 type="text" 
                 className="form-control bg-light border-start-0" 
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
               />
               <button className="btn btn-dark px-4 border-0" style={{ backgroundColor: '#162C18' }}>
                 Search
@@ -105,7 +118,7 @@ export default function RefundsPageClient({ status }) {
                     <td className="py-3"><div className="bg-light rounded-circle mx-auto" style={{ width: '32px', height: '32px' }}></div></td>
                   </tr>
                 ))
-              ) : filteredRefunds.length === 0 ? (
+              ) : currentItems.length === 0 ? (
                 <tr>
                   <td colSpan="7" className="text-center py-5">
                     <div className="d-flex flex-column align-items-center justify-content-center opacity-50 py-4">
@@ -115,7 +128,7 @@ export default function RefundsPageClient({ status }) {
                   </td>
                 </tr>
               ) : (
-                filteredRefunds.map((ref, index) => (
+                currentItems.map((ref, index) => (
                   <tr key={ref._id} className="border-bottom">
                     <td className="py-3 text-dark">{index + 1}</td>
                     <td className="py-3">
@@ -170,6 +183,46 @@ export default function RefundsPageClient({ status }) {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Controls */}
+        {!refundsLoading && totalPages > 0 && (
+          <div className="d-flex flex-wrap justify-content-between align-items-center px-4 py-3 border-top">
+            <span className="text-muted fs-7 mb-2 mb-md-0">
+              Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredRefunds.length)} of {filteredRefunds.length} entries
+            </span>
+            <nav>
+              <ul className="pagination m-0 d-flex align-items-center" style={{ gap: '6px' }}>
+                <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                  <button className="page-link shadow-none fw-medium" style={{ borderRadius: '8px', border: '1px solid #e2e8f0', color: currentPage === 1 ? '#94a3b8' : '#475569', padding: '6px 14px', fontSize: '14px', backgroundColor: currentPage === 1 ? '#f8fafc' : '#ffffff', cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }} onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}>Previous</button>
+                </li>
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => {
+                  if (
+                    number === 1 || 
+                    number === totalPages || 
+                    (number >= currentPage - 1 && number <= currentPage + 1)
+                  ) {
+                    return (
+                      <li key={number} className={`page-item ${currentPage === number ? 'active' : ''}`}>
+                        <button className="page-link shadow-none fw-bold" style={{ borderRadius: '8px', border: currentPage === number ? '1px solid #00d2d3' : '1px solid #e2e8f0', color: currentPage === number ? '#ffffff' : '#475569', padding: '6px 14px', fontSize: '14px', backgroundColor: currentPage === number ? '#00d2d3' : '#ffffff' }} onClick={() => setCurrentPage(number)}>{number}</button>
+                      </li>
+                    );
+                  } else if (
+                    number === currentPage - 2 || 
+                    number === currentPage + 2
+                  ) {
+                    return <li key={number} className="page-item disabled"><span className="page-link shadow-none" style={{ borderRadius: '8px', border: '1px solid #e2e8f0', color: '#94a3b8', padding: '6px 14px', fontSize: '14px', backgroundColor: '#f8fafc' }}>...</span></li>;
+                  }
+                  return null;
+                })}
+                
+                <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                  <button className="page-link shadow-none fw-medium" style={{ borderRadius: '8px', border: '1px solid #e2e8f0', color: currentPage === totalPages ? '#94a3b8' : '#475569', padding: '6px 14px', fontSize: '14px', backgroundColor: currentPage === totalPages ? '#f8fafc' : '#ffffff', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }} onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}>Next</button>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        )}
       </div>
 
       {selectedRefund && (

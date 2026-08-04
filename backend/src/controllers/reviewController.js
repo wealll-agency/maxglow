@@ -57,3 +57,24 @@ export const getProductReviews = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Get 4 random 5-star reviews for the homepage
+// @route   GET /api/reviews/featured
+// @access  Public
+export const getFeaturedReviews = async (req, res, next) => {
+  try {
+    const reviews = await Review.aggregate([
+      { $match: { rating: 5, isVerifiedPurchase: true } },
+      { $sample: { size: 4 } }
+    ]);
+    
+    await Review.populate(reviews, [
+      { path: 'user', select: 'name' },
+      { path: 'product', select: 'name' }
+    ]);
+
+    res.json({ success: true, reviews });
+  } catch (error) {
+    next(error);
+  }
+};

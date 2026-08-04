@@ -7,7 +7,8 @@ import { Leaf } from 'lucide-react';
 const Footer = () => {
   return (
     <footer>
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .mg-footer-links-wrap {
           display: contents;
         }
@@ -157,7 +158,7 @@ const Footer = () => {
               </h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {[
-                  { icon: <FiMail size={14} />, text: 'support@maxglow.in' },
+                  { icon: <FiMail size={14} />, text: 'support@gmail.com' },
                   { icon: <FiMapPin size={14} />, text: 'Delhi, India' },
                 ].map((item, idx) => (
                   <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#94a3b8', fontSize: '13px' }}>
@@ -177,7 +178,7 @@ const Footer = () => {
             flexWrap: 'wrap', gap: '12px',
           }}>
             <p style={{ color: '#64748b', fontSize: '13px', margin: 0 }}>
-              © 2025 MaxGlow. All rights reserved.
+              © 2026 MaxGlow. All rights reserved.
             </p>
             <div style={{ display: 'flex', gap: '20px' }}>
               {['Privacy Policy', 'Terms of Service', 'Refund Policy'].map((link, idx) => (

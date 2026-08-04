@@ -2,9 +2,10 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import React, { memo } from 'react';
+import React, { memo, useState, useEffect } from 'react';
+import api from '../utils/axiosConfig';
 
-const categories = [
+export const defaultShopByProducts = [
   { label: 'Skin Care', image: '/category-icons/skin-care.png', query: 'Skin Care', color: '#DDF4FF', glowColor: 'rgba(74, 144, 226, 0.35)' },
   { label: 'Hair Care', image: '/category-icons/hair-care.png', query: 'Hair Care', color: '#DDF7E3', glowColor: 'rgba(59, 174, 86, 0.35)' },
   { label: 'Serum', image: '/category-icons/wellness.png', query: 'Serum', color: '#F0E6FF', glowColor: 'rgba(155, 81, 224, 0.35)' },
@@ -16,6 +17,32 @@ const categories = [
 
 const CategoryIconRow = () => {
   const router = useRouter();
+  const [categories, setCategories] = useState(defaultShopByProducts);
+
+  const getImageUrl = (url) => {
+    if (!url) return '';
+    if (url.startsWith('http') || url.startsWith('blob:')) return url;
+    if (url.startsWith('/uploads/')) {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'https://api.maxglow.in';
+      return `${baseUrl}${url}`;
+    }
+    return url;
+  };
+
+  useEffect(() => {
+    const fetchIcons = async () => {
+      try {
+        const res = await api.get('/auth/settings');
+        if (res.data.success && Array.isArray(res.data.settings?.media_shop_by_products) && res.data.settings.media_shop_by_products.length > 0) {
+          setCategories(res.data.settings.media_shop_by_products.map(cat => ({
+            ...cat,
+            image: getImageUrl(cat.image)
+          })));
+        }
+      } catch (err) {}
+    };
+    fetchIcons();
+  }, []);
 
   return (
     <section className="category-icon-row-section">
@@ -35,7 +62,7 @@ const CategoryIconRow = () => {
         </div>
         <div className="category-icon-row-container">
           {categories.map((cat, idx) => {
-            const targetHref = cat.isOffer ? '/shop' : `/shop?category=${encodeURIComponent(cat.query)}`;
+            const targetHref = cat.isOffer || String(cat.query).toLowerCase() === 'sale' ? '/shop' : `/shop?category=${encodeURIComponent(cat.query || cat.label)}`;
             return (
               <Link
                 key={idx}
@@ -46,10 +73,10 @@ const CategoryIconRow = () => {
                 style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', width: '110px', flexShrink: 0 }}
               >
               {/* Circle */}
-              <div className="category-circle category-circle-wrapper" style={{ background: cat.color, width: '100px', height: '100px', minWidth: '100px', minHeight: '100px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 8px 24px ${cat.glowColor}`, transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }}>
+              <div className="category-circle category-circle-wrapper" style={{ background: cat.color || '#F0F0F0', width: '100px', height: '100px', minWidth: '100px', minHeight: '100px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 8px 24px ${cat.glowColor || 'rgba(0,0,0,0.1)'}`, transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }}>
                 <Image
-                  src={cat.image}
-                  alt={cat.label}
+                  src={cat.image || '/logo.png'}
+                  alt={cat.label || 'Category'}
                   width={70}
                   height={70}
                   style={{ width: '70px', height: '70px', objectFit: cat.image === '/logo.png' ? 'contain' : 'cover', padding: cat.image === '/logo.png' ? '8px' : '0', borderRadius: '50%' }}
