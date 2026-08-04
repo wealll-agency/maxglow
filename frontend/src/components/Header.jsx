@@ -359,6 +359,11 @@ const Header = () => {
               <Link href="/user/profile" className="btn-mg-outline" onClick={() => setIsMobileMenuOpen(false)} style={{ justifyContent: 'center', fontSize: '14px', padding: '10px 20px' }}>
                 <FiUser size={16} /> My Profile
               </Link>
+              {['Super Admin', 'Manager', 'Staff'].includes(user.role) && (
+                <Link href="/admin/dashboard" className="btn-mg-primary" onClick={() => setIsMobileMenuOpen(false)} style={{ justifyContent: 'center', fontSize: '14px', padding: '10px 20px', background: '#3BAE56', color: '#fff', border: 'none' }}>
+                  <MdDashboard size={16} style={{ marginRight: '6px' }} /> Go to Admin Portal
+                </Link>
+              )}
               <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff0f0', border: 'none', borderRadius: '9999px', padding: '10px', color: '#ef4444', fontWeight: '600', cursor: 'pointer', fontSize: '14px' }}>
                 <FiLogOut size={16} style={{ marginRight: '6px' }} /> Log Out
               </button>
