@@ -63,6 +63,11 @@ const MobileMenu = () => {
               <Phone size={18} className="text-muted" />CONTACT
             </Link>
           </li>
+          <li className="list-group-item">
+            <Link href="/user/orders" className="d-flex align-items-center py-2 text-dark text-decoration-none fw-bold gap-2" onClick={closeMenu}>
+              <Package size={18} className="text-muted" />MY ORDERS
+            </Link>
+          </li>
           {user ? (
             <>
               <li className="list-group-item">
@@ -70,11 +75,7 @@ const MobileMenu = () => {
                   <User size={18} className="text-muted" />MY PROFILE
                 </Link>
               </li>
-              <li className="list-group-item">
-                <Link href="/user/orders" className="d-flex align-items-center py-2 text-dark text-decoration-none fw-bold gap-2" onClick={closeMenu}>
-                  <Package size={18} className="text-muted" />MY ORDERS
-                </Link>
-              </li>
+
               <li className="list-group-item">
                 <a href="#" className="d-flex align-items-center py-2 text-danger text-decoration-none fw-bold gap-2" onClick={handleLogout}>
                   <LogOut size={18} className="text-danger" />LOG OUT

@@ -44,6 +44,17 @@ const Header = () => {
   }, []);
 
   useEffect(() => {
+    if (isMobileMenuOpen || isCartOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileMenuOpen, isCartOpen]);
+
+  useEffect(() => {
     const handleClickOutside = (e) => {
       if (userDropdownRef.current && !userDropdownRef.current.contains(e.target)) {
         setIsUserDropdownOpen(false);
@@ -273,10 +284,11 @@ const Header = () => {
       }}>
         {/* Mobile Header */}
         <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '16px 20px', borderBottom: '1px solid #f1f5f9',
           background: 'linear-gradient(135deg, #EAF8FF 0%, #DDF7E3 100%)',
         }}>
+          <h5 style={{ margin: 0, fontWeight: 700, color: '#1a2332', fontFamily: 'var(--font-outfit), sans-serif' }}>Menu</h5>
           <button onClick={() => setIsMobileMenuOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: '4px' }}>
             <FiX size={22} />
           </button>
@@ -323,6 +335,21 @@ const Header = () => {
               {link.label}
             </Link>
           ))}
+          <Link
+            href="/user/orders"
+            onClick={() => setIsMobileMenuOpen(false)}
+            style={{
+              display: 'flex', alignItems: 'center', padding: '14px 12px',
+              borderRadius: '10px', fontSize: '15px', fontWeight: '600',
+              color: '#374151', textDecoration: 'none',
+              fontFamily: 'var(--font-outfit), sans-serif',
+              marginBottom: '4px', transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#DDF7E3'; e.currentTarget.style.color = '#3BAE56'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#374151'; }}
+          >
+            My Orders
+          </Link>
         </nav>
 
         {/* Mobile Footer */}

@@ -23,9 +23,9 @@ const purposes = [
   },
   {
     icon: <Shield size={28} />,
-    title: 'Wellness & Immunity',
-    desc: 'Ashwagandha, Tulsi, Turmeric — strengthen from within',
-    link: '/shop?category=Wellness',
+    title: 'Face Serums & Actives',
+    desc: 'Vitamin C, Niacinamide, Hyaluronic — target your skin concerns',
+    link: '/shop?category=Serum',
     color: '#F0E6FF',
     accent: '#8b5cf6',
   },

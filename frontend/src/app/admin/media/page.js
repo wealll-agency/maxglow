@@ -19,7 +19,7 @@ export default function AdminMedia() {
     'Skin Care': '/banner_skin_care.png',
     'Hair Care': '/banner_hair_care.png',
     'Body Care': '/banner_body_care.png',
-    'Wellness': '/banner_wellness.png'
+    'Serum': '/banner_wellness.png'
   });
   const [categories, setCategories] = useState([]);
   const [reels, setReels] = useState([
@@ -37,12 +37,18 @@ export default function AdminMedia() {
 
   const getImageUrl = (url) => {
     if (!url) return '';
-    if (url.startsWith('http') || url.startsWith('blob:')) return url;
-    if (url.startsWith('/uploads/')) {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'http://localhost:7052';
-      return `${baseUrl}${url}`;
+    let cleanedUrl = url;
+    if (typeof cleanedUrl === 'string' && (cleanedUrl.includes('localhost') || cleanedUrl.includes('127.0.0.1'))) {
+      if (cleanedUrl.includes('/uploads/')) {
+        cleanedUrl = cleanedUrl.substring(cleanedUrl.indexOf('/uploads/'));
+      }
     }
-    return url;
+    if (cleanedUrl.startsWith('http') || cleanedUrl.startsWith('blob:')) return cleanedUrl;
+    if (cleanedUrl.startsWith('/uploads/')) {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'https://api.maxglow.in';
+      return `${baseUrl}${cleanedUrl}`;
+    }
+    return cleanedUrl;
   };
 
   const fetchData = async () => {
@@ -175,7 +181,7 @@ export default function AdminMedia() {
   }
 
   // Combined list of default + dynamic categories
-  const defaultCategoryNames = ['Skin Care', 'Hair Care', 'Body Care', 'Wellness'];
+  const defaultCategoryNames = ['Skin Care', 'Hair Care', 'Body Care', 'Serum'];
   const fetchedCategoryNames = (categories || []).map(c => typeof c === 'string' ? c : c.name).filter(Boolean);
   const allCategoryNames = Array.from(new Set([...defaultCategoryNames, ...fetchedCategoryNames, ...Object.keys(categoryBanners)]));
 

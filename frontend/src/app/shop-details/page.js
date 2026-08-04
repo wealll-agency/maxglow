@@ -211,12 +211,18 @@ function ShopDetailsContent() {
 
   const getImageUrl = (url) => {
     if (!url) return '/top_product1.png';
-    if (url.startsWith('http')) return url;
-    if (url.startsWith('/uploads/')) {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'https://maxglow.in';
-      return `${baseUrl}${url}`;
+    let cleanedUrl = url;
+    if (typeof cleanedUrl === 'string' && (cleanedUrl.includes('localhost') || cleanedUrl.includes('127.0.0.1'))) {
+      if (cleanedUrl.includes('/uploads/')) {
+        cleanedUrl = cleanedUrl.substring(cleanedUrl.indexOf('/uploads/'));
+      }
     }
-    return url.replace('/assets/images/', '/');
+    if (cleanedUrl.startsWith('http')) return cleanedUrl;
+    if (cleanedUrl.startsWith('/uploads/')) {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'https://maxglow.in';
+      return `${baseUrl}${cleanedUrl}`;
+    }
+    return cleanedUrl.replace('/assets/images/', '/');
   };
 
   return (

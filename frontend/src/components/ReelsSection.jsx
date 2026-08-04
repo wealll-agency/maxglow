@@ -65,7 +65,7 @@ const reels = [
     video: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
     poster: 'https://placehold.co/400x600/0a1628/ffffff?text=Glow+Mask',
     title: 'Turmeric Glow Mask',
-    tag: 'Wellness',
+    tag: 'Serum',
     price: 449,
     originalPrice: 599,
     link: '/shop-details?name=Turmeric%20Glow%20Mask'
@@ -95,7 +95,7 @@ const reels = [
     video: 'https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
     poster: 'https://placehold.co/400x600/0a1628/ffffff?text=Sleep+Spray',
     title: 'Lavender Sleep Spray',
-    tag: 'Wellness',
+    tag: 'Serum',
     price: 399,
     originalPrice: 499,
     link: '/shop-details?name=Lavender%20Sleep%20Spray'

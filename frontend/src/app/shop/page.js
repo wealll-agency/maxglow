@@ -1,5 +1,6 @@
 "use client";
 import Link from 'next/link';
+import api from '../../utils/axiosConfig';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import React, { useEffect, useState, useRef, Suspense, memo } from 'react';
@@ -295,9 +296,9 @@ function ShopContent() {
             title = 'Nourishing Body Care';
             desc = 'Indulge in our luxurious spa-grade body lotions and scrubs for smooth, radiant skin.';
             bgImg = '/banner_body_care.png';
-          } else if (c.includes('wellness')) {
-            title = 'Holistic Wellness';
-            desc = 'Find your balance with our peaceful aromatherapy and natural wellness essentials.';
+          } else if (c.includes('serum')) {
+            title = 'Premium Serums';
+            desc = 'Target your skin concerns with our concentrated, botanical-rich face serums.';
             bgImg = '/banner_wellness.png';
           } else {
             title = `${cat} Products`;

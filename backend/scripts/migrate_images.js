@@ -2,6 +2,8 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import path from 'path';
+import dns from 'dns';
+dns.setServers(['8.8.8.8']);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -69,23 +71,27 @@ async function run() {
       let val = setting.value;
       let updated = false;
 
-      const cleanString = (str) => {
-        if (typeof str === 'string' && str.includes('/uploads/')) {
-          const idx = str.indexOf('/uploads/');
-          const cleaned = str.substring(idx);
-          if (cleaned !== str) {
+      const cleanString = (val) => {
+        if (typeof val === 'string' && val.includes('/uploads/')) {
+          const idx = val.indexOf('/uploads/');
+          const cleaned = val.substring(idx);
+          if (cleaned !== val) {
             updated = true;
             return cleaned;
           }
+        } else if (Array.isArray(val)) {
+          return val.map(item => cleanString(item));
+        } else if (val && typeof val === 'object') {
+          const newObj = {};
+          for (const k in val) {
+            newObj[k] = cleanString(val[k]);
+          }
+          return newObj;
         }
-        return str;
+        return val;
       };
 
-      if (Array.isArray(val)) {
-        val = val.map(item => cleanString(item));
-      } else if (typeof val === 'string') {
-        val = cleanString(val);
-      }
+      val = cleanString(val);
 
       if (updated) {
         await SystemSetting.updateOne({ _id: setting._id }, { $set: { value: val } });

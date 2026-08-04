@@ -114,10 +114,10 @@ export const ShopByCategoryCards = () => {
       accent: '#f59e0b',
     },
     {
-      name: 'Wellness',
+      name: 'Serum',
       discount: 'UPTO 50% OFF',
       image: '/category_wellness_v2.png',
-      query: 'Wellness',
+      query: 'Serum',
       bg: '#F0E6FF',
       accent: '#8b5cf6',
     },
