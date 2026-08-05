@@ -5,7 +5,7 @@ import React, { memo, useState, useEffect } from 'react';
 import api from '../utils/axiosConfig';
 
 const CashewsBanner = () => {
-  const [bannerImg, setBannerImg] = useState('/trending_banner.png');
+  const [bannerImg, setBannerImg] = useState(''); // Initialize empty to prevent cache flashing
 
   useEffect(() => {
     const fetchBanner = async () => {
@@ -13,8 +13,10 @@ const CashewsBanner = () => {
         const res = await api.get('/auth/settings');
         if (res.data.success && res.data.settings?.media_trending_banner) {
           setBannerImg(res.data.settings.media_trending_banner);
+          return;
         }
       } catch (err) {}
+      setBannerImg('/trending_banner.png'); // Fallback only if no dynamic images exist
     };
     fetchBanner();
   }, []);
@@ -66,14 +68,18 @@ const CashewsBanner = () => {
               }
             }
           ` }} />
-          <Image
-            src={getImageUrl(bannerImg)}
-            alt="Trending Now Banner"
-            width={1440}
-            height={280}
-            sizes="100vw"
-            className="trending-banner-img"
-          />
+          {bannerImg ? (
+            <Image
+              src={getImageUrl(bannerImg)}
+              alt="Trending Now Banner"
+              width={1440}
+              height={280}
+              sizes="100vw"
+              className="trending-banner-img"
+            />
+          ) : (
+            <div className="trending-banner-img" style={{ backgroundColor: '#f1f5f9' }} />
+          )}
         </Link>
 
       </div>

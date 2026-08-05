@@ -11,7 +11,7 @@ const SLIDE_INTERVAL = 4000;
 export default function HeroSlider() {
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [images, setImages] = useState(DEFAULT_IMAGES);
+  const [images, setImages] = useState([]); // Initialize empty to prevent cache flashing
 
   useEffect(() => {
     const fetchHero = async () => {
@@ -27,7 +27,7 @@ export default function HeroSlider() {
       } catch (err) {
         console.error('Failed to load hero images', err);
       }
-      setImages(DEFAULT_IMAGES);
+      setImages(DEFAULT_IMAGES); // Fallback only if no dynamic images exist
     };
     fetchHero();
   }, []);

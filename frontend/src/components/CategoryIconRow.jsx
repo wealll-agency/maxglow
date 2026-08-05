@@ -17,7 +17,7 @@ export const defaultShopByProducts = [
 
 const CategoryIconRow = () => {
   const router = useRouter();
-  const [categories, setCategories] = useState(defaultShopByProducts);
+  const [categories, setCategories] = useState([]);
 
   const getImageUrl = (url) => {
     if (!url) return '';
@@ -47,8 +47,10 @@ const CategoryIconRow = () => {
             ...cat,
             image: getImageUrl(cat.image)
           })));
+          return;
         }
       } catch (err) {}
+      setCategories(defaultShopByProducts);
     };
     fetchIcons();
   }, []);
