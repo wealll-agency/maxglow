@@ -552,7 +552,7 @@ function ShopDetailsContent() {
                   </span>
                   {realProduct.discount > 0 && (
                     <span style={{ background: '#DDF7E3', color: '#3BAE56', fontSize: '12px', fontWeight: '700', padding: '4px 10px', borderRadius: '9999px' }}>
-                      {realProduct.discount}% OFF
+                      {realProduct.discountType === 'Percent' ? `${realProduct.discount}% OFF` : `₹${realProduct.discount} OFF`}
                     </span>
                   )}
                 </div>
@@ -913,8 +913,8 @@ function ShopDetailsContent() {
               <span className="sticky-bar-mrp">₹{basePrice}</span>
               <span className="sticky-bar-discount">
                 {realProduct.discountType === 'Percent' 
-                  ? `${realProduct.discount}%` 
-                  : `${Math.round((realProduct.discount / basePrice) * 100)}%`} OFF
+                  ? `${realProduct.discount}% OFF` 
+                  : `₹${realProduct.discount} OFF`}
               </span>
             </>
           )}
