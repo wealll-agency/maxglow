@@ -9,7 +9,7 @@ import Image from 'next/image';
 import { useEffect, useState, Suspense } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchAdminOrders, updateOrderStatus, refundOrder, createDelhiveryShipment, cancelDelhiveryShipment, getDelhiveryLabel, fetchWarehouses } from '../../../store/adminSlice';
-import { ShoppingBag, Eye, MapPin, Check, Filter, Clock, Search, X, Printer, Package, Truck, CheckCircle, CreditCard, RotateCcw, AlertTriangle } from 'lucide-react';
+import { ShoppingBag, Eye, MapPin, Check, Filter, Clock, Search, X, Printer, Package, Truck, CheckCircle, CreditCard, RotateCcw, AlertTriangle, Download } from 'lucide-react';
 
 
 import { useNotification } from '../../../context/NotificationContext';
@@ -298,6 +298,36 @@ function AdminOrdersContent() {
     ? orders.filter(ord => ord.orderStatus === filterStatus)
     : orders;
 
+  const exportToExcel = () => {
+    const csvRows = [];
+    const headers = ['Order ID', 'Customer Name', 'Customer Email', 'Date', 'Total Amount', 'Payment Mode', 'Payment Status', 'Order Status'];
+    csvRows.push(headers.join(','));
+
+    displayOrders.forEach(ord => {
+      const row = [
+        ord._id,
+        `"${(ord.user?.name || 'Guest').replace(/"/g, '""')}"`,
+        `"${(ord.user?.email || 'N/A').replace(/"/g, '""')}"`,
+        `"${new Date(ord.createdAt).toLocaleDateString()}"`,
+        ord.totalAmount,
+        `"${ord.paymentMode === 'COD' ? 'COD' : 'Online'}"`,
+        `"${ord.paymentStatus}"`,
+        `"${ord.orderStatus}"`
+      ];
+      csvRows.push(row.join(','));
+    });
+
+    const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.setAttribute('hidden', '');
+    a.setAttribute('href', url);
+    a.setAttribute('download', 'orders_export.csv');
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
   // Pagination Logic
   const totalPages = Math.ceil(displayOrders.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -374,7 +404,11 @@ function AdminOrdersContent() {
           <h1 className="fw-bold m-0 display-font">Orders Queue</h1>
           <p className="text-muted m-0">View customer checkouts, ship packages, and verify transaction receipts.</p>
         </div>
-        {filterStatus && (
+        <div className="d-flex align-items-center gap-3">
+          <button onClick={exportToExcel} className="btn btn-success d-flex align-items-center gap-2 btn-sm fw-medium px-3 py-2">
+            <Download size={16} /> Export to Excel
+          </button>
+          {filterStatus && (
           <div className="d-flex align-items-center gap-2">
             <span className="badge bg-brand text-white fs-7 px-3 py-2">
               <Filter size={14} className="me-1" /> Filter: {filterStatus}
@@ -384,6 +418,7 @@ function AdminOrdersContent() {
             </Link>
           </div>
         )}
+        </div>
       </div>
 
       {/* Orders Grid */}

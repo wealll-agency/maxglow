@@ -5,7 +5,7 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchAdminOrders } from '../../../store/adminSlice';
-import { Users, Mail, MapPin, Eye } from 'lucide-react';
+import { Users, Mail, MapPin, Eye, Download } from 'lucide-react';
 
 export default function AdminCustomersPage() {
   const dispatch = useDispatch();
@@ -58,6 +58,33 @@ export default function AdminCustomersPage() {
     }
   }, [orders]);
 
+  const exportToExcel = () => {
+    const csvRows = [];
+    const headers = ['Customer Name', 'Email', 'Phone', 'Orders Count', 'Total Spent (INR)'];
+    csvRows.push(headers.join(','));
+
+    customers.forEach(cust => {
+      const row = [
+        `"${cust.name.replace(/"/g, '""')}"`,
+        `"${cust.email.replace(/"/g, '""')}"`,
+        `"${cust.phone.replace(/"/g, '""')}"`,
+        cust.ordersCount,
+        cust.totalSpent
+      ];
+      csvRows.push(row.join(','));
+    });
+
+    const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.setAttribute('hidden', '');
+    a.setAttribute('href', url);
+    a.setAttribute('download', 'customers_export.csv');
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
   return (
     <div className="animate-fade-in">
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -65,6 +92,9 @@ export default function AdminCustomersPage() {
           <h1 className="fw-bold m-0 display-font">Customer Profiling</h1>
           <p className="text-muted m-0">Inspect customer order metrics and contact registries.</p>
         </div>
+        <button onClick={exportToExcel} className="btn btn-success d-flex align-items-center gap-2 btn-sm fw-medium px-3 py-2">
+          <Download size={16} /> Export to Excel
+        </button>
       </div>
 
       <div className="row g-4">

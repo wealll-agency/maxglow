@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchAdminProducts } from '../../../store/adminSlice';
-import { Save, AlertCircle } from 'lucide-react';
+import { Save, AlertCircle, Download } from 'lucide-react';
 import { useNotification } from '../../../context/NotificationContext';
 import api from '../../../utils/axiosConfig';
 
@@ -126,6 +126,36 @@ export default function HomepageProductsPage() {
     return matchesSearch && matchesCategory;
   });
 
+  const exportToExcel = () => {
+    const csvRows = [];
+    const headers = ['Product ID', 'Product Name', 'Category', 'Price', 'Status', 'Show On Homepage', 'New Arrival', 'Manual Top Selling'];
+    csvRows.push(headers.join(','));
+
+    filteredProducts.forEach(prod => {
+      const row = [
+        prod._id,
+        `"${prod.name.replace(/"/g, '""')}"`,
+        `"${prod.category}"`,
+        prod.price,
+        prod.isActive ? 'Active' : 'Inactive',
+        selections.showOnHomepage[prod._id] ? 'Yes' : 'No',
+        selections.newArrival[prod._id] ? 'Yes' : 'No',
+        selections.manualTopSelling[prod._id] ? 'Yes' : 'No'
+      ];
+      csvRows.push(row.join(','));
+    });
+
+    const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.setAttribute('hidden', '');
+    a.setAttribute('href', url);
+    a.setAttribute('download', 'homepage_products_export.csv');
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
   const renderProductList = (flag) => {
     return (
       <div className="table-responsive mt-3">
@@ -194,6 +224,9 @@ export default function HomepageProductsPage() {
     <div className="animate-fade-in position-relative">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h4 className="fw-bold m-0 text-dark">Homepage Products Configuration</h4>
+        <button onClick={exportToExcel} className="btn btn-success d-flex align-items-center gap-2 btn-sm fw-medium px-3 py-2">
+          <Download size={16} /> Export to Excel
+        </button>
       </div>
 
       {/* Global Setting */}
