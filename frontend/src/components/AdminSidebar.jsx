@@ -146,26 +146,11 @@ export default function AdminSidebar() {
           <div className="px-4 mb-4 d-flex align-items-center justify-content-between">
             {!isCollapsed ? (
               <div className="d-flex align-items-center gap-2">
-                <Link href="/" className="d-flex align-items-center text-decoration-none">
-                  <img 
-                    src="/logo.png" 
-                    alt="MaxGlow Logo" 
-                    style={{ height: '38px', width: 'auto', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} 
-                  />
-                </Link>
                 <span className="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 px-2 py-0.5 fs-9 fw-bold">
                   SUPER ADMIN
                 </span>
               </div>
-            ) : (
-              <Link href="/" className="mx-auto d-flex align-items-center text-decoration-none">
-                <img 
-                  src="/logo.png" 
-                  alt="MaxGlow Logo" 
-                  style={{ height: '28px', width: 'auto', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} 
-                />
-              </Link>
-            )}
+            ) : null}
           </div>
 
           {/* Navigation Links */}
