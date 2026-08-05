@@ -10,6 +10,8 @@ export default function FCMProvider({ children }) {
   const { showAlert } = useNotification();
 
   useEffect(() => {
+    /* 
+    // Disabled auto-prompting for notification permission on website load as per user request
     if (user && user.token) {
       // 1. Request Permission & Get Token
       generateToken().then((fcmToken) => {
@@ -20,6 +22,7 @@ export default function FCMProvider({ children }) {
         }
       });
     }
+    */
 
     // 3. Listen for foreground notifications
     onMessageListener().then(payload => {
