@@ -96,7 +96,7 @@ const Header = () => {
   };
 
   const navLinks = [
-    { href: '/shop', label: 'Categories' },
+    { href: '/shop', label: 'Shop' },
     { href: '/shop?sort=bestselling', label: 'Bestsellers' },
     { href: '/build-combo', label: 'Combos' },
     { href: '/about', label: 'About' },

@@ -3,21 +3,21 @@ import Link from 'next/link';
 import Image from 'next/image';
 import React, { useState, useEffect, memo } from 'react';
 import api from '../utils/axiosConfig';
+import dynamic from 'next/dynamic';
 import HeroSlider from '../components/HeroSlider';
 import CategoryIconRow from '../components/CategoryIconRow';
-import ProductCarouselSection from '../components/ProductCarouselSection';
-import ShopByPurpose from '../components/ShopByPurpose';
-import CashewsBanner from '../components/CashewsBanner';
-import Testimonials from '../components/Testimonials';
-import ReelsSection from '../components/ReelsSection';
-import NewArrivalBanner from '../components/NewArrivalBanner';
-import {
-  NuttyDelightOffers,
-  ShopByCategoryCards,
-  RecentBlogs,
-  Faqs,
-  TagsSection,
-} from '../components/HomeSections';
+import { NuttyDelightOffers } from '../components/HomeSections';
+
+const ProductCarouselSection = dynamic(() => import('../components/ProductCarouselSection'), { ssr: true });
+const ShopByPurpose = dynamic(() => import('../components/ShopByPurpose'), { ssr: true });
+const CashewsBanner = dynamic(() => import('../components/CashewsBanner'), { ssr: false });
+const Testimonials = dynamic(() => import('../components/Testimonials'), { ssr: false });
+const ReelsSection = dynamic(() => import('../components/ReelsSection'), { ssr: false });
+const NewArrivalBanner = dynamic(() => import('../components/NewArrivalBanner'), { ssr: true });
+const ShopByCategoryCards = dynamic(() => import('../components/HomeSections').then(mod => mod.ShopByCategoryCards), { ssr: true });
+const RecentBlogs = dynamic(() => import('../components/HomeSections').then(mod => mod.RecentBlogs), { ssr: false });
+const Faqs = dynamic(() => import('../components/HomeSections').then(mod => mod.Faqs), { ssr: false });
+const TagsSection = dynamic(() => import('../components/HomeSections').then(mod => mod.TagsSection), { ssr: false });
 
 export default function Home() {
   const [topSellingProducts, setTopSellingProducts] = useState([]);

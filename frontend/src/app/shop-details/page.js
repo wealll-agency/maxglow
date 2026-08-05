@@ -219,7 +219,13 @@ function ShopDetailsContent() {
     }
     if (cleanedUrl.startsWith('http')) return cleanedUrl;
     if (cleanedUrl.startsWith('/uploads/')) {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'https://maxglow.in';
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : '';
+      
+      // Force video files to bypass Next.js rewrites and hit Express directly to preserve HTTP Range requests
+      if (cleanedUrl.toLowerCase().endsWith('.mp4') || cleanedUrl.toLowerCase().endsWith('.webm')) {
+        return `${baseUrl}/api${cleanedUrl}`;
+      }
+      
       return `${baseUrl}${cleanedUrl}`;
     }
     return cleanedUrl.replace('/assets/images/', '/');
@@ -430,18 +436,24 @@ function ShopDetailsContent() {
               </button>
               {isVideo(mediaItems[activeImageIndex]) ? (
                 <video
-                  src={getImageUrl(mediaItems[activeImageIndex])}
+                  key={mediaItems[activeImageIndex]}
                   style={{ objectFit: 'cover', width: '100%', height: '100%' }}
                   controls
                   autoPlay
                   muted
-                />
+                  playsInline
+                  preload="metadata"
+                >
+                  <source src={encodeURI(getImageUrl(mediaItems[activeImageIndex]))} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
               ) : (
                 <Image
                   src={getImageUrl(mediaItems[activeImageIndex])}
                   alt={realProduct.name}
                   width={400}
                   height={400}
+                  sizes="(max-width: 768px) 100vw, 500px"
                   style={{ objectFit: 'cover', width: '100%', height: '100%' }}
                   priority
                 />

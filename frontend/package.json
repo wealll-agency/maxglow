@@ -12,7 +12,6 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.2.3",
     "axios": "^1.6.8",
-    "bootstrap": "^5.3.3",
     "firebase": "^12.16.0",
     "framer-motion": "^12.42.2",
     "lucide-react": "^0.378.0",
@@ -25,10 +24,7 @@
     "swiper": "^11.2.10"
   },
   "devDependencies": {
-    "autoprefixer": "^10.5.4",
     "eslint": "^8.57.0",
-    "eslint-config-next": "^14.2.3",
-    "postcss": "^8.4.31",
-    "tailwindcss": "^4.3.3"
+    "eslint-config-next": "^14.2.3"
   }
 }

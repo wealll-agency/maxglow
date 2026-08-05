@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import api from '../utils/axiosConfig';
 
 const BANNER_DESTINATION = '/shop';
@@ -10,7 +11,7 @@ const SLIDE_INTERVAL = 4000;
 export default function HeroSlider() {
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [images, setImages] = useState([]);
+  const [images, setImages] = useState(DEFAULT_IMAGES);
 
   useEffect(() => {
     const fetchHero = async () => {
@@ -82,7 +83,7 @@ export default function HeroSlider() {
             boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
             position: 'relative',
             width: '100%',
-            height: '100%', // Allows it to collapse or expand safely
+            aspectRatio: '1920/600',
             backgroundColor: '#e5e7eb',
           }}
         />
@@ -181,15 +182,16 @@ export default function HeroSlider() {
               justifyContent: 'center',
               backgroundColor: '#f8fafc' 
             }}>
-              <img
+              <Image
                 src={img}
                 alt={`MaxGlow Premium Herbal Wellness ${idx + 1}`}
+                width={1920}
+                height={600}
+                priority={idx === 0}
+                sizes="100vw"
                 style={{
-                  maxWidth: '100%',
-                  maxHeight: '100%',
                   width: '100%',
                   height: 'auto',
-                  objectFit: 'contain', 
                   display: 'block',
                   margin: '0 auto'
                 }}

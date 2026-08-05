@@ -75,8 +75,9 @@ function StateHydrator() {
             console.error("Failed to fetch user cart and wishlist", err);
           }
         } catch (e) {
-          // If the server explicitly rejects the token, log them out.
-          if (e.response && (e.response.status === 401 || e.response.status === 403)) {
+          // If the server explicitly rejects the token as invalid/expired (401), log them out.
+          // We DO NOT log out on 403 (Forbidden) because that just means lack of role permission, not expired session!
+          if (e.response && e.response.status === 401) {
             localStorage.removeItem('maxglow_user');
             dispatch(setCredentials(null));
           }
@@ -85,8 +86,7 @@ function StateHydrator() {
       initAuth();
   }, [dispatch]);
 
-  // Global Axios 401 Interceptor - Kept in a separate useEffect so it properly 
-  // survives React 18 Strict Mode unmount/remount cycles.
+  // Global Axios 401 Interceptor
   useEffect(() => {
     const interceptor = api.interceptors.response.use(
       (response) => response,
@@ -101,11 +101,11 @@ function StateHydrator() {
           originalRequest._retry = true;
           try {
              await axios.post(`${api.defaults.baseURL}/auth/refresh`, {}, { withCredentials: true });
-             // The backend set a new HttpOnly access token cookie, so retry the original request
              return api(originalRequest);
           } catch(err) {
-             // Only log out if the server explicitly says the refresh token is invalid/expired (401/403)
-             if (err.response && (err.response.status === 401 || err.response.status === 403)) {
+             // Only log out if the server explicitly says the refresh token is invalid/expired (401)
+             // DO NOT log out on 403 Forbidden!
+             if (err.response && err.response.status === 401) {
                 dispatch(setCredentials(null));
                 if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
                    window.location.href = '/login?session_expired=true';

@@ -270,10 +270,25 @@ const ReelsSection = () => {
                   ? Math.round(p.price * (1 - p.discount / 100))
                   : Math.max(0, p.price - p.discount);
               }
+                const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : '';
+                let videoUrl = p.videos[0];
+                if (videoUrl.startsWith('/uploads/')) {
+                  videoUrl = `${baseUrl}/api${videoUrl}`;
+                } else if (typeof videoUrl === 'string' && (videoUrl.includes('localhost') || videoUrl.includes('127.0.0.1')) && videoUrl.includes('/uploads/')) {
+                  videoUrl = `${baseUrl}/api${videoUrl.substring(videoUrl.indexOf('/uploads/'))}`;
+                }
+
+                let posterUrl = p.images && p.images.length > 0 ? p.images[0] : 'https://placehold.co/400x600/0a1628/ffffff';
+                if (posterUrl.startsWith('/uploads/')) {
+                  posterUrl = `${baseUrl}${posterUrl}`;
+                } else if (typeof posterUrl === 'string' && (posterUrl.includes('localhost') || posterUrl.includes('127.0.0.1')) && posterUrl.includes('/uploads/')) {
+                  posterUrl = `${baseUrl}${posterUrl.substring(posterUrl.indexOf('/uploads/'))}`;
+                }
+
               return {
                 id: p._id || idx,
-                video: p.videos[0],
-                poster: p.images && p.images.length > 0 ? p.images[0] : 'https://placehold.co/400x600/0a1628/ffffff',
+                video: videoUrl,
+                poster: posterUrl,
                 title: p.name,
                 tag: p.category || 'Product',
                 price: finalPrice,

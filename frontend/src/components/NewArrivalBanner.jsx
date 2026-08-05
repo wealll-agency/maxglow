@@ -1,4 +1,5 @@
 "use client";
+import Image from 'next/image';
 import Link from 'next/link';
 import React, { memo, useState, useEffect } from 'react';
 import api from '../utils/axiosConfig';
@@ -34,9 +35,12 @@ const NewArrivalBanner = () => {
           textDecoration: 'none',
           width: '100%',
         }}>
-          <img
+          <Image
             src={bgImage}
             alt="New Arrivals Banner"
+            width={1440}
+            height={400}
+            sizes="100vw"
             style={{
               width: '100%',
               height: 'auto',

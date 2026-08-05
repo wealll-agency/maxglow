@@ -88,7 +88,7 @@ export const NuttyDelightOffers = () => {
 /* ═══════════════════════════════════════════
    SHOP BY CATEGORIES — CARD GRID (matches reference)
    ═══════════════════════════════════════════ */
-export const ShopByCategoryCards = () => {
+export const ShopByCategoryCards = memo(function ShopByCategoryCards() {
   const categories = [
     {
       name: 'Face Care',
@@ -294,7 +294,7 @@ export const ShopByCategoryCards = () => {
       </div>
     </section>
   );
-};
+});
 
 /* ═══════════════════════════════════════════
    LEGACY ShopByCategory — kept for backward compat
@@ -304,7 +304,7 @@ export const ShopByCategory = ShopByCategoryCards;
 /* ═══════════════════════════════════════════
    RECENT BLOGS
    ═══════════════════════════════════════════ */
-export const RecentBlogs = () => {
+export const RecentBlogs = memo(function RecentBlogs() {
   const posts = [
     { img: '/blog_image1.png', title: 'Benefits of Aloe Vera for Skin', date: 'Jul 12, 2025', cat: 'Skin Care' },
     { img: '/blog_image2.png', title: 'How Neem Transforms Hair Health', date: 'Jun 28, 2025', cat: 'Hair Care' },
@@ -337,7 +337,7 @@ export const RecentBlogs = () => {
       </div>
     </section>
   );
-};
+});
 
 /* ═══════════════════════════════════════════
    FAQS
@@ -350,7 +350,7 @@ const faqs = [
   { q: 'Do you offer COD (Cash on Delivery)?', a: 'Yes, we offer Cash on Delivery for orders up to ₹10,000 across most pin codes in India.' },
 ];
 
-export const Faqs = () => {
+export const Faqs = memo(function Faqs() {
   const [openIdx, setOpenIdx] = useState(null);
 
   return (
@@ -396,12 +396,12 @@ export const Faqs = () => {
       </div>
     </section>
   );
-};
+});
 
 /* ═══════════════════════════════════════════
    TAGS SECTION
    ═══════════════════════════════════════════ */
-export const TagsSection = () => {
+export const TagsSection = memo(function TagsSection() {
   const tags = [
     'Aloe Vera', 'Neem Face Wash', 'Hair Oil', 'Skin Brightening', 'Body Butter',
     'Herbal Soap', 'Anti-Dandruff', 'Vitamin C Serum', 'Tea Tree Oil', 'Rosehip Oil',
@@ -429,7 +429,7 @@ export const TagsSection = () => {
       </div>
     </section>
   );
-};
+});
 
 /* Legacy HealthyCombo export */
 export const HealthyCombo = () => null;

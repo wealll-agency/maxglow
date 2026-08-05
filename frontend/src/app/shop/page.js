@@ -54,6 +54,17 @@ function ShopContent() {
     }
   }, [categoryQuery]);
 
+  // Dynamically extract unique categories from the fetched products
+  const dynamicCategories = React.useMemo(() => {
+    const cats = new Set();
+    if (products && products.length > 0) {
+      products.forEach(p => {
+        if (p.category) cats.add(p.category.trim());
+      });
+    }
+    return Array.from(cats).sort();
+  }, [products]);
+
   // Filter products list
   const filteredProducts = products.filter(product => {
     // Price filter
@@ -417,7 +428,7 @@ function ShopContent() {
               <div style={{ borderTop: '1.5px solid #f1f5f9', padding: '16px 0' }}>
                 <h4 style={{ fontFamily: 'var(--font-outfit)', fontSize: '14px', fontWeight: '700', color: '#1a2332', marginBottom: '12px' }}>Category</h4>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {['Skin Care', 'Hair Care', 'Serum', 'Sheet Mask', 'Combos'].map(cat => (
+                  {dynamicCategories.length > 0 ? dynamicCategories.map(cat => (
                     <button
                       key={cat}
                       onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
@@ -431,7 +442,9 @@ function ShopContent() {
                     >
                       {cat}
                     </button>
-                  ))}
+                  )) : (
+                    <span style={{ fontSize: '12px', color: '#94a3b8' }}>Loading...</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -687,7 +700,7 @@ function ShopContent() {
           <div>
             <h4 style={{ fontFamily: 'var(--font-outfit)', fontSize: '14px', fontWeight: '700', color: '#1a2332', marginBottom: '12px' }}>Category</h4>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-              {['Skin Care', 'Hair Care', 'Serum', 'Sheet Mask', 'Combos'].map(cat => (
+              {dynamicCategories.length > 0 ? dynamicCategories.map(cat => (
                 <button
                   key={cat}
                   onClick={() => { setSelectedCategory(selectedCategory === cat ? null : cat); setIsMobileFilterOpen(false); }}
@@ -700,7 +713,9 @@ function ShopContent() {
                 >
                   {cat}
                 </button>
-              ))}
+              )) : (
+                <span style={{ fontSize: '12px', color: '#94a3b8' }}>Loading...</span>
+              )}
             </div>
           </div>
         </div>

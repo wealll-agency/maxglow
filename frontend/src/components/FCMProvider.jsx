@@ -28,7 +28,7 @@ export default function FCMProvider({ children }) {
       }
     }).catch(err => console.log('Failed: ', err));
 
-  }, [user]);
+  }, [user, showAlert]);
 
   return <>{children}</>;
 }

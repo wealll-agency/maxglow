@@ -1,4 +1,5 @@
 "use client";
+import Image from 'next/image';
 import Link from 'next/link';
 import React, { memo, useState, useEffect } from 'react';
 import api from '../utils/axiosConfig';
@@ -20,12 +21,21 @@ const CashewsBanner = () => {
 
   const getImageUrl = (url) => {
     if (!url) return '/trending_banner.png';
-    if (url.startsWith('http') || url.startsWith('blob:')) return url;
-    if (url.startsWith('/uploads/')) {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'https://api.maxglow.in';
-      return `${baseUrl}${url}`;
+    let cleanedUrl = url;
+    if (typeof cleanedUrl === 'string' && (cleanedUrl.includes('localhost') || cleanedUrl.includes('127.0.0.1'))) {
+      if (cleanedUrl.includes('/uploads/')) {
+        cleanedUrl = cleanedUrl.substring(cleanedUrl.indexOf('/uploads/'));
+      }
     }
-    return url;
+    if (cleanedUrl.startsWith('http') || cleanedUrl.startsWith('blob:')) return cleanedUrl;
+    if (cleanedUrl.startsWith('/uploads/')) {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : '';
+      if (cleanedUrl.toLowerCase().endsWith('.mp4') || cleanedUrl.toLowerCase().endsWith('.webm')) {
+        return `${baseUrl}/api${cleanedUrl}`;
+      }
+      return `${baseUrl}${cleanedUrl}`;
+    }
+    return cleanedUrl;
   };
   return (
     <section className="mg-section-spacing" style={{ background: 'white' }}>
@@ -56,9 +66,12 @@ const CashewsBanner = () => {
               }
             }
           ` }} />
-          <img
+          <Image
             src={getImageUrl(bannerImg)}
             alt="Trending Now Banner"
+            width={1440}
+            height={280}
+            sizes="100vw"
             className="trending-banner-img"
           />
         </Link>

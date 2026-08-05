@@ -112,6 +112,7 @@ app.use(cookieParser());
 
 // Static Folder for Local Uploads
 app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
+app.use('/api/uploads', express.static(path.join(__dirname, '../public/uploads')));
 
 // Prevent caching for API routes (fixes live server stale data issues)
 app.use('/api', (req, res, next) => {

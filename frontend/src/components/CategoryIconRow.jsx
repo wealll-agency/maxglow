@@ -21,12 +21,21 @@ const CategoryIconRow = () => {
 
   const getImageUrl = (url) => {
     if (!url) return '';
-    if (url.startsWith('http') || url.startsWith('blob:')) return url;
-    if (url.startsWith('/uploads/')) {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'https://api.maxglow.in';
-      return `${baseUrl}${url}`;
+    let cleanedUrl = url;
+    if (typeof cleanedUrl === 'string' && (cleanedUrl.includes('localhost') || cleanedUrl.includes('127.0.0.1'))) {
+      if (cleanedUrl.includes('/uploads/')) {
+        cleanedUrl = cleanedUrl.substring(cleanedUrl.indexOf('/uploads/'));
+      }
     }
-    return url;
+    if (cleanedUrl.startsWith('http') || cleanedUrl.startsWith('blob:')) return cleanedUrl;
+    if (cleanedUrl.startsWith('/uploads/')) {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : '';
+      if (cleanedUrl.toLowerCase().endsWith('.mp4') || cleanedUrl.toLowerCase().endsWith('.webm')) {
+        return `${baseUrl}/api${cleanedUrl}`;
+      }
+      return `${baseUrl}${cleanedUrl}`;
+    }
+    return cleanedUrl;
   };
 
   useEffect(() => {
@@ -79,6 +88,7 @@ const CategoryIconRow = () => {
                   alt={cat.label || 'Category'}
                   width={70}
                   height={70}
+                  priority
                   style={{ width: '70px', height: '70px', objectFit: cat.image === '/logo.png' ? 'contain' : 'cover', padding: cat.image === '/logo.png' ? '8px' : '0', borderRadius: '50%' }}
                 />
               </div>
