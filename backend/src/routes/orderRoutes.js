@@ -12,11 +12,18 @@ import {
 } from '../controllers/orderController.js';
 import { protect, authorizeRoles } from '../middleware/auth.js';
 import { auditRoute } from '../middleware/logger.js';
+import rateLimit from 'express-rate-limit';
 
 const router = express.Router();
 
+const orderLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // Limit each IP to 20 order requests per window
+  message: 'Too many order requests from this IP, please try again after 15 minutes'
+});
+
 router.route('/')
-  .post(protect, createOrder)
+  .post(protect, orderLimiter, createOrder)
   .get(protect, authorizeRoles('Super Admin', 'Manager', 'Staff'), getAllOrders);
 
 router.route('/shipments')

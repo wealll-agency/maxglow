@@ -328,7 +328,7 @@ function ShopContent() {
           if (!url) return '/trending_banner.png';
           if (url.startsWith('http') || url.startsWith('blob:')) return url;
           if (url.startsWith('/uploads/')) {
-            const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'http://localhost:7052';
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : '';
             return `${baseUrl}${url}`;
           }
           return url;

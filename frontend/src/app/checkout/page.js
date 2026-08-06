@@ -429,26 +429,33 @@ export default function CheckoutPage() {
                 <Plus size={16} /> {(user?.addresses?.length > 0) || (address && city) ? 'Add / Change Address' : 'Add Shipping Address'}
               </button>
             ) : (
-              <form onSubmit={handleAddAddressSubmit} className="mt-3 border-top pt-3">
-                <h6 className="fw-bold mb-3">Add a new address</h6>
+              <form onSubmit={handleAddAddressSubmit} className="mt-3 pt-3 border-top">
+                <div className="d-flex align-items-center gap-2 mb-3">
+                  <div className="bg-mg-blue-50 p-1 rounded-circle text-primary" style={{ backgroundColor: 'var(--color-mg-blue-50)' }}>
+                    <MapPin size={16} color="var(--color-mg-blue-500)" />
+                  </div>
+                  <h6 className="fw-bold mb-0 display-font" style={{ fontSize: '1rem' }}>Add New Address</h6>
+                </div>
                 
                 <div className="row g-2 mb-2">
                   <div className="col-md-6">
-                    <label className="form-label mb-1 fs-7 fw-semibold">Full Name*</label>
+                    <label className="mg-form-label" style={{ fontSize: '12px', marginBottom: '4px' }}>Full Name*</label>
                     <input
                       type="text"
                       required
-                      className="form-control form-control-brand py-2 fs-7"
+                      className="mg-input"
+                      style={{ padding: '8px 12px', fontSize: '13px', borderRadius: '0.5rem' }}
                       value={addrName}
                       onChange={(e) => setAddrName(e.target.value)}
                     />
                   </div>
                   <div className="col-md-6">
-                    <label className="form-label mb-1 fs-7 fw-semibold">Phone Number*</label>
+                    <label className="mg-form-label" style={{ fontSize: '12px', marginBottom: '4px' }}>Phone Number*</label>
                     <input
                       type="tel"
                       required
-                      className="form-control form-control-brand py-2 fs-7"
+                      className="mg-input"
+                      style={{ padding: '8px 12px', fontSize: '13px', borderRadius: '0.5rem' }}
                       value={addrPhone}
                       onChange={(e) => setAddrPhone(e.target.value)}
                     />
@@ -457,21 +464,23 @@ export default function CheckoutPage() {
 
                 <div className="row g-2 mb-2">
                   <div className="col-md-6">
-                    <label className="form-label mb-1 fs-7 fw-semibold">Pincode*</label>
+                    <label className="mg-form-label" style={{ fontSize: '12px', marginBottom: '4px' }}>Pincode*</label>
                     <input
                       type="text"
                       required
-                      className="form-control form-control-brand py-2 fs-7"
+                      className="mg-input"
+                      style={{ padding: '8px 12px', fontSize: '13px', borderRadius: '0.5rem' }}
                       value={pincode}
                       onChange={(e) => setPincode(e.target.value)}
                     />
                   </div>
                   <div className="col-md-6">
-                    <label className="form-label mb-1 fs-7 fw-semibold">Locality / Area*</label>
+                    <label className="mg-form-label" style={{ fontSize: '12px', marginBottom: '4px' }}>Locality / Area*</label>
                     <input
                       type="text"
                       required
-                      className="form-control form-control-brand py-2 fs-7"
+                      className="mg-input"
+                      style={{ padding: '8px 12px', fontSize: '13px', borderRadius: '0.5rem' }}
                       value={locality}
                       onChange={(e) => setLocality(e.target.value)}
                     />
@@ -479,11 +488,12 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="mb-2">
-                  <label className="form-label mb-1 fs-7 fw-semibold">Street Address / House No.*</label>
+                  <label className="mg-form-label" style={{ fontSize: '12px', marginBottom: '4px' }}>Street Address / House No.*</label>
                   <textarea
                     required
-                    className="form-control form-control-brand py-2 fs-7"
+                    className="mg-input"
                     rows="2"
+                    style={{ padding: '8px 12px', fontSize: '13px', borderRadius: '0.5rem' }}
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
                   ></textarea>
@@ -491,21 +501,23 @@ export default function CheckoutPage() {
 
                 <div className="row g-2 mb-2">
                   <div className="col-md-6">
-                    <label className="form-label mb-1 fs-7 fw-semibold">City / District*</label>
+                    <label className="mg-form-label" style={{ fontSize: '12px', marginBottom: '4px' }}>City / District*</label>
                     <input
                       type="text"
                       required
-                      className="form-control form-control-brand py-2 fs-7"
+                      className="mg-input"
+                      style={{ padding: '8px 12px', fontSize: '13px', borderRadius: '0.5rem' }}
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
                     />
                   </div>
                   <div className="col-md-6">
-                    <label className="form-label mb-1 fs-7 fw-semibold">State*</label>
+                    <label className="mg-form-label" style={{ fontSize: '12px', marginBottom: '4px' }}>State*</label>
                     <input
                       type="text"
                       required
-                      className="form-control form-control-brand py-2 fs-7"
+                      className="mg-input"
+                      style={{ padding: '8px 12px', fontSize: '13px', borderRadius: '0.5rem' }}
                       value={stateName}
                       onChange={(e) => setStateName(e.target.value)}
                     />
@@ -514,45 +526,50 @@ export default function CheckoutPage() {
 
                 <div className="row g-2 mb-3">
                   <div className="col-md-6">
-                    <label className="form-label mb-1 fs-7 fw-semibold">Landmark (Optional)</label>
+                    <label className="mg-form-label" style={{ fontSize: '12px', marginBottom: '4px' }}>Landmark (Optional)</label>
                     <input
                       type="text"
-                      className="form-control form-control-brand py-2 fs-7"
+                      className="mg-input"
+                      style={{ padding: '8px 12px', fontSize: '13px', borderRadius: '0.5rem' }}
                       value={landmark}
                       onChange={(e) => setLandmark(e.target.value)}
                     />
                   </div>
                   <div className="col-md-6">
-                    <label className="form-label mb-1 fs-7 fw-semibold">Alternate Phone (Optional)</label>
+                    <label className="mg-form-label" style={{ fontSize: '12px', marginBottom: '4px' }}>Alternate Phone (Optional)</label>
                     <input
                       type="tel"
-                      className="form-control form-control-brand py-2 fs-7"
+                      className="mg-input"
+                      style={{ padding: '8px 12px', fontSize: '13px', borderRadius: '0.5rem' }}
                       value={altPhone}
                       onChange={(e) => setAltPhone(e.target.value)}
                     />
                   </div>
                 </div>
 
-                <div className="mb-3 d-flex gap-3 align-items-center">
-                  <span className="fs-7 fw-medium text-muted">Address Type</span>
-                  <div className="form-check">
-                    <input className="form-check-input" type="radio" name="addressType" id="homeTypeCheckout" value="Home" checked={addressType === 'Home'} onChange={(e) => setAddressType(e.target.value)} />
-                    <label className="form-check-label fs-7" htmlFor="homeTypeCheckout">Home</label>
-                  </div>
-                  <div className="form-check">
-                    <input className="form-check-input" type="radio" name="addressType" id="workTypeCheckout" value="Work" checked={addressType === 'Work'} onChange={(e) => setAddressType(e.target.value)} />
-                    <label className="form-check-label fs-7" htmlFor="workTypeCheckout">Work</label>
+                <div className="mb-3 bg-light p-2 px-3 rounded-3 border">
+                  <label className="mg-form-label" style={{ fontSize: '12px', marginBottom: '6px' }}>Address Type</label>
+                  <div className="d-flex gap-4">
+                    <label className="form-check m-0 d-flex align-items-center gap-2" style={{ cursor: 'pointer' }}>
+                      <input className="form-check-input mt-0" type="radio" name="addressType" value="Home" checked={addressType === 'Home'} onChange={(e) => setAddressType(e.target.value)} style={{ transform: 'scale(0.9)' }} />
+                      <span className="fs-8 fw-medium text-dark">Home</span>
+                    </label>
+                    <label className="form-check m-0 d-flex align-items-center gap-2" style={{ cursor: 'pointer' }}>
+                      <input className="form-check-input mt-0" type="radio" name="addressType" value="Work" checked={addressType === 'Work'} onChange={(e) => setAddressType(e.target.value)} style={{ transform: 'scale(0.9)' }} />
+                      <span className="fs-8 fw-medium text-dark">Work</span>
+                    </label>
                   </div>
                 </div>
 
                 {addressError && <div className="alert alert-danger p-2 fs-8 mb-2">{addressError}</div>}
 
-                <div className="d-flex gap-2 mt-2">
-                  <button type="submit" className="btn btn-brand btn-sm py-2 px-4">Save Address</button>
+                <div className="d-flex gap-2 mt-1">
+                  <button type="submit" className="btn-mg-primary flex-grow-1 justify-content-center" style={{ borderRadius: '0.5rem', padding: '8px 16px', fontSize: '14px' }}>Save Address</button>
                   <button 
                     type="button" 
                     onClick={() => setShowNewAddressForm(false)} 
-                    className="btn btn-light btn-sm py-2 px-4 border"
+                    className="btn btn-light border flex-grow-1 fw-bold"
+                    style={{ borderRadius: '0.5rem', color: '#64748b', padding: '8px 16px', fontSize: '14px' }}
                   >
                     Cancel
                   </button>

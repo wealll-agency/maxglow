@@ -116,8 +116,8 @@ function CartPage() {
                     borderBottom: idx < items.length - 1 ? '1px solid #f1f5f9' : 'none',
                   }}>
                     {/* Image */}
-                    <div style={{ width: '80px', height: '80px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', background: '#F7FBFD', border: '1px solid #EAF8FF' }}>
-                      <Image src={getImageUrl(item.image)} alt={item.name} width={80} height={80} style={{ objectFit: 'contain', width: '100%', height: '100%', padding: '6px' }} />
+                    <div style={{ position: 'relative', width: '80px', height: '80px', flexShrink: 0, borderRadius: '12px', overflow: 'hidden', background: '#F7FBFD', border: '1px solid #EAF8FF' }}>
+                      <Image src={getImageUrl(item.image)} alt={item.name} fill sizes="80px" style={{ objectFit: 'contain', padding: '6px' }} />
                     </div>
 
                     {/* Name */}

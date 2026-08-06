@@ -59,9 +59,11 @@ const Footer = () => {
             {/* Brand */}
             <div style={{ gridColumn: 'span 1' }}>
               <Link href="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', marginBottom: '16px', height: '40px' }}>
-                <img
+                <Image
                   src="/logo.png"
                   alt="MaxGlow"
+                  width={120}
+                  height={40}
                   style={{ height: '100%', width: 'auto', objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
                 />
               </Link>
@@ -178,7 +180,7 @@ const Footer = () => {
             flexWrap: 'wrap', gap: '12px',
           }}>
             <p style={{ color: '#64748b', fontSize: '13px', margin: 0 }}>
-              © 2026 MaxGlow. All rights reserved.
+              © 2026 MaxGlow. All rights reserved. <span style={{ opacity: 0.6 }}>v{process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0'}</span>
             </p>
             <div style={{ display: 'flex', gap: '20px' }}>
               {['Privacy Policy', 'Terms of Service', 'Refund Policy'].map((link, idx) => (
@@ -193,7 +195,7 @@ const Footer = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '12px' }}>
               Made with <span style={{ color: '#ef4444' }}>♥</span> by{' '}
               <a href="https://wealll.com/" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center' }}>
-                <img src="/wealll-logo.png" alt="We All Logo" style={{ height: '18px', width: 'auto', objectFit: 'contain' }} />
+                <Image src="/wealll-logo.png" alt="We All Logo" width={80} height={18} style={{ width: 'auto', height: '18px', objectFit: 'contain' }} />
               </a>
             </div>
           </div>

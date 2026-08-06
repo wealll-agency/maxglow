@@ -1,4 +1,5 @@
 "use client";
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
@@ -67,10 +68,13 @@ function LoginContent() {
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '20px' }}>
           <Link href="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', height: '40px' }}>
-            <img
+            <Image
               src="/logo.png"
               alt="MaxGlow"
+              width={160}
+              height={40}
               style={{ height: '100%', width: 'auto', objectFit: 'contain' }}
+              priority
             />
           </Link>
         </div>

@@ -18,7 +18,7 @@ const calculateOrderTotals = async (items, couponCode) => {
   let subtotal = 0;
   
   const productIds = items.map(item => item.product);
-  const products = await Product.find({ _id: { $in: productIds } }).lean();
+  const products = await Product.find({ _id: { $in: productIds } }).select('name price stock images discount discountType attributes packSizes').lean();
   const productMap = products.reduce((acc, product) => {
     acc[product._id.toString()] = product;
     return acc;

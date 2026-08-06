@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../store/authSlice';
@@ -17,8 +18,8 @@ import api from '../utils/axiosConfig';
 export default function AdminSidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isRefundOpen, setIsRefundOpen] = useState(false);
-  const [unreadEnquiries, setUnreadEnquiries] = useState(0);
-  const [pendingRefunds, setPendingRefunds] = useState(0);
+  const [counts, setCounts] = useState({ orders: 0, refunds: 0, enquiries: 0 });
+  const [badges, setBadges] = useState({ orders: 0, refunds: 0, enquiries: 0 });
   const [isMounted, setIsMounted] = useState(false);
 
   const pathname = usePathname();
@@ -34,26 +35,32 @@ export default function AdminSidebar() {
       setIsCollapsed(true);
     }
 
-    const fetchUnread = async () => {
+    const fetchCounts = async () => {
       try {
-        const res = await api.get(`/enquiries`);
-        if (res.data.success) setUnreadEnquiries(res.data.unreadCount);
+        const res = await api.get('/notifications/badge-counts');
+        if (res.data.success) {
+          const { orders, refunds, enquiries } = res.data.counts;
+          setCounts({ orders, refunds, enquiries });
+
+          let lastSeenOrders = parseInt(localStorage.getItem('admin_seen_orders') || '0');
+          let lastSeenRefunds = parseInt(localStorage.getItem('admin_seen_refunds') || '0');
+          let lastSeenEnquiries = parseInt(localStorage.getItem('admin_seen_enquiries') || '0');
+
+          if (orders < lastSeenOrders) { lastSeenOrders = orders; localStorage.setItem('admin_seen_orders', orders); }
+          if (refunds < lastSeenRefunds) { lastSeenRefunds = refunds; localStorage.setItem('admin_seen_refunds', refunds); }
+          if (enquiries < lastSeenEnquiries) { lastSeenEnquiries = enquiries; localStorage.setItem('admin_seen_enquiries', enquiries); }
+
+          setBadges({
+            orders: orders - lastSeenOrders,
+            refunds: refunds - lastSeenRefunds,
+            enquiries: enquiries - lastSeenEnquiries
+          });
+        }
       } catch {}
     };
 
-    const fetchPendingRefunds = async () => {
-      try {
-        const res = await api.get(`/refunds?status=Pending`);
-        if (res.data.success) setPendingRefunds(res.data.refunds.length);
-      } catch {}
-    };
-
-    fetchUnread();
-    fetchPendingRefunds();
-    const interval = setInterval(() => {
-      fetchUnread();
-      fetchPendingRefunds();
-    }, 30000);
+    fetchCounts();
+    const interval = setInterval(fetchCounts, 30000);
     
     const handleResize = () => {
       if (window.innerWidth <= 1024) {
@@ -74,6 +81,20 @@ export default function AdminSidebar() {
     router.push('/');
   };
 
+  const handleNavClick = (id) => {
+    if (!id) return;
+    if (id === 'orders') {
+      localStorage.setItem('admin_seen_orders', counts.orders);
+      setBadges(prev => ({ ...prev, orders: 0 }));
+    } else if (id === 'refunds') {
+      localStorage.setItem('admin_seen_refunds', counts.refunds);
+      setBadges(prev => ({ ...prev, refunds: 0 }));
+    } else if (id === 'enquiries') {
+      localStorage.setItem('admin_seen_enquiries', counts.enquiries);
+      setBadges(prev => ({ ...prev, enquiries: 0 }));
+    }
+  };
+
   // Sidebar link definitions
   const navItems = [
     { label: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard size={20} /> },
@@ -82,13 +103,14 @@ export default function AdminSidebar() {
     { label: 'Homepage Products', path: '/admin/homepage-products', icon: <LayoutDashboard size={20} /> },
     { label: 'Warehouses', path: '/admin/warehouses', icon: <MapPin size={20} /> },
     { label: 'Inventory Manager', path: '/admin/inventory', icon: <ClipboardList size={20} /> },
-    { label: 'Orders Queue', path: '/admin/orders', icon: <ShoppingCart size={20} /> },
+    { label: 'Orders Queue', path: '/admin/orders', icon: <ShoppingCart size={20} />, id: 'orders', badge: badges.orders },
     { label: 'Shipments', path: '/admin/shipments', icon: <Package size={20} /> },
     { 
       label: 'Refund Requests', 
       icon: <RotateCcw size={20} />, 
       isSubmenu: true,
-      badge: pendingRefunds,
+      badge: badges.refunds,
+      id: 'refunds',
       subItems: [
         { label: 'Pending', path: '/admin/refunds/pending' },
         { label: 'Approved', path: '/admin/refunds/approved' },
@@ -98,7 +120,7 @@ export default function AdminSidebar() {
     },
     { label: 'Customer Profiling', path: '/admin/customers', icon: <Users size={20} /> },
     { label: 'Customer Access', path: '/admin/access', icon: <Shield size={20} /> },
-    { label: 'Enquiries', path: '/admin/enquiries', icon: <MessageSquare size={20} />, badge: unreadEnquiries },
+    { label: 'Enquiries', path: '/admin/enquiries', icon: <MessageSquare size={20} />, id: 'enquiries', badge: badges.enquiries },
     { label: 'Reports Center', path: '/admin/reports', icon: <Receipt size={20} /> },
     { label: 'Coupon Manager', path: '/admin/coupons', icon: <Tag size={20} /> }
   ];
@@ -149,7 +171,7 @@ export default function AdminSidebar() {
                 <Link href="/" className="d-flex align-items-center text-decoration-none">
                   <img 
                     src="/logo.png" 
-                    alt="MaxGlow Logo" 
+                    alt="MaxGlow Logo"
                     style={{ height: '38px', width: 'auto', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} 
                   />
                 </Link>
@@ -160,9 +182,9 @@ export default function AdminSidebar() {
             ) : (
               <Link href="/" className="mx-auto d-flex align-items-center text-decoration-none">
                 <img 
-                  src="/logo.png" 
-                  alt="MaxGlow Logo" 
-                  style={{ height: '28px', width: 'auto', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} 
+                  src="/icon.png" 
+                  alt="MaxGlow Logo"
+                  style={{ height: '32px', width: '32px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} 
                 />
               </Link>
             )}
@@ -176,7 +198,10 @@ export default function AdminSidebar() {
                 return (
                   <div key={item.label} className="w-100">
                     <button
-                      onClick={() => !isCollapsed && setIsRefundOpen(!isRefundOpen)}
+                      onClick={() => {
+                        !isCollapsed && setIsRefundOpen(!isRefundOpen);
+                        handleNavClick(item.id);
+                      }}
                       className={`sidebar-nav-link w-100 border-0 ${isSubmenuActive ? 'active' : ''}`}
                       style={{
                         display: 'flex',
@@ -262,6 +287,7 @@ export default function AdminSidebar() {
                   href={item.path}
                   prefetch={true}
                   onMouseEnter={() => router.prefetch(item.path)}
+                  onClick={() => handleNavClick(item.id)}
                   className={`sidebar-nav-link ${isActive ? 'active' : ''}`}
                   style={{
                     display: 'flex',
@@ -309,6 +335,11 @@ export default function AdminSidebar() {
             <LogOut size={20} className="text-danger opacity-75" />
             {!isCollapsed && <span className="fs-8 fw-medium text-white">Sign Out</span>}
           </button>
+          {!isCollapsed && (
+            <div className="text-center mt-3" style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>
+              v{process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0'}
+            </div>
+          )}
         </div>
       </div>
     </aside>

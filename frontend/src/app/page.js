@@ -1,46 +1,36 @@
-"use client";
 import Link from 'next/link';
 import Image from 'next/image';
-import React, { useState, useEffect, memo } from 'react';
-import api from '../utils/axiosConfig';
-import dynamic from 'next/dynamic';
 import HeroSlider from '../components/HeroSlider';
 import CategoryIconRow from '../components/CategoryIconRow';
-import { NuttyDelightOffers } from '../components/HomeSections';
+import { NuttyDelightOffers, ShopByCategoryCards, RecentBlogs, Faqs, TagsSection } from '../components/HomeSections';
+import ProductCarouselSection from '../components/ProductCarouselSection';
+import ShopByPurpose from '../components/ShopByPurpose';
+import CashewsBanner from '../components/CashewsBanner';
+import Testimonials from '../components/Testimonials';
+import ReelsSection from '../components/ReelsSection';
+import NewArrivalBanner from '../components/NewArrivalBanner';
 
-const ProductCarouselSection = dynamic(() => import('../components/ProductCarouselSection'), { ssr: true });
-const ShopByPurpose = dynamic(() => import('../components/ShopByPurpose'), { ssr: true });
-const CashewsBanner = dynamic(() => import('../components/CashewsBanner'), { ssr: false });
-const Testimonials = dynamic(() => import('../components/Testimonials'), { ssr: false });
-const ReelsSection = dynamic(() => import('../components/ReelsSection'), { ssr: false });
-const NewArrivalBanner = dynamic(() => import('../components/NewArrivalBanner'), { ssr: true });
-const ShopByCategoryCards = dynamic(() => import('../components/HomeSections').then(mod => mod.ShopByCategoryCards), { ssr: true });
-const RecentBlogs = dynamic(() => import('../components/HomeSections').then(mod => mod.RecentBlogs), { ssr: false });
-const Faqs = dynamic(() => import('../components/HomeSections').then(mod => mod.Faqs), { ssr: false });
-const TagsSection = dynamic(() => import('../components/HomeSections').then(mod => mod.TagsSection), { ssr: false });
-
-export default function Home() {
-  const [topSellingProducts, setTopSellingProducts] = useState([]);
-  const [newArrivalProducts, setNewArrivalProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchHomepageProducts = async () => {
-      try {
-        const [topRes, arrivalRes] = await Promise.all([
-          api.get(`/products?topSelling=true&limit=8&inStock=true`),
-          api.get(`/products?newArrival=true&limit=8&inStock=true`),
-        ]);
-        if (topRes.data.success) setTopSellingProducts(topRes.data.products || []);
-        if (arrivalRes.data.success) setNewArrivalProducts(arrivalRes.data.products || []);
-      } catch (error) {
-        console.error("Error fetching homepage products:", error);
-      } finally {
-        setLoading(false);
-      }
+async function getHomepageProducts() {
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://maxglow.in/api';
+  try {
+    const [topRes, arrivalRes] = await Promise.all([
+      fetch(`${baseUrl}/products?topSelling=true&limit=8&inStock=true`, { next: { revalidate: 60 } }),
+      fetch(`${baseUrl}/products?newArrival=true&limit=8&inStock=true`, { next: { revalidate: 60 } }),
+    ]);
+    const topData = await topRes.json();
+    const arrivalData = await arrivalRes.json();
+    return {
+      topSellingProducts: topData.success ? topData.products || [] : [],
+      newArrivalProducts: arrivalData.success ? arrivalData.products || [] : []
     };
-    fetchHomepageProducts();
-  }, []);
+  } catch (error) {
+    console.error("Error fetching homepage products:", error);
+    return { topSellingProducts: [], newArrivalProducts: [] };
+  }
+}
+
+export default async function Home() {
+  const { topSellingProducts, newArrivalProducts } = await getHomepageProducts();
 
   return (
     <main style={{ display: 'flex', flexDirection: 'column' }}>

@@ -8,7 +8,7 @@ import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { addAddress, deleteAddress, updateAddress, updateUserProfile } from '../../../store/authSlice';
 
-import { User, MapPin, Trash2, Edit2, Mail, Phone, Plus } from 'lucide-react';
+import { User, MapPin, Trash2, Edit2, Mail, Phone, Plus, Eye, EyeOff } from 'lucide-react';
 import { useNotification } from '../../../context/NotificationContext';
 
 export default function ProfilePage() {
@@ -23,6 +23,7 @@ export default function ProfilePage() {
   const [phone, setPhone] = useState('');
   const [alternatePhone, setAlternatePhone] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState('');
 
   // Address form states
@@ -68,9 +69,15 @@ export default function ProfilePage() {
     );
   }
 
-  const handleProfileSubmit = (e) => {
+  const handleProfileSubmit = async (e) => {
     e.preventDefault();
     setProfileSuccess('');
+
+    if (password) {
+      const confirmed = await showConfirm('Are you sure you want to change your password? For security reasons, you may be logged out of other devices.');
+      if (!confirmed) return;
+    }
+
     dispatch(updateUserProfile({ name, phone, alternatePhone, password: password || undefined }))
       .unwrap()
       .then(() => {
@@ -206,12 +213,23 @@ export default function ProfilePage() {
 
               <div>
                 <label className="fw-medium mb-1 fs-7">Reset Password</label>
-                <input
-                  type="password"
-                  className="form-control form-control-brand"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
+                <div className="position-relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    className="form-control form-control-brand pe-5"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="btn btn-link text-muted position-absolute end-0 top-50 translate-middle-y text-decoration-none"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{ padding: '0 12px' }}
+                    tabIndex="-1"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
 
               {profileSuccess && <div className="alert alert-success p-2 fs-8 m-0">{profileSuccess}</div>}

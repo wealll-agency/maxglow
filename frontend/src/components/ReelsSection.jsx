@@ -274,14 +274,14 @@ const ReelsSection = () => {
                 let videoUrl = p.videos[0];
                 if (videoUrl.startsWith('/uploads/')) {
                   videoUrl = `${baseUrl}/api${videoUrl}`;
-                } else if (typeof videoUrl === 'string' && (videoUrl.includes('localhost') || videoUrl.includes('127.0.0.1')) && videoUrl.includes('/uploads/')) {
+                } else if (typeof videoUrl === 'string' && videoUrl.includes('/uploads/')) {
                   videoUrl = `${baseUrl}/api${videoUrl.substring(videoUrl.indexOf('/uploads/'))}`;
                 }
 
                 let posterUrl = p.images && p.images.length > 0 ? p.images[0] : 'https://placehold.co/400x600/0a1628/ffffff';
                 if (posterUrl.startsWith('/uploads/')) {
                   posterUrl = `${baseUrl}${posterUrl}`;
-                } else if (typeof posterUrl === 'string' && (posterUrl.includes('localhost') || posterUrl.includes('127.0.0.1')) && posterUrl.includes('/uploads/')) {
+                } else if (typeof posterUrl === 'string' && posterUrl.includes('/uploads/')) {
                   posterUrl = `${baseUrl}${posterUrl.substring(posterUrl.indexOf('/uploads/'))}`;
                 }
 
@@ -347,7 +347,7 @@ const ReelsSection = () => {
           slidesPerView="auto"
           spaceBetween={14}
           freeMode={{ enabled: true, sticky: false }}
-          loop={true}
+          loop={reelsState.length > 4}
           speed={800}
           autoplay={{
             delay: 4000,

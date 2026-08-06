@@ -21,8 +21,8 @@ module.exports = {
       script: 'node_modules/next/dist/bin/next',
       args: 'start -p 7053',
       cwd: './frontend',
-      instances: 'max',
-      exec_mode: 'cluster',
+      instances: 1,
+      exec_mode: 'fork',
       autorestart: true,
       watch: false,
       env_production: {

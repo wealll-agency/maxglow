@@ -5,7 +5,7 @@ import Product from '../models/Product.js';
 // Helper to populate and calculate cart details
 const populateCartItems = async (cartItems) => {
   const productIds = cartItems.map(item => item.product);
-  const products = await Product.find({ _id: { $in: productIds }, isActive: true }).lean();
+  const products = await Product.find({ _id: { $in: productIds }, isActive: true }).select('name price stock images discount discountType slug category').lean();
   const productMap = new Map(products.map(p => [p._id.toString(), p]));
 
   const populatedCart = [];
@@ -85,7 +85,7 @@ export const performSync = async (userId, localCart, localWishlist) => {
 
     // 3. Populate and recalculate final server-side data
     const populatedCart = await populateCartItems(user.cart);
-    const populatedWishlist = await Product.find({ _id: { $in: user.wishlist }, isActive: true }).lean();
+    const populatedWishlist = await Product.find({ _id: { $in: user.wishlist }, isActive: true }).select('name price stock images discount discountType slug category').lean();
 
     return {
       cart: populatedCart,
@@ -127,7 +127,7 @@ export const getUserData = async (req, res, next) => {
     }
 
     const populatedCart = await populateCartItems(user.cart);
-    const populatedWishlist = await Product.find({ _id: { $in: user.wishlist }, isActive: true }).lean();
+    const populatedWishlist = await Product.find({ _id: { $in: user.wishlist }, isActive: true }).select('name price stock images discount discountType slug category').lean();
 
     res.json({
       success: true,
@@ -194,7 +194,7 @@ export const toggleWishlist = async (req, res, next) => {
     }
     await user.save();
 
-    const populatedWishlist = await Product.find({ _id: { $in: user.wishlist }, isActive: true }).lean();
+    const populatedWishlist = await Product.find({ _id: { $in: user.wishlist }, isActive: true }).select('name price stock images discount discountType slug category').lean();
     res.json({ success: true, wishlist: populatedWishlist });
   } catch (error) {
     next(error);

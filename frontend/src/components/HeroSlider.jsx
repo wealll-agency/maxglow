@@ -4,14 +4,18 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import api from '../utils/axiosConfig';
 
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Autoplay, Navigation } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
+
 const BANNER_DESTINATION = '/shop';
 const DEFAULT_IMAGES = ['/hero_final_1.png', '/hero_final_2.png', '/hero_final_3.png'];
 const SLIDE_INTERVAL = 4000;
 
 export default function HeroSlider() {
   const router = useRouter();
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [images, setImages] = useState([]); // Initialize empty to prevent cache flashing
+  const [images, setImages] = useState([]);
 
   useEffect(() => {
     const fetchHero = async () => {
@@ -32,26 +36,8 @@ export default function HeroSlider() {
     fetchHero();
   }, []);
 
-  useEffect(() => {
-    if (images.length === 0) return;
-    const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % images.length);
-    }, SLIDE_INTERVAL);
-    return () => clearInterval(timer);
-  }, [images.length]);
-
   const handleBannerClick = () => {
     router.push(BANNER_DESTINATION);
-  };
-
-  const handlePrev = (e) => {
-    e.stopPropagation();
-    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
-  };
-
-  const handleNext = (e) => {
-    e.stopPropagation();
-    setCurrentIndex((prev) => (prev + 1) % images.length);
   };
 
   if (images.length === 0) {
@@ -158,19 +144,21 @@ export default function HeroSlider() {
             .slider-nav-btn span { font-size: 14px !important; }
           }
         ` }} />
-        <div
-          className="hero-slider-track"
-          style={{
-            display: 'flex',
-            flexWrap: 'nowrap', /* Industry standard for sliders */
-            alignItems: 'center', 
-            width: '100%',
-            height: '100%',
-            transition: 'transform 0.8s cubic-bezier(0.25, 1, 0.5, 1)', 
-            transform: `translateX(-${currentIndex * 100}%)`,
-          }}
-        >
-          {images.map((img, idx) => (
+        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+          <Swiper
+            modules={[Autoplay, Navigation]}
+            slidesPerView={1}
+            loop={images.length > 1}
+            autoplay={{ delay: SLIDE_INTERVAL, disableOnInteraction: false }}
+            navigation={{
+              prevEl: '.slider-nav-prev',
+              nextEl: '.slider-nav-next',
+            }}
+            speed={800}
+            style={{ width: '100%', height: '100%' }}
+          >
+            {images.map((img, idx) => (
+              <SwiperSlide key={idx} style={{ height: 'auto' }}>
             <div key={idx} style={{
               flex: '0 0 100%', /* Industry standard exact sizing */
               width: '100%',
@@ -198,12 +186,14 @@ export default function HeroSlider() {
               />
               {/* Removed Animated Shop Now Button as per request */}
             </div>
-          ))}
+            </SwiperSlide>
+            ))}
+          </Swiper>
         </div>
 
         {/* Left Nav Button */}
         <button
-          onClick={handlePrev}
+          onClick={(e) => e.stopPropagation()}
           className="slider-nav-btn slider-nav-prev"
         >
           <span>&larr;</span>
@@ -211,7 +201,7 @@ export default function HeroSlider() {
 
         {/* Right Nav Button */}
         <button
-          onClick={handleNext}
+          onClick={(e) => e.stopPropagation()}
           className="slider-nav-btn slider-nav-next"
         >
           <span>&rarr;</span>

@@ -211,3 +211,23 @@ export const getStockNotificationsAdmin = async (req, res) => {
   }
 };
 
+
+// GET /api/notifications/badge-counts
+export const getBadgeCounts = async (req, res) => {
+  try {
+    const ordersCount = await Order.countDocuments({ orderStatus: 'Placed' });
+    const refundsCount = await RefundRequest.countDocuments({ status: 'Pending' });
+    const enquiriesCount = await Enquiry.countDocuments({ isRead: false });
+    
+    res.json({
+      success: true,
+      counts: {
+        orders: ordersCount,
+        refunds: refundsCount,
+        enquiries: enquiriesCount
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

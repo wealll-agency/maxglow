@@ -89,7 +89,7 @@ export default function AboutPage() {
             <div className="col-lg-3 col-md-6">
               <MgCard className="text-center h-100 p-4">
                 <div className="mx-auto mb-4 d-flex justify-content-center align-items-center rounded-circle" style={{ width: '80px', height: '80px', backgroundColor: '#f0fdf4' }}>
-                  <Image src="/icon_nutrition.png" alt="Organic" width={48} height={48} style={{ objectFit: 'contain' }} />
+                  <Image src="/icon_nutrition.png" alt="Organic" width={48} height={48} style={{ width: '48px', height: 'auto', objectFit: 'contain' }} />
                 </div>
                 <h4 className="fw-bold mb-3 text-dark">100% Organic</h4>
                 <p className="text-secondary mb-0" style={{ fontSize: '1.05rem', lineHeight: '1.6' }}>Carefully formulated using certified organic botanical extracts.</p>
@@ -98,7 +98,7 @@ export default function AboutPage() {
             <div className="col-lg-3 col-md-6">
               <MgCard className="text-center h-100 p-4">
                 <div className="mx-auto mb-4 d-flex justify-content-center align-items-center rounded-circle" style={{ width: '80px', height: '80px', backgroundColor: '#fff1f2' }}>
-                  <Image src="/icon_heart.png" alt="Cruelty Free" width={48} height={48} style={{ objectFit: 'contain' }} />
+                  <Image src="/icon_heart.png" alt="Cruelty Free" width={48} height={48} style={{ width: '48px', height: 'auto', objectFit: 'contain' }} />
                 </div>
                 <h4 className="fw-bold mb-3 text-dark">Cruelty Free</h4>
                 <p className="text-secondary mb-0" style={{ fontSize: '1.05rem', lineHeight: '1.6' }}>Ethically formulated and never tested on animals.</p>
@@ -107,7 +107,7 @@ export default function AboutPage() {
             <div className="col-lg-3 col-md-6">
               <MgCard className="text-center h-100 p-4">
                 <div className="mx-auto mb-4 d-flex justify-content-center align-items-center rounded-circle" style={{ width: '80px', height: '80px', backgroundColor: '#fdf4ff' }}>
-                  <Image src="/icon_gluten.png" alt="Toxin Free" width={48} height={48} style={{ objectFit: 'contain' }} />
+                  <Image src="/icon_gluten.png" alt="Toxin Free" width={48} height={48} style={{ width: '48px', height: 'auto', objectFit: 'contain' }} />
                 </div>
                 <h4 className="fw-bold mb-3 text-dark">Toxin Free</h4>
                 <p className="text-secondary mb-0" style={{ fontSize: '1.05rem', lineHeight: '1.6' }}>Completely free of parabens, sulfates, and harmful artificial chemicals.</p>
@@ -116,7 +116,7 @@ export default function AboutPage() {
             <div className="col-lg-3 col-md-6">
               <MgCard className="text-center h-100 p-4">
                 <div className="mx-auto mb-4 d-flex justify-content-center align-items-center rounded-circle" style={{ width: '80px', height: '80px', backgroundColor: '#e0f2fe' }}>
-                  <Image src="/icon_cholesterol.png" alt="Tested" width={48} height={48} style={{ objectFit: 'contain' }} />
+                  <Image src="/icon_cholesterol.png" alt="Tested" width={48} height={48} style={{ width: '48px', height: 'auto', objectFit: 'contain' }} />
                 </div>
                 <h4 className="fw-bold mb-3 text-dark">Dermatologically Tested</h4>
                 <p className="text-secondary mb-0" style={{ fontSize: '1.05rem', lineHeight: '1.6' }}>Clinically evaluated to be safe and gentle on all skin types.</p>

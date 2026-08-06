@@ -452,7 +452,7 @@ export default function AdminProductsPage() {
               <button className="btn border-0 text-muted" onClick={() => setViewingProduct(null)}><X size={20} /></button>
             </div>
             <div className="card-body text-center">
-              <Image src={viewingProduct.images[0] || 'https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=200'} alt="product" className="img-fluid rounded mb-3" width={200} height={200} style={{ maxHeight: '200px', objectFit: 'cover' }} />
+              <img src={viewingProduct.images[0] || 'https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=200'} alt="product" className="img-fluid rounded mb-3" style={{ maxHeight: '200px', objectFit: 'cover' }} />
               <h5 className="fw-bold">{viewingProduct.name}</h5>
               <p className="text-muted mb-1">Category: {viewingProduct.category}</p>
               <p className="fw-semibold text-brand fs-5 mb-1">
@@ -688,7 +688,7 @@ export default function AdminProductsPage() {
                         />
                         {imagePreviewUrl && (
                           <div className="mt-3">
-                            <Image src={imagePreviewUrl} alt="Preview" className="img-thumbnail" width={100} height={100} style={{ height: '100px', objectFit: 'cover' }} />
+                            <img src={imagePreviewUrl} alt="Preview" className="img-thumbnail" style={{ height: '100px', width: '100px', objectFit: 'cover' }} />
                           </div>
                         )}
                       </div>
@@ -705,7 +705,7 @@ export default function AdminProductsPage() {
                           />
                           {subImagePreviews[index] && (
                             <div className="mt-3">
-                              <Image src={subImagePreviews[index]} alt={`Sub Preview ${index + 1}`} className="img-thumbnail" width={80} height={80} style={{ height: '80px', objectFit: 'cover' }} />
+                              <img src={subImagePreviews[index]} alt={`Sub Preview ${index + 1}`} className="img-thumbnail" style={{ height: '80px', width: '80px', objectFit: 'cover' }} />
                             </div>
                           )}
                         </div>

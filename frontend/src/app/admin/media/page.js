@@ -48,10 +48,8 @@ export default function AdminMedia() {
   const getImageUrl = (url) => {
     if (!url) return '';
     let cleanedUrl = url;
-    if (typeof cleanedUrl === 'string' && (cleanedUrl.includes('localhost') || cleanedUrl.includes('127.0.0.1'))) {
-      if (cleanedUrl.includes('/uploads/')) {
-        cleanedUrl = cleanedUrl.substring(cleanedUrl.indexOf('/uploads/'));
-      }
+    if (typeof cleanedUrl === 'string' && cleanedUrl.includes('/uploads/')) {
+      cleanedUrl = cleanedUrl.substring(cleanedUrl.indexOf('/uploads/'));
     }
     if (cleanedUrl.startsWith('http') || cleanedUrl.startsWith('blob:')) return cleanedUrl;
     if (cleanedUrl.startsWith('/uploads/')) {
@@ -59,7 +57,7 @@ export default function AdminMedia() {
       if (cleanedUrl.toLowerCase().endsWith('.mp4') || cleanedUrl.toLowerCase().endsWith('.webm')) {
         return `${baseUrl}/api${cleanedUrl}`;
       }
-      return `${baseUrl}${cleanedUrl}`;
+      return cleanedUrl;
     }
     return cleanedUrl;
   };

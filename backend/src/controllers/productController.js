@@ -93,6 +93,7 @@ export const getProducts = async (req, res, next) => {
 
     const total = await Product.countDocuments(query);
     const products = await Product.find(query)
+      .select('name category brand price discount discountType images stock isFeatured showOnHomepage newArrival healthyProduct searchTags unit')
       .sort(sortBy)
       .skip(skip)
       .limit(limitNum)
