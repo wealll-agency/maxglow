@@ -5,12 +5,13 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useDispatch, useSelector } from 'react-redux';
 import { addToCart } from '../../store/cartSlice';
-import { fetchProductDetails, fetchProductReviews, submitProductReview, fetchProducts } from '../../store/productsSlice';
+import { fetchProductDetails, fetchProductReviews, submitProductReview, fetchProducts, clearSelectedProduct } from '../../store/productsSlice';
 import { toggleWishlist } from '../../store/wishlistSlice';
 import { Star, Heart, Plus, Minus, MessageCircle, Share2, ShieldCheck, RefreshCw, AlertCircle, ChevronDown, ChevronUp, Leaf, Award } from 'lucide-react';
 import ProductCard from '../../components/ProductCard';
 import api from '../../utils/axiosConfig';
 import { useNotification } from '../../context/NotificationContext';
+import { getImageUrl } from '../../utils/imageConfig';
 
 function ShopDetailsContent() {
   const searchParams = useSearchParams();
@@ -39,9 +40,23 @@ function ShopDetailsContent() {
   const productIdParam = searchParams.get('id');
   const productNameParam = searchParams.get('name') || '';
 
+  // 0. Reset gallery/UI state on every product navigation (industry standard)
+  useEffect(() => {
+    setActiveImageIndex(0);
+    setQuantity(1);
+    setActiveTab('description');
+    setOpenReviewIds([]);
+    setReviewError('');
+    setReviewSuccess('');
+    setComment('');
+    setRating(5);
+    setIsDetailsOpen(false);
+  }, [productIdParam, productNameParam]);
+
   // 1. Fetch logic
   useEffect(() => {
     if (productIdParam) {
+      dispatch(clearSelectedProduct());
       dispatch(fetchProductDetails(productIdParam));
       dispatch(fetchProductReviews(productIdParam));
     } else {
@@ -52,7 +67,9 @@ function ShopDetailsContent() {
   // 2. Resolve product
   let realProduct = null;
   if (productIdParam) {
-    realProduct = selectedProduct;
+    if (selectedProduct && String(selectedProduct._id) === String(productIdParam)) {
+      realProduct = selectedProduct;
+    }
   } else if (productNameParam && products && products.length > 0) {
     realProduct = products.find(p => {
       const pName = p.name.toLowerCase().replace(/[^a-zA-Z0-9]/g, '');
@@ -187,7 +204,7 @@ function ShopDetailsContent() {
 
   const handleNotifyMe = async () => {
     if (!user) {
-      router.push(`/login?redirect=/shop-details?name=${encodeURIComponent(realProduct.name)}`);
+      router.push(`/login?redirect=/shop-details?id=${realProduct._id}`);
       return;
     }
     
@@ -209,24 +226,7 @@ function ShopDetailsContent() {
   const mediaItems = [...images, ...(realProduct.videos || [])];
   const isVideo = (url) => url && (url.toLowerCase().endsWith('.mp4') || url.toLowerCase().endsWith('.webm') || (realProduct.videos && realProduct.videos.includes(url)));
 
-  const getImageUrl = (url) => {
-    if (!url) return '/top_product1.png';
-    let cleanedUrl = url;
-    if (typeof cleanedUrl === 'string' && cleanedUrl.includes('/uploads/')) {
-      cleanedUrl = cleanedUrl.substring(cleanedUrl.indexOf('/uploads/'));
-    }
-    if (cleanedUrl.startsWith('http')) return cleanedUrl;
-    if (cleanedUrl.startsWith('/uploads/')) {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : '';
-      
-      // Force video files to bypass Next.js rewrites and hit Express directly to preserve HTTP Range requests
-      if (cleanedUrl.toLowerCase().endsWith('.mp4') || cleanedUrl.toLowerCase().endsWith('.webm')) {
-        return `${baseUrl}/api${cleanedUrl}`;
-      }
-      return cleanedUrl;
-    }
-    return cleanedUrl.replace('/assets/images/', '/');
-  };
+  // getImageUrl imported from utils/imageConfig.js
 
   return (
     <>
@@ -373,7 +373,7 @@ function ShopDetailsContent() {
         
         @media (max-width: 768px) {
           .product-details-container {
-            padding-bottom: 120px !important;
+            padding-bottom: 24px !important;
           }
           .mobile-sticky-bar {
             display: block !important;
@@ -383,6 +383,22 @@ function ShopDetailsContent() {
           }
           .desktop-tabs-section {
             display: none !important;
+          }
+          .pack-size-container {
+            display: grid !important;
+            grid-template-columns: repeat(4, 1fr) !important;
+            gap: 6px !important;
+          }
+          .pack-size-btn {
+            min-width: 0 !important;
+            padding: 8px 2px !important;
+            border-radius: 8px !important;
+          }
+          .pack-size-btn-title {
+            font-size: 10px !important;
+          }
+          .pack-size-btn-price {
+            font-size: 10px !important;
           }
         }
       ` }} />
@@ -453,6 +469,7 @@ function ShopDetailsContent() {
                   sizes="(max-width: 768px) 100vw, 500px"
                   style={{ objectFit: 'cover', width: '100%', height: '100%' }}
                   priority
+                  fetchPriority="high"
                 />
               )}
             </div>
@@ -476,6 +493,8 @@ function ShopDetailsContent() {
                       <Image 
                         src={isVid ? getImageUrl(images[0]) : getImageUrl(mediaUrl)} 
                         alt="" width={56} height={56} 
+                        sizes="56px"
+                        loading="lazy"
                         style={{ objectFit: 'cover', width: '100%', height: '100%', borderRadius: '12px', opacity: isVid ? 0.7 : 1 }} 
                       />
                       {isVid && (
@@ -577,48 +596,52 @@ function ShopDetailsContent() {
             </div>
 
             {/* Select Pack Size */}
-            <div style={{ marginBottom: '24px' }}>
-              <label className="mg-form-label" style={{ marginBottom: '10px' }}>Select Pack Size</label>
-              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                <button
-                  onClick={() => setSelectedPack(defaultPackName)}
-                  style={{
-                    minWidth: '110px', padding: '10px 14px', borderRadius: '12px', background: 'white',
-                    border: selectedPack === defaultPackName ? '2px solid #3BAE56' : '1.5px solid #e2e8f0',
-                    cursor: 'pointer', textAlign: 'center', transition: 'all 0.15s ease',
-                  }}
-                >
-                  <div style={{ fontSize: '12px', fontWeight: '700', color: '#1a2332' }}>{defaultPackName}</div>
-                  <div style={{ fontSize: '11px', color: '#3BAE56', fontWeight: '600', marginTop: '2px' }}>₹{realProduct.discountedPrice || realProduct.price}</div>
-                </button>
+            {true && (
+              <div style={{ marginBottom: '24px' }}>
+                <label className="mg-form-label" style={{ marginBottom: '10px' }}>Select Pack Size</label>
+                <div className="pack-size-container" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                  <button
+                    onClick={() => setSelectedPack(defaultPackName)}
+                    className="pack-size-btn"
+                    style={{
+                      minWidth: '110px', padding: '10px 14px', borderRadius: '12px', background: 'white',
+                      border: selectedPack === defaultPackName ? '2px solid #3BAE56' : '1.5px solid #e2e8f0',
+                      cursor: 'pointer', textAlign: 'center', transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <div className="pack-size-btn-title" style={{ fontSize: '12px', fontWeight: '700', color: '#1a2332' }}>{defaultPackName}</div>
+                    <div className="pack-size-btn-price" style={{ fontSize: '11px', color: '#3BAE56', fontWeight: '600', marginTop: '2px' }}>₹{realProduct.discountedPrice || realProduct.price}</div>
+                  </button>
 
-                {realProduct.packSizes && realProduct.packSizes.map((pack, idx) => {
-                  const pName = `${pack.weight} ${pack.unit}`;
-                  let pPrice = pack.price;
-                  if (realProduct.discount > 0) {
-                    if (realProduct.discountType === 'Percent') {
-                      pPrice = Math.round(pack.price * (1 - realProduct.discount / 100));
-                    } else {
-                      pPrice = Math.max(0, pack.price - realProduct.discount);
+                  {(realProduct.packSizes || []).map((pack, idx) => {
+                    const pName = `${pack.weight} ${pack.unit}`;
+                    let pPrice = pack.price;
+                    if (realProduct.discount > 0) {
+                      if (realProduct.discountType === 'Percent') {
+                        pPrice = Math.round(pack.price * (1 - realProduct.discount / 100));
+                      } else {
+                        pPrice = Math.max(0, pack.price - realProduct.discount);
+                      }
                     }
-                  }
-                  return (
-                    <button
-                      key={idx}
-                      onClick={() => setSelectedPack(pName)}
-                      style={{
-                        minWidth: '110px', padding: '10px 14px', borderRadius: '12px', background: 'white',
-                        border: selectedPack === pName ? '2px solid #3BAE56' : '1.5px solid #e2e8f0',
-                        cursor: 'pointer', textAlign: 'center', transition: 'all 0.15s ease',
-                      }}
-                    >
-                      <div style={{ fontSize: '12px', fontWeight: '700', color: '#1a2332' }}>{pName}</div>
-                      <div style={{ fontSize: '11px', color: '#3BAE56', fontWeight: '600', marginTop: '2px' }}>₹{pPrice}</div>
-                    </button>
-                  );
-                })}
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => setSelectedPack(pName)}
+                        className="pack-size-btn"
+                        style={{
+                          minWidth: '110px', padding: '10px 14px', borderRadius: '12px', background: 'white',
+                          border: selectedPack === pName ? '2px solid #3BAE56' : '1.5px solid #e2e8f0',
+                          cursor: 'pointer', textAlign: 'center', transition: 'all 0.15s ease',
+                        }}
+                      >
+                        <div className="pack-size-btn-title" style={{ fontSize: '12px', fontWeight: '700', color: '#1a2332' }}>{pName}</div>
+                        <div className="pack-size-btn-price" style={{ fontSize: '11px', color: '#3BAE56', fontWeight: '600', marginTop: '2px' }}>₹{pPrice}</div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Action Buttons */}
             <div style={{ display: 'flex', gap: '8px', marginBottom: '28px', flexWrap: 'nowrap' }}>

@@ -122,13 +122,10 @@ const Header = () => {
 
             {/* Logo */}
             <Link href="/" prefetch={true} onMouseEnter={() => router.prefetch('/')} style={{ textDecoration: 'none', flexShrink: 0, display: 'flex', alignItems: 'center', height: '40px' }}>
-              <Image
+              <img
                 src="/logo.png"
                 alt="MaxGlow"
-                width={120}
-                height={40}
-                priority
-                style={{ height: '100%', width: 'auto', objectFit: 'contain' }}
+                style={{ height: '40px', width: 'auto', objectFit: 'contain' }}
               />
             </Link>
 

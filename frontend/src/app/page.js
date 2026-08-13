@@ -1,14 +1,17 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import dynamic from 'next/dynamic';
 import HeroSlider from '../components/HeroSlider';
 import CategoryIconRow from '../components/CategoryIconRow';
-import { NuttyDelightOffers, ShopByCategoryCards, RecentBlogs, Faqs, TagsSection } from '../components/HomeSections';
+import { NuttyDelightOffers, ShopByCategoryCards, Faqs, TagsSection } from '../components/HomeSections';
 import ProductCarouselSection from '../components/ProductCarouselSection';
-import ShopByPurpose from '../components/ShopByPurpose';
-import CashewsBanner from '../components/CashewsBanner';
-import Testimonials from '../components/Testimonials';
-import ReelsSection from '../components/ReelsSection';
 import NewArrivalBanner from '../components/NewArrivalBanner';
+
+// Dynamic imports for standalone below-the-fold components
+const ShopByPurpose = dynamic(() => import('../components/ShopByPurpose'));
+const ReelsSection = dynamic(() => import('../components/ReelsSection'));
+const CashewsBanner = dynamic(() => import('../components/CashewsBanner'));
+const Testimonials = dynamic(() => import('../components/Testimonials'));
 
 async function getHomepageProducts() {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://maxglow.in/api';

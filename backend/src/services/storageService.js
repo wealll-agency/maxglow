@@ -46,8 +46,9 @@ export const upload = multer({
  * @param {Express.Multer.File} file 
  * @returns {Promise<string>} URL of the uploaded resource
  */
-export const uploadFile = async (file) => {
-  const fileName = `${Date.now()}_${path.basename(file.originalname).replace(/\s+/g, '_')}`;
+export const uploadFile = async (file, prefix = '') => {
+  const prefixStr = prefix ? `${prefix}_` : '';
+  const fileName = `${prefixStr}${Date.now()}_${path.basename(file.originalname).replace(/\s+/g, '_')}`;
 
   if (isS3Configured) {
     try {

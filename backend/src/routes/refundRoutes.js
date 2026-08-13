@@ -3,7 +3,6 @@ import { protect, authorizeRoles } from '../middleware/auth.js';
 import { 
   getRefundRequests, 
   updateRefundStatus, 
-  createMockRefundRequest,
   createCustomerRefundRequest
 } from '../controllers/refundController.js';
 
@@ -15,9 +14,7 @@ router.route('/')
 router.route('/:id/status')
   .put(protect, authorizeRoles('Super Admin', 'Manager', 'Staff'), updateRefundStatus);
 
-// Mock route for testing
-router.route('/mock')
-  .post(protect, authorizeRoles('Super Admin', 'Manager', 'Staff'), createMockRefundRequest);
+// Mock route for testing has been removed for production safety
 
 // Customer route for creating a refund/cancel request
 router.route('/request/:orderId')

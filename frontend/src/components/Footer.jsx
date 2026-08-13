@@ -59,12 +59,10 @@ const Footer = () => {
             {/* Brand */}
             <div style={{ gridColumn: 'span 1' }}>
               <Link href="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', marginBottom: '16px', height: '40px' }}>
-                <Image
+                <img
                   src="/logo.png"
                   alt="MaxGlow"
-                  width={120}
-                  height={40}
-                  style={{ height: '100%', width: 'auto', objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
+                  style={{ height: '40px', width: 'auto', objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
                 />
               </Link>
               <p style={{ fontSize: '14px', color: '#94a3b8', lineHeight: '1.7', marginBottom: '20px', maxWidth: '280px' }}>
@@ -195,7 +193,7 @@ const Footer = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '12px' }}>
               Made with <span style={{ color: '#ef4444' }}>♥</span> by{' '}
               <a href="https://wealll.com/" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center' }}>
-                <Image src="/wealll-logo.png" alt="We All Logo" width={80} height={18} style={{ width: 'auto', height: '18px', objectFit: 'contain' }} />
+                <img src="/wealll-logo.png" alt="We All Logo" style={{ width: 'auto', height: '18px', objectFit: 'contain' }} />
               </a>
             </div>
           </div>

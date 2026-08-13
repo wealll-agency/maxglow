@@ -141,7 +141,8 @@ export default function OrderHistoryPage() {
                                   alt={item.name} 
                                   width={60}
                                   height={60}
-                                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                  onError={(e) => { e.currentTarget.src = '/placeholder.png'; }}
                                 />
                               ) : (
                                 <ShoppingBag size={20} className="text-muted" />

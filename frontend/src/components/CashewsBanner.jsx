@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import React, { memo, useState, useEffect } from 'react';
 import api from '../utils/axiosConfig';
+import { getImageUrl } from '../utils/imageConfig';
 
 const CashewsBanner = () => {
   const [bannerImg, setBannerImg] = useState(''); // Initialize empty to prevent cache flashing
@@ -15,28 +16,15 @@ const CashewsBanner = () => {
           setBannerImg(res.data.settings.media_trending_banner);
           return;
         }
-      } catch (err) {}
+      } catch (err) {
+        console.error('Failed to load settings:', err);
+      }
       setBannerImg('/trending_banner.png'); // Fallback only if no dynamic images exist
     };
     fetchBanner();
   }, []);
 
-  const getImageUrl = (url) => {
-    if (!url) return '/trending_banner.png';
-    let cleanedUrl = url;
-    if (typeof cleanedUrl === 'string' && cleanedUrl.includes('/uploads/')) {
-      cleanedUrl = cleanedUrl.substring(cleanedUrl.indexOf('/uploads/'));
-    }
-    if (cleanedUrl.startsWith('http') || cleanedUrl.startsWith('blob:')) return cleanedUrl;
-    if (cleanedUrl.startsWith('/uploads/')) {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : '';
-      if (cleanedUrl.toLowerCase().endsWith('.mp4') || cleanedUrl.toLowerCase().endsWith('.webm')) {
-        return `${baseUrl}/api${cleanedUrl}`;
-      }
-      return cleanedUrl;
-    }
-    return cleanedUrl;
-  };
+  // getImageUrl imported from utils/imageConfig.js
   return (
     <section className="mg-section-spacing" style={{ background: 'white' }}>
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
@@ -53,14 +41,18 @@ const CashewsBanner = () => {
               cursor: pointer;
               text-decoration: none;
               width: 100%;
+              aspect-ratio: 1400 / 300;
             }
             .trending-banner-img {
               width: 100%;
-              height: 280px;
+              height: 100%;
               object-fit: cover;
               display: block;
             }
             @media (max-width: 768px) {
+              .trending-banner-card {
+                aspect-ratio: auto;
+              }
               .trending-banner-img {
                 height: 140px !important;
               }
@@ -70,11 +62,12 @@ const CashewsBanner = () => {
             <Image
               src={getImageUrl(bannerImg)}
               alt="Trending Now Banner"
-              width={1440}
-              height={280}
+              width={1400}
+              height={300}
               sizes="100vw"
               className="trending-banner-img"
-              priority
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              loading="lazy"
             />
           ) : (
             <div className="trending-banner-img" style={{ backgroundColor: '#f1f5f9' }} />

@@ -109,7 +109,7 @@ const CartOffcanvas = ({ isOpen, onClose }) => {
               }}>
                 {/* Image */}
                 <div style={{ width: '64px', height: '64px', flexShrink: 0, borderRadius: '10px', overflow: 'hidden', background: '#F7FBFD', border: '1px solid #EAF8FF' }}>
-                  <Image src={getImageUrl(item.image)} alt={item.name} width={64} height={64} style={{ objectFit: 'contain', width: '100%', height: '100%' }} />
+                  <Image src={getImageUrl(item.image)} alt={item.name} width={64} height={64} style={{ objectFit: 'contain', width: '100%', height: '100%' }} onError={(e) => { e.currentTarget.src = '/placeholder.png'; }} />
                 </div>
 
                 {/* Details */}

@@ -1,6 +1,9 @@
 "use client";
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import { getImageUrl } from '../../../../utils/imageConfig';
+import { useParams } from 'next/navigation';
 
 
 
@@ -88,19 +91,21 @@ export default function ShipmentDetails() {
                 </div>
               </div>
 
-              {/* Mock Timeline */}
+              {/* Mock Timeline - Disabled for production safety
               <div className="position-relative ms-3 mt-4" style={{ borderLeft: '2px solid #e9ecef' }}>
                 <div className="position-relative mb-4 ps-4">
                   <span className="position-absolute bg-primary rounded-circle" style={{ width: '12px', height: '12px', left: '-7px', top: '5px', border: '2px solid white', boxShadow: '0 0 0 2px var(--primary-color)' }}></span>
                   <div className="fw-bold">{shipment.status}</div>
                   <div className="text-muted small">{new Date(shipment.lastUpdated || Date.now()).toLocaleString()} • {shipment.currentLocation || 'N/A'}</div>
                 </div>
+              
                 <div className="position-relative mb-4 ps-4">
                   <span className="position-absolute bg-secondary rounded-circle" style={{ width: '12px', height: '12px', left: '-7px', top: '5px', border: '2px solid white' }}></span>
                   <div className="fw-bold text-secondary">Shipment Manifested</div>
                   <div className="text-muted small">{new Date(shipment.shippedAt || Date.now()).toLocaleString()} • Processing Center</div>
                 </div>
               </div>
+              */}
             </div>
           </div>
 
@@ -125,7 +130,16 @@ export default function ShipmentDetails() {
                         <td>
                           <div className="d-flex align-items-center gap-3 py-2">
                             <div className="bg-light rounded p-1" style={{ width: '40px', height: '40px' }}>
-                              <img src={item.product?.images?.[0] || '/placeholder.jpg'} alt={item.product?.name} className="img-fluid rounded object-fit-cover w-100 h-100" />
+                              <div style={{ position: 'relative', width: '40px', height: '40px', flexShrink: 0 }}>
+                                <Image
+                                  src={getImageUrl(item.product?.images?.[0])}
+                                  alt={item.product?.name || 'Product'}
+                                  fill
+                                  sizes="40px"
+                                  style={{ objectFit: 'cover', borderRadius: '4px' }}
+                                  onError={(e) => { e.currentTarget.src = '/placeholder.png'; }}
+                                />
+                              </div>
                             </div>
                             <div className="fw-medium text-dark">{item.product?.name || 'Unknown Product'}</div>
                           </div>

@@ -4,6 +4,9 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import React, { memo, useState, useEffect } from 'react';
 import api from '../utils/axiosConfig';
+import { getImageUrl } from '../utils/imageConfig';
+
+import { fetchSystemSettings } from '../utils/settingsCache';
 
 export const defaultShopByProducts = [
   { label: 'Skin Care', image: '/category-icons/skin-care.png', query: 'Skin Care', color: '#DDF4FF', glowColor: 'rgba(74, 144, 226, 0.35)' },
@@ -19,35 +22,22 @@ const CategoryIconRow = () => {
   const router = useRouter();
   const [categories, setCategories] = useState([]);
 
-  const getImageUrl = (url) => {
-    if (!url) return '';
-    let cleanedUrl = url;
-    if (typeof cleanedUrl === 'string' && cleanedUrl.includes('/uploads/')) {
-      cleanedUrl = cleanedUrl.substring(cleanedUrl.indexOf('/uploads/'));
-    }
-    if (cleanedUrl.startsWith('http') || cleanedUrl.startsWith('blob:')) return cleanedUrl;
-    if (cleanedUrl.startsWith('/uploads/')) {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : '';
-      if (cleanedUrl.toLowerCase().endsWith('.mp4') || cleanedUrl.toLowerCase().endsWith('.webm')) {
-        return `${baseUrl}/api${cleanedUrl}`;
-      }
-      return cleanedUrl;
-    }
-    return cleanedUrl;
-  };
+  // getImageUrl imported from utils/imageConfig.js
 
   useEffect(() => {
     const fetchIcons = async () => {
       try {
-        const res = await api.get('/auth/settings');
-        if (res.data.success && Array.isArray(res.data.settings?.media_shop_by_products) && res.data.settings.media_shop_by_products.length > 0) {
-          setCategories(res.data.settings.media_shop_by_products.map(cat => ({
+        const res = await fetchSystemSettings();
+        if (res.success && Array.isArray(res.settings?.media_shop_by_products) && res.settings.media_shop_by_products.length > 0) {
+          setCategories(res.settings.media_shop_by_products.map(cat => ({
             ...cat,
             image: getImageUrl(cat.image)
           })));
           return;
         }
-      } catch (err) {}
+      } catch (err) {
+        console.error('Failed to load settings:', err);
+      }
       setCategories(defaultShopByProducts);
     };
     fetchIcons();
@@ -88,7 +78,7 @@ const CategoryIconRow = () => {
                   alt={cat.label || 'Category'}
                   width={70}
                   height={70}
-                  priority
+                  loading="lazy"
                   style={{ width: '70px', height: '70px', objectFit: cat.image === '/logo.png' ? 'contain' : 'cover', padding: cat.image === '/logo.png' ? '8px' : '0', borderRadius: '50%' }}
                 />
               </div>

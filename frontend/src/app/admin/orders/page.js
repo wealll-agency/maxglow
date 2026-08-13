@@ -293,10 +293,45 @@ function AdminOrdersContent() {
     setTrackingNumber('');
     setActionSuccess('');
   };
+  // Filter States
+  const [selectedOrderStatus, setSelectedOrderStatus] = useState(filterStatus || 'All');
+  const [selectedPaymentFilter, setSelectedPaymentFilter] = useState('All');
 
-  const displayOrders = filterStatus 
-    ? orders.filter(ord => ord.orderStatus === filterStatus)
-    : orders;
+  useEffect(() => {
+    if (filterStatus) {
+      setSelectedOrderStatus(filterStatus);
+    }
+  }, [filterStatus]);
+
+  const displayOrders = orders.filter(ord => {
+    // 1. Order Status Filter
+    if (selectedOrderStatus !== 'All') {
+      if (selectedOrderStatus === 'Refunded' || selectedOrderStatus === 'Refund') {
+        if (ord.orderStatus !== 'Refunded' && ord.paymentStatus !== 'Refunded') {
+          return false;
+        }
+      } else if (ord.orderStatus !== selectedOrderStatus) {
+        return false;
+      }
+    }
+
+    // 2. Payment Mode / Status Filter
+    if (selectedPaymentFilter !== 'All') {
+      if (selectedPaymentFilter === 'COD') {
+        if (ord.paymentMode !== 'COD') return false;
+      } else if (selectedPaymentFilter === 'Online') {
+        if (ord.paymentMode === 'COD') return false;
+      } else if (selectedPaymentFilter === 'Pending') {
+        if (ord.paymentStatus !== 'Pending') return false;
+      } else if (selectedPaymentFilter === 'Paid') {
+        if (ord.paymentStatus !== 'Paid') return false;
+      } else if (selectedPaymentFilter === 'Failed') {
+        if (ord.paymentStatus !== 'Failed') return false;
+      }
+    }
+
+    return true;
+  });
 
   const exportToExcel = () => {
     const csvRows = [];
@@ -304,11 +339,20 @@ function AdminOrdersContent() {
     csvRows.push(headers.join(','));
 
     displayOrders.forEach(ord => {
+      let formattedDate = 'N/A';
+      if (ord.createdAt) {
+        const d = new Date(ord.createdAt);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        formattedDate = `="${day}/${month}/${year}"`;
+      }
+
       const row = [
         ord._id,
         `"${(ord.user?.name || 'Guest').replace(/"/g, '""')}"`,
         `"${(ord.user?.email || 'N/A').replace(/"/g, '""')}"`,
-        `"${new Date(ord.createdAt).toLocaleDateString()}"`,
+        formattedDate,
         ord.totalAmount,
         `"${ord.paymentMode === 'COD' ? 'COD' : 'Online'}"`,
         `"${ord.paymentStatus}"`,
@@ -340,44 +384,16 @@ function AdminOrdersContent() {
     printWindow.document.write(`
       <html>
         <head>
-          <title>Tax Invoice - ${selectedOrder._id.substring(0, 10).toUpperCase()}</title>
-          <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+          <title>Tax Invoice - ${selectedOrder?._id}</title>
           <style>
-            body { font-family: Arial, sans-serif; font-size: 11px; color: #000; padding: 10px; }
-            .invoice-box {
-              border: 1.5px solid #000;
-              width: 100%;
-              max-width: 800px;
-              margin: 0 auto;
-              padding: 0;
-            }
-            .invoice-table {
-              border-collapse: collapse;
-              width: 100%;
-              margin-bottom: 0;
-            }
-            .invoice-table th, .invoice-table td {
-              border: 1px solid #000;
-              padding: 4px 6px;
-              font-size: 11px;
-              vertical-align: top;
-            }
-            .invoice-table th {
-              background-color: #f2f2f2;
-              text-align: center;
-              font-weight: bold;
-            }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #1e293b; background: #fff; line-height: 1.4; }
+            .table-bordered { border: 1px solid #000; border-collapse: collapse; width: 100%; }
+            .table-bordered td, .table-bordered th { border: 1px solid #000; padding: 6px 8px; font-size: 11px; }
             .text-center { text-align: center; }
             .text-end { text-align: right; }
             .text-start { text-align: left; }
             .fw-bold { font-weight: bold; }
             .border-bottom { border-bottom: 1px solid #000; }
-            .border-top { border-top: 1px solid #000; }
-            .border-right { border-right: 1px solid #000; }
-            .no-border { border: none !important; }
-            @media print {
-              body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            }
           </style>
         </head>
         <body>
@@ -408,21 +424,85 @@ function AdminOrdersContent() {
           <button onClick={exportToExcel} className="btn btn-success d-flex align-items-center gap-2 btn-sm fw-medium px-3 py-2">
             <Download size={16} /> Export to Excel
           </button>
-          {filterStatus && (
-          <div className="d-flex align-items-center gap-2">
-            <span className="badge bg-brand text-white fs-7 px-3 py-2">
-              <Filter size={14} className="me-1" /> Filter: {filterStatus}
-            </span>
-            <Link href="/admin/orders" className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
-              <X size={14} /> Clear
-            </Link>
-          </div>
-        )}
         </div>
       </div>
 
       {/* Orders Grid */}
       <div className="card shadow-sm p-4 border-0 rounded-4 bg-white mb-4">
+        {/* Dropdown Filters Toolbar */}
+        <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 pb-3 border-bottom">
+          <div className="d-flex flex-wrap align-items-center gap-3">
+            {/* Order Status Dropdown */}
+            <div className="d-flex align-items-center gap-2">
+              <label htmlFor="order-status-filter-select" className="fs-7 fw-semibold text-muted text-nowrap m-0 d-flex align-items-center gap-1">
+                <Filter size={14} /> Order Status:
+              </label>
+              <select
+                id="order-status-filter-select"
+                className="form-select form-select-sm shadow-none border-secondary-subtle rounded-3"
+                style={{ minWidth: '160px', cursor: 'pointer' }}
+                value={selectedOrderStatus}
+                onChange={(e) => {
+                  setSelectedOrderStatus(e.target.value);
+                  setCurrentPage(1);
+                }}
+              >
+                <option value="All">All Order Statuses</option>
+                <option value="Confirmed">Confirmed</option>
+                <option value="Packed">Packed</option>
+                <option value="Shipped">Shipped</option>
+                <option value="Delivered">Delivered</option>
+                <option value="Cancelled">Cancelled</option>
+                <option value="Refunded">Refunded</option>
+              </select>
+            </div>
+
+            {/* Payment Type / Status Dropdown */}
+            <div className="d-flex align-items-center gap-2">
+              <label htmlFor="payment-filter-select" className="fs-7 fw-semibold text-muted text-nowrap m-0 d-flex align-items-center gap-1">
+                <CreditCard size={14} /> Payment Type:
+              </label>
+              <select
+                id="payment-filter-select"
+                className="form-select form-select-sm shadow-none border-secondary-subtle rounded-3"
+                style={{ minWidth: '170px', cursor: 'pointer' }}
+                value={selectedPaymentFilter}
+                onChange={(e) => {
+                  setSelectedPaymentFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+              >
+                <option value="All">All Payment Types</option>
+                <option value="Online">Online Transaction</option>
+                <option value="COD">Cash on Delivery (COD)</option>
+                <option value="Pending">Payment Pending</option>
+                <option value="Paid">Payment Paid</option>
+                <option value="Failed">Payment Failed</option>
+              </select>
+            </div>
+
+            {/* Clear Filters Button */}
+            {(selectedOrderStatus !== 'All' || selectedPaymentFilter !== 'All' || filterStatus) && (
+              <button
+                onClick={() => {
+                  setSelectedOrderStatus('All');
+                  setSelectedPaymentFilter('All');
+                  setCurrentPage(1);
+                  if (filterStatus) {
+                    router.push('/admin/orders');
+                  }
+                }}
+                className="btn btn-sm btn-outline-danger d-flex align-items-center gap-1 rounded-3"
+              >
+                <X size={14} /> Clear Filters
+              </button>
+            )}
+          </div>
+
+          <span className="badge bg-light text-dark border fs-7 fw-medium px-3 py-2">
+            Showing {displayOrders.length} {displayOrders.length === 1 ? 'order' : 'orders'}
+          </span>
+        </div>
         {ordersLoading ? (
           <p className="text-muted text-center py-4">Loading system orders...</p>
         ) : (
@@ -536,7 +616,7 @@ function AdminOrdersContent() {
         <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }} onClick={closeDetailsModal}>
           <div className="modal-dialog modal-lg modal-dialog-centered" onClick={(e) => e.stopPropagation()}>
             <div className="modal-content border-0 rounded-4 shadow-lg">
-              <div className="modal-header border-bottom py-3">
+              <div className="modal-header border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
                 <div>
                   <h5 className="modal-title fw-bold m-0">Order Details (#{selectedOrder._id.substring(0, 12).toUpperCase()})</h5>
                   <div className="mt-1">
@@ -545,13 +625,11 @@ function AdminOrdersContent() {
                     </span>
                   </div>
                 </div>
-                <div className="d-flex gap-2 align-items-center">
-                  {(selectedOrder.orderStatus === 'Confirmed' || selectedOrder.orderStatus === 'Packed' || selectedOrder.orderStatus === 'Shipped' || selectedOrder.orderStatus === 'Delivered') && (
-                    <button onClick={handlePrint} className="btn btn-sm btn-outline-dark d-flex align-items-center gap-1">
-                      <Printer size={14} /> Print
-                    </button>
-                  )}
-                  <button type="button" onClick={closeDetailsModal} className="btn-close"></button>
+                <div className="d-flex align-items-center gap-2 ms-auto">
+                  <button onClick={handlePrint} className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 rounded-3 px-3 py-1.5 fw-medium">
+                    <Printer size={14} /> Print
+                  </button>
+                  <button type="button" onClick={closeDetailsModal} className="btn-close ms-2" aria-label="Close"></button>
                 </div>
               </div>
               

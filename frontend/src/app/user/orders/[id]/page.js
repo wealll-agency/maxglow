@@ -428,12 +428,15 @@ export default function OrderTrackingPage() {
             <h5 className="fw-bold mb-4 d-flex align-items-center gap-2 text-dark"><ShoppingBag size={20} className="text-primary"/> Purchased Items</h5>
             
             <div className="d-flex flex-column gap-3">
-              {order.items.map((item, index) => (
-                <div key={item._id || index} className="d-flex align-items-center justify-content-between pb-3 border-bottom last-border-0">
+              {order.items.map((item, index) => {
+                const productId = item.product?._id ? String(item.product._id) : (item.product ? String(item.product) : null);
+                const productUrl = productId ? `/shop-details?id=${productId}` : null;
+
+                const itemContent = (
                   <div className="d-flex align-items-center gap-3">
                     <div 
                       className="product-img-box bg-light rounded-3 d-flex align-items-center justify-content-center" 
-                      style={{ width: '70px', height: '70px', flexShrink: 0, overflow: 'hidden' }}
+                      style={{ width: '70px', height: '70px', flexShrink: 0, overflow: 'hidden', cursor: productUrl ? 'pointer' : 'default' }}
                     >
                       {item.product && item.product.images && item.product.images.length > 0 ? (
                         <Image 
@@ -441,7 +444,8 @@ export default function OrderTrackingPage() {
                           alt={item.name} 
                           width={70}
                           height={70}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          onError={(e) => { e.currentTarget.src = '/placeholder.png'; }}
                         />
                       ) : (
                         <ShoppingBag size={24} className="text-muted" />
@@ -454,9 +458,21 @@ export default function OrderTrackingPage() {
                       </div>
                     </div>
                   </div>
-                  <span className="fw-bold text-dark fs-5 text-end">₹{item.price * item.quantity}</span>
-                </div>
-              ))}
+                );
+
+                return (
+                  <div key={item._id || index} className="d-flex align-items-center justify-content-between pb-3 border-bottom last-border-0">
+                    {productUrl ? (
+                      <Link href={productUrl} style={{ textDecoration: 'none', color: 'inherit' }} className="hover-opacity">
+                        {itemContent}
+                      </Link>
+                    ) : (
+                      itemContent
+                    )}
+                    <span className="fw-bold text-dark fs-5 text-end">₹{item.price * item.quantity}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 

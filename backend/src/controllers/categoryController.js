@@ -1,11 +1,25 @@
 import Category from '../models/Category.js';
 
+let cachedCategories = null;
+let lastCategoryCacheTime = 0;
+const CACHE_TTL_MS = 60000; // 1 minute
+
+const clearCategoryCache = () => {
+  cachedCategories = null;
+  lastCategoryCacheTime = 0;
+};
+
 // @desc    Get all categories
 // @route   GET /api/categories
-// @access  Private/Admin
+// @access  Public/Admin
 export const getCategories = async (req, res) => {
   try {
-    const categories = await Category.find({}).sort({ name: 1 });
+    if (cachedCategories && (Date.now() - lastCategoryCacheTime < CACHE_TTL_MS)) {
+      return res.json({ success: true, categories: cachedCategories });
+    }
+    const categories = await Category.find({}).sort({ name: 1 }).lean();
+    cachedCategories = categories;
+    lastCategoryCacheTime = Date.now();
     res.json({ success: true, categories });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
@@ -29,6 +43,7 @@ export const createCategory = async (req, res) => {
     }
 
     const category = await Category.create({ name, subCategories: [] });
+    clearCategoryCache();
     res.status(201).json({ success: true, category });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
@@ -59,6 +74,7 @@ export const addSubCategory = async (req, res) => {
 
     category.subCategories.push(subCategory);
     await category.save();
+    clearCategoryCache();
 
     res.json({ success: true, category });
   } catch (error) {
@@ -75,6 +91,7 @@ export const deleteCategory = async (req, res) => {
     if (!category) {
       return res.status(404).json({ success: false, message: 'Category not found' });
     }
+    clearCategoryCache();
     res.json({ success: true, message: 'Category deleted' });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
@@ -98,6 +115,7 @@ export const deleteSubCategory = async (req, res) => {
     );
 
     await category.save();
+    clearCategoryCache();
     res.json({ success: true, category });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error', error: error.message });

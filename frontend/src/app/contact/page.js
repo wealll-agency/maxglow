@@ -139,7 +139,7 @@ export default function ContactPage() {
                   </h4>
                   
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
-                    {['Order Related Queries', 'Non-Order Related Issues', 'Other Issues'].map((type) => {
+                    {['Order Related Queries', 'Bulk Order Related Queries', 'Other Issues'].map((type) => {
                       const isActive = form.queryType === type;
                       return (
                         <button
@@ -416,90 +416,6 @@ export default function ContactPage() {
 
           </div>
         </div>
-      </section>
-
-      {/* Info Block Section */}
-      <section style={{ padding: '60px 0', background: 'white' }}>
-        <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }} className="contact-grid-layout">
-            
-            <div className="glass" style={{
-              borderRadius: '20px',
-              padding: '32px',
-              textAlign: 'center',
-              border: '1px solid rgba(221,244,255,0.8)',
-              boxShadow: '0 10px 30px rgba(74,144,226,0.03)',
-              background: '#F7FBFD',
-              borderTop: '4px solid #3BAE56',
-            }}>
-              <div style={{
-                width: '56px', height: '56px', borderRadius: '50%',
-                background: '#DDF7E3', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                margin: '0 auto 16px', color: '#3BAE56'
-              }}>
-                <FiMail size={24} />
-              </div>
-              <h5 style={{ fontFamily: 'var(--font-outfit)', fontSize: '16px', fontWeight: '700', color: '#1a2332', marginBottom: '8px' }}>Email Us</h5>
-              <p style={{ fontSize: '14px', color: '#64748b', margin: 0 }}>info@webmail.com</p>
-            </div>
-
-            <div className="glass" style={{
-              borderRadius: '20px',
-              padding: '32px',
-              textAlign: 'center',
-              border: '1px solid rgba(221,244,255,0.8)',
-              boxShadow: '0 10px 30px rgba(74,144,226,0.03)',
-              background: '#F7FBFD',
-              borderTop: '4px solid #3BAE56',
-            }}>
-              <div style={{
-                width: '56px', height: '56px', borderRadius: '50%',
-                background: '#DDF7E3', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                margin: '0 auto 16px', color: '#3BAE56'
-              }}>
-                <FiPhone size={24} />
-              </div>
-              <h5 style={{ fontFamily: 'var(--font-outfit)', fontSize: '16px', fontWeight: '700', color: '#1a2332', marginBottom: '8px' }}>Call Us</h5>
-              <p style={{ fontSize: '14px', color: '#64748b', margin: 0 }}>+91 9748724689</p>
-            </div>
-
-            <div className="glass" style={{
-              borderRadius: '20px',
-              padding: '32px',
-              textAlign: 'center',
-              border: '1px solid rgba(221,244,255,0.8)',
-              boxShadow: '0 10px 30px rgba(74,144,226,0.03)',
-              background: '#F7FBFD',
-              borderTop: '4px solid #3BAE56',
-            }}>
-              <div style={{
-                width: '56px', height: '56px', borderRadius: '50%',
-                background: '#DDF7E3', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                margin: '0 auto 16px', color: '#3BAE56'
-              }}>
-                <FiMapPin size={24} />
-              </div>
-              <h5 style={{ fontFamily: 'var(--font-outfit)', fontSize: '16px', fontWeight: '700', color: '#1a2332', marginBottom: '8px' }}>Visit Us</h5>
-              <p style={{ fontSize: '14px', color: '#64748b', margin: 0, lineHeight: 1.5 }}>
-                33, Maharshi Devendra Road<br />Kolkata-700006
-              </p>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* Embed Map Section */}
-      <section style={{ width: '100%', height: '450px', background: '#F8FAFC', position: 'relative' }}>
-        <iframe
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d117925.33439927715!2d88.26495098904321!3d22.53540637453303!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39f882db4908f667%3A0x43e330e68f6c2cbc!2sKolkata%2C%20West%20Bengal!5e0!3m2!1sen!2sin!4v1712613612345!5m2!1sen!2sin"
-          width="100%" 
-          height="100%" 
-          style={{ border: 0, display: 'block' }} 
-          allowFullScreen="" 
-          loading="lazy" 
-          referrerPolicy="no-referrer-when-downgrade"
-        />
       </section>
 
       {/* Related Search Tags Section */}

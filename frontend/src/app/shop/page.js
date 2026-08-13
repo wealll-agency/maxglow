@@ -188,7 +188,9 @@ function ShopContent() {
             setCustomCategoryBannersMap(res.data.settings.media_category_banners);
           }
         }
-      } catch (err) {}
+      } catch (err) {
+        console.error('Failed to load settings:', err);
+      }
     };
     fetchSettings();
   }, []);
@@ -289,7 +291,7 @@ function ShopContent() {
       {/* Shop Banner */}
       {(() => {
         const cat = selectedCategory || categoryQuery;
-        let bgImg = '/trending_banner.png';
+        let bgImg = '/maxglow_shop_banner.png';
         let title = 'MaxGlow Herbal Shop';
         let desc = 'Explore our curated range of premium natural wellness products. Clean formulas, botanical actives, and natural care.';
         
@@ -325,7 +327,7 @@ function ShopContent() {
         }
 
         const resolveUrl = (url) => {
-          if (!url) return '/trending_banner.png';
+          if (!url || url === '/trending_banner.png' || url.includes('1785930462176_1st_Banner_for_webside.png')) return '/maxglow_shop_banner.png';
           if (url.startsWith('http') || url.startsWith('blob:')) return url;
           if (url.startsWith('/uploads/')) {
             const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : '';
@@ -625,7 +627,7 @@ function ShopContent() {
                             {discountLabel && <span className="mg-badge mg-badge-green" style={{ fontSize: '10px' }}>{discountLabel}</span>}
                           </div>
                         </div>
-                        <Link href={`/shop-details?name=${encodeURIComponent(product.name)}`} className="btn-mg-primary" style={{ fontSize: '13px', padding: '10px 24px' }}>
+                        <Link href={`/shop-details?id=${product._id}`} className="btn-mg-primary" style={{ fontSize: '13px', padding: '10px 24px' }}>
                           View Details
                         </Link>
                       </div>

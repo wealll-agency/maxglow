@@ -84,7 +84,7 @@ function BuildComboContent() {
   }, 0);
 
   return (
-    <div className="container build-combo-wrapper py-5">
+    <div className="build-combo-wrapper" style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px', paddingBottom: '40px' }}>
       <section className="build-combo-banner" style={{
         position: 'relative',
         overflow: 'hidden',

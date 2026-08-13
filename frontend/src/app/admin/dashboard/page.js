@@ -1,19 +1,12 @@
 "use client";
 
-'use client';
-
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchDashboardStats } from '../../../store/adminSlice.js';
 import Link from 'next/link';
 import { IndianRupee, ShoppingBag, Users, AlertTriangle, Star, RefreshCw, Store, Box, Package, Truck, CheckCircle, XCircle, Clock, RotateCcw, ShieldAlert, FileText, Activity } from 'lucide-react';
 import Image from 'next/image';
-import dynamic from 'next/dynamic';
-
-const EarningStatistics = dynamic(() => import('../../../components/admin/EarningStatistics'), { 
-  ssr: false,
-  loading: () => <div className="d-flex justify-content-center align-items-center" style={{height: 300}}>Loading chart...</div>
-});
+import EarningStatistics from '../../../components/admin/EarningStatistics';
 
 export default function DashboardPage() {
   const dispatch = useDispatch();

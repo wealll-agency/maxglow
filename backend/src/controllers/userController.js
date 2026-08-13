@@ -29,11 +29,14 @@ const populateCartItems = async (cartItems) => {
       finalPrice = Math.max(0, finalPrice);
 
       populatedCart.push({
-        _id: item.product, // Expose product id as _id to match guest cart logic
-        product: product, // Full product object
+        product: item.product.toString(),
+        name: product.name,
+        price: finalPrice,
+        image: product.image || (product.images && product.images.length > 0 ? product.images[0] : '/placeholder.png'),
         quantity: finalQuantity,
-        price: finalPrice, // Server recalculated price
-        selectedAttributes: item.selectedAttributes
+        size: item.selectedAttributes && item.selectedAttributes.size ? item.selectedAttributes.size : 'Default',
+        maxStock: product.stock,
+        _id: item.product // keep for backwards compatibility just in case
       });
     }
   }

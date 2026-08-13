@@ -123,7 +123,7 @@ function CartPage() {
                     {/* Name */}
                     <div style={{ flex: 2, minWidth: '180px' }}>
                       <div style={{ fontSize: '10px', fontWeight: '700', color: '#3BAE56', letterSpacing: '0.08em', marginBottom: '2px' }}>MAXGLOW</div>
-                      <Link href={`/shop-details?name=${encodeURIComponent(item.name)}`} style={{ textDecoration: 'none', fontFamily: 'var(--font-outfit)', fontSize: '15px', fontWeight: '700', color: '#1a2332', lineHeight: '1.4' }}>
+                      <Link href={`/shop-details?id=${item.product}`} style={{ textDecoration: 'none', fontFamily: 'var(--font-outfit)', fontSize: '15px', fontWeight: '700', color: '#1a2332', lineHeight: '1.4' }}>
                         {item.name}
                       </Link>
                       <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>Size: {item.size}</div>

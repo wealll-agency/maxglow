@@ -9,12 +9,18 @@ export const addToCart = createAsyncThunk(
   'cart/addToCart',
   async (payload, { getState, dispatch }) => {
     dispatch(addToCartLocal(payload));
-    const token = getState().auth?.token || localStorage.getItem('maxglow_token');
+    
+    // Get the newly calculated absolute quantity from Redux state
+    const state = getState();
+    const item = state.cart.items.find(i => i.product === payload.product._id && i.size === payload.size);
+    const finalQuantity = item ? item.quantity : payload.quantity;
+
+    const token = state.auth?.token || localStorage.getItem('maxglow_token');
     if (token) {
       try {
         await api.post('/user/cart', { 
           product: payload.product._id, 
-          quantity: payload.quantity, 
+          quantity: finalQuantity, 
           selectedAttributes: { size: payload.size } 
         });
       } catch (err) { console.error('Cart sync error:', err); }

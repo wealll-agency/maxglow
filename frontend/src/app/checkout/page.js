@@ -738,7 +738,7 @@ export default function CheckoutPage() {
                             fill
                             sizes="(max-width: 768px) 100vw, 33vw"
                             style={{ objectFit: 'cover' }}
-                            onError={(e) => { e.target.src = 'https://via.placeholder.com/60?text=No+Image'; }}
+                            onError={(e) => { e.currentTarget.src = '/placeholder.png'; }}
                           />
                         </div>
                         <h6 className="fw-semibold fs-8 mb-1 text-truncate w-100" title={product.name}>{product.name}</h6>

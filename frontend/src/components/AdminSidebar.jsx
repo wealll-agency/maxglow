@@ -98,13 +98,14 @@ export default function AdminSidebar() {
   // Sidebar link definitions
   const navItems = [
     { label: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard size={20} /> },
-    { label: 'Media Manager', path: '/admin/media', icon: <ImageIcon size={20} /> },
+    { label: 'Enquiries', path: '/admin/enquiries', icon: <MessageSquare size={20} />, id: 'enquiries', badge: badges.enquiries },
     { label: 'Product Manager', path: '/admin/products', icon: <ShoppingBag size={20} /> },
+    { label: 'Orders Queue', path: '/admin/orders', icon: <ShoppingCart size={20} />, id: 'orders', badge: badges.orders },
+    { label: 'Inventory Manager', path: '/admin/inventory', icon: <ClipboardList size={20} /> },
+    { label: 'Media Manager', path: '/admin/media', icon: <ImageIcon size={20} /> },
+    { label: 'Coupon Manager', path: '/admin/coupons', icon: <Tag size={20} /> },
     { label: 'Homepage Products', path: '/admin/homepage-products', icon: <LayoutDashboard size={20} /> },
     { label: 'Warehouses', path: '/admin/warehouses', icon: <MapPin size={20} /> },
-    { label: 'Inventory Manager', path: '/admin/inventory', icon: <ClipboardList size={20} /> },
-    { label: 'Orders Queue', path: '/admin/orders', icon: <ShoppingCart size={20} />, id: 'orders', badge: badges.orders },
-    { label: 'Shipments', path: '/admin/shipments', icon: <Package size={20} /> },
     { 
       label: 'Refund Requests', 
       icon: <RotateCcw size={20} />, 
@@ -118,11 +119,10 @@ export default function AdminSidebar() {
         { label: 'Rejected', path: '/admin/refunds/rejected' }
       ]
     },
+    { label: 'Shipments', path: '/admin/shipments', icon: <Package size={20} /> },
     { label: 'Customer Profiling', path: '/admin/customers', icon: <Users size={20} /> },
     { label: 'Customer Access', path: '/admin/access', icon: <Shield size={20} /> },
-    { label: 'Enquiries', path: '/admin/enquiries', icon: <MessageSquare size={20} />, id: 'enquiries', badge: badges.enquiries },
-    { label: 'Reports Center', path: '/admin/reports', icon: <Receipt size={20} /> },
-    { label: 'Coupon Manager', path: '/admin/coupons', icon: <Tag size={20} /> }
+    { label: 'Reports Center', path: '/admin/reports', icon: <Receipt size={20} /> }
   ];
 
   const sidebarWidth = isCollapsed ? '80px' : '300px';
@@ -167,7 +167,7 @@ export default function AdminSidebar() {
           {/* Logo / Brand Header */}
           <div className="px-4 mb-4 d-flex align-items-center justify-content-between">
             {!isCollapsed ? (
-              <div className="d-flex align-items-center gap-2">
+              <div className="d-flex flex-column align-items-start gap-1">
                 <Link href="/" className="d-flex align-items-center text-decoration-none">
                   <img 
                     src="/logo.png" 
@@ -175,7 +175,7 @@ export default function AdminSidebar() {
                     style={{ height: '38px', width: 'auto', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} 
                   />
                 </Link>
-                <span className="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 px-2 py-0.5 fs-9 fw-bold">
+                <span className="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 px-2 py-0.5 fs-9 fw-bold mt-1" style={{ marginLeft: '4px' }}>
                   SUPER ADMIN
                 </span>
               </div>

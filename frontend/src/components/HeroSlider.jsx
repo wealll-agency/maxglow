@@ -9,6 +9,8 @@ import { Autoplay, Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 
+import { fetchSystemSettings } from '../utils/settingsCache';
+
 const BANNER_DESTINATION = '/shop';
 const DEFAULT_IMAGES = ['/hero_final_1.png', '/hero_final_2.png', '/hero_final_3.png'];
 const SLIDE_INTERVAL = 4000;
@@ -20,9 +22,9 @@ export default function HeroSlider() {
   useEffect(() => {
     const fetchHero = async () => {
       try {
-        const res = await api.get('/auth/settings');
-        if (res.data.success && res.data.settings?.media_hero?.length > 0) {
-          const validImages = res.data.settings.media_hero.filter(img => img.trim() !== '');
+        const res = await fetchSystemSettings();
+        if (res.success && res.settings?.media_hero?.length > 0) {
+          const validImages = res.settings.media_hero.filter(img => img.trim() !== '');
           if (validImages.length > 0) {
             setImages(validImages);
             return;
@@ -64,9 +66,9 @@ export default function HeroSlider() {
         <div
           className="carousel-mask"
           style={{
-            borderRadius: '20px',
+            borderRadius: '16px',
             overflow: 'hidden',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+            boxShadow: 'none',
             position: 'relative',
             width: '100%',
             aspectRatio: '1920/600',
@@ -94,9 +96,9 @@ export default function HeroSlider() {
       <div
         className="carousel-mask"
         style={{
-          borderRadius: '20px',
+          borderRadius: '16px',
           overflow: 'hidden',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+          boxShadow: 'none',
           position: 'relative',
           width: '100%',
         }}
@@ -176,6 +178,7 @@ export default function HeroSlider() {
                 width={1920}
                 height={600}
                 priority={idx === 0}
+                fetchPriority={idx === 0 ? "high" : "auto"}
                 sizes="100vw"
                 style={{
                   width: '100%',

@@ -293,7 +293,7 @@ const ReelsSection = () => {
                 tag: p.category || 'Product',
                 price: finalPrice,
                 originalPrice: p.discount > 0 ? originalPrice : null,
-                link: `/shop-details?name=${encodeURIComponent(p.name)}`,
+                link: `/shop-details?id=${p._id}`,
                 originalProduct: { ...p, price: finalPrice }
               };
             });

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from 'next/image';
-
+import { getImageUrl } from '../../../utils/imageConfig';
 
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -187,11 +187,12 @@ export default function HomepageProductsPage() {
                 </td>
                 <td>
                   <Image 
-                    src={product.images[0] || 'https://via.placeholder.com/50'} 
-                    alt="product" 
+                    src={getImageUrl(product.images?.[0])} 
+                    alt={product.name || 'product'} 
                     width={40} height={40} 
                     className="rounded" 
-                    style={{ objectFit: 'cover' }} 
+                    style={{ objectFit: 'cover' }}
+                    onError={(e) => { e.currentTarget.src = '/placeholder.png'; }}
                   />
                 </td>
                 <td>

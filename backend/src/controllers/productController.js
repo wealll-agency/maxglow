@@ -5,11 +5,25 @@ import StockNotification from '../models/StockNotification.js';
 import { logActivity } from '../middleware/logger.js';
 import { uploadFile } from '../services/storageService.js';
 
+// High-Performance In-Memory Query Cache
+const productsMemoryCache = new Map();
+const CACHE_TTL_MS = 30000; // 30 seconds
+
+export const clearProductsCache = () => {
+  productsMemoryCache.clear();
+};
+
 // @desc    Get all products (with search, category filter, sorting, pagination)
 // @route   GET /api/products
 // @access  Public
 export const getProducts = async (req, res, next) => {
   try {
+    const cacheKey = JSON.stringify(req.query);
+    const cachedEntry = productsMemoryCache.get(cacheKey);
+    if (cachedEntry && (Date.now() - cachedEntry.timestamp < CACHE_TTL_MS)) {
+      return res.json(cachedEntry.data);
+    }
+
     const { keyword, category, subCategory, subSubCategory, brand, minPrice, maxPrice, sort, page = 1, limit = 12, homepage, topSelling, newArrival, healthyProduct, featured, inStock, showInReels } = req.query;
 
     const query = {};
@@ -92,20 +106,30 @@ export const getProducts = async (req, res, next) => {
     const skip = (pageNum - 1) * limitNum;
 
     const total = await Product.countDocuments(query);
-    const products = await Product.find(query)
-      .select('name category brand price discount discountType images stock isFeatured showOnHomepage newArrival healthyProduct searchTags unit')
+    
+    let dbQuery = Product.find(query);
+    dbQuery = dbQuery.select('name category brand price discount discountType images stock isFeatured showOnHomepage newArrival healthyProduct searchTags unit');
+
+    const products = await dbQuery
       .sort(sortBy)
       .skip(skip)
       .limit(limitNum)
       .lean();
 
-    res.json({
+    const responsePayload = {
       success: true,
       total,
       pages: Math.ceil(total / limitNum),
       currentPage: pageNum,
       products
+    };
+
+    productsMemoryCache.set(cacheKey, {
+      timestamp: Date.now(),
+      data: responsePayload
     });
+
+    res.json(responsePayload);
   } catch (error) {
     next(error);
   }
@@ -139,29 +163,6 @@ export const createProduct = async (req, res, next) => {
   } = req.body;
 
   try {
-    let finalImages = images ? (Array.isArray(images) ? images : [images]) : [];
-    let finalVideos = videos ? (Array.isArray(videos) ? videos : [videos]) : [];
-
-    // If an image file was uploaded, process it
-    if (req.files && req.files.image) {
-      const file = req.files.image[0];
-      const s3Url = await uploadFile(file);
-      finalImages.push(s3Url);
-    }
-
-    if (req.files && req.files.subImages) {
-      for (const file of req.files.subImages) {
-        const s3Url = await uploadFile(file);
-        finalImages.push(s3Url);
-      }
-    }
-
-    if (req.files && req.files.video) {
-      const file = req.files.video[0];
-      const s3Url = await uploadFile(file);
-      finalVideos.push(s3Url);
-    }
-
     const product = new Product({
       name,
       category,
@@ -191,14 +192,40 @@ export const createProduct = async (req, res, next) => {
       description,
       ingredients: typeof ingredients === 'string' ? ingredients.split(',').map(i => i.trim()).filter(Boolean) : (ingredients || []),
       benefits: typeof benefits === 'string' ? benefits.split(',').map(b => b.trim()).filter(Boolean) : (benefits || []),
-      images: finalImages,
-      videos: finalVideos,
       batchNumber,
       expiryDate: expiryDate ? new Date(expiryDate) : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // Default 1 year expiry
       stock: Number(stock) || 0,
       packSizes: (typeof packSizes === 'string' ? JSON.parse(packSizes) : (packSizes || [])).filter(p => p.weight !== '' && p.weight !== null && p.weight !== undefined && p.price !== '' && p.price !== null && p.price !== undefined),
       warehouse: warehouse === '' ? null : warehouse
     });
+
+    const productId = product._id.toString();
+
+    let finalImages = images ? (Array.isArray(images) ? images : [images]) : [];
+    let finalVideos = videos ? (Array.isArray(videos) ? videos : [videos]) : [];
+
+    // If an image file was uploaded, process it with productId prefix
+    if (req.files && req.files.image) {
+      const file = req.files.image[0];
+      const s3Url = await uploadFile(file, productId);
+      finalImages.push(s3Url);
+    }
+
+    if (req.files && req.files.subImages) {
+      for (const file of req.files.subImages) {
+        const s3Url = await uploadFile(file, productId);
+        finalImages.push(s3Url);
+      }
+    }
+
+    if (req.files && req.files.video) {
+      const file = req.files.video[0];
+      const s3Url = await uploadFile(file, productId);
+      finalVideos.push(s3Url);
+    }
+
+    product.images = finalImages;
+    product.videos = finalVideos;
 
     const createdProduct = await product.save();
 
@@ -217,6 +244,7 @@ export const createProduct = async (req, res, next) => {
     });
 
     await logActivity(req.user._id, 'CREATE_PRODUCT', `Created product: ${name} (ID: ${createdProduct._id})`, req);
+    clearProductsCache();
 
     res.status(201).json({ success: true, product: createdProduct });
   } catch (error) {
@@ -272,36 +300,59 @@ export const updateProduct = async (req, res, next) => {
       product.ingredients = typeof req.body.ingredients === 'string' ? req.body.ingredients.split(',').map(i => i.trim()).filter(Boolean) : (req.body.ingredients || product.ingredients);
       product.benefits = typeof req.body.benefits === 'string' ? req.body.benefits.split(',').map(b => b.trim()).filter(Boolean) : (req.body.benefits || product.benefits);
       
-      let finalImages = req.body.images ? (Array.isArray(req.body.images) ? req.body.images : [req.body.images]) : product.images;
+      let finalImages = product.images;
       let finalVideos = req.body.videos ? (Array.isArray(req.body.videos) ? req.body.videos : [req.body.videos]) : product.videos;
       
-      if (req.files) {
-        let newImages = [];
-        if (req.files.image) {
-          const file = req.files.image[0];
-          const s3Url = await uploadFile(file);
-          newImages.push(s3Url);
+      if (req.files || req.body.imageLayout) {
+        const productId = product._id.toString();
+        let mainImageUrl = '';
+        let subImageUrls = [];
+        
+        if (req.files && req.files.image) {
+          mainImageUrl = await uploadFile(req.files.image[0], productId);
         }
-        if (req.files.subImages) {
+        if (req.files && req.files.subImages) {
           for (const file of req.files.subImages) {
-            const s3Url = await uploadFile(file);
-            newImages.push(s3Url);
+            subImageUrls.push(await uploadFile(file, productId));
           }
         }
-        if (newImages.length > 0) {
-          // If a new main image is provided, replace images or append?
-          // Since edit form only sends what exists or new files, we'll append.
-          // Wait, if we send FormData, `req.body.images` could contain existing urls.
-          // In frontend, `imagePreviewUrl` is sent in `images` array if no new file is selected.
-          finalImages = [...finalImages, ...newImages];
-          // Filter duplicates just in case
+        
+        if (req.body.imageLayout) {
+          let layout = [];
+          try {
+            layout = JSON.parse(req.body.imageLayout);
+          } catch(e) { console.error("Error parsing layout", e); }
+          
+          let constructedImages = [];
+          let subIdx = 0;
+          for (let item of layout) {
+            if (item === 'FILE_MAIN' && mainImageUrl) {
+              constructedImages.push(mainImageUrl);
+            } else if (item && typeof item === 'string' && item.startsWith('FILE_SUB_')) {
+              if (subImageUrls[subIdx]) {
+                constructedImages.push(subImageUrls[subIdx]);
+                subIdx++;
+              }
+            } else if (item) {
+              constructedImages.push(item);
+            }
+          }
+          finalImages = constructedImages;
+        } else {
+          // Fallback if layout not provided
+          finalImages = req.body.images ? (Array.isArray(req.body.images) ? req.body.images : [req.body.images]) : product.images;
+          if (mainImageUrl) finalImages.push(mainImageUrl);
+          finalImages = [...finalImages, ...subImageUrls];
           finalImages = [...new Set(finalImages)];
         }
-        if (req.files.video) {
+        
+        if (req.files && req.files.video) {
           const file = req.files.video[0];
-          const s3Url = await uploadFile(file);
+          const s3Url = await uploadFile(file, productId);
           finalVideos = [s3Url]; // Override existing video with the new one
         }
+      } else if (req.body.images) {
+        finalImages = Array.isArray(req.body.images) ? req.body.images : [req.body.images];
       }
       
       product.images = finalImages;
@@ -355,7 +406,9 @@ export const updateProduct = async (req, res, next) => {
         }
       }
 
-      await logActivity(req.user._id, 'UPDATE_PRODUCT', `Updated product ID: ${req.params.id}`, req);
+      await logActivity(req.user._id, 'UPDATE_PRODUCT', `Updated product: ${product.name} (ID: ${product._id})`, req);
+      clearProductsCache();
+
       res.json({ success: true, product: updatedProduct });
     } else {
       res.status(404).json({ success: false, message: 'Product not found' });
@@ -378,6 +431,7 @@ export const deleteProduct = async (req, res, next) => {
       await Inventory.deleteMany({ product: req.params.id });
 
       await logActivity(req.user._id, 'DELETE_PRODUCT', `Deleted product ID: ${req.params.id}`, req);
+      clearProductsCache();
       res.json({ success: true, message: 'Product removed successfully' });
     } else {
       res.status(404).json({ success: false, message: 'Product not found' });
@@ -406,6 +460,7 @@ export const toggleProductStatus = async (req, res, next) => {
     await product.save();
     
     await logActivity(req.user._id, 'UPDATE_PRODUCT', `Toggled ${field} to ${value} for product ID: ${product._id}`, req);
+    clearProductsCache();
     res.json({ success: true, product });
   } catch (error) {
     next(error);
@@ -442,6 +497,7 @@ export const bulkUpdateHomepageFlags = async (req, res, next) => {
     }
 
     await logActivity(req.user._id, 'UPDATE_PRODUCT', `Bulk updated ${flag} for ${productIds.length} products`, req);
+    clearProductsCache();
     res.json({ success: true, message: `Successfully updated ${flag}` });
   } catch (error) {
     next(error);

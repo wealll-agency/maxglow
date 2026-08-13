@@ -296,7 +296,7 @@ export default function AdminMedia() {
             <div className="card-header bg-white border-0 pt-4 pb-2 d-flex justify-content-between align-items-center">
               <div>
                 <h5 className="fw-bold text-dark mb-1">2. New Arrivals Banner</h5>
-                <p className="text-muted small mb-0">Recommended Dimensions: <strong>1400 × 400px</strong>. Displayed inside New Arrivals homepage section.</p>
+                <p className="text-muted small mb-0">Recommended Dimensions: <strong>1400 × 300px</strong>. Displayed inside New Arrivals homepage section.</p>
               </div>
               <button className="btn btn-sm btn-success px-4 rounded-pill fw-bold" onClick={() => handleSaveSection('New Arrivals', { media_new_arrivals: newArrivals })} disabled={saving || uploading}>
                 Save Section
@@ -305,7 +305,7 @@ export default function AdminMedia() {
             <div className="card-body">
               <div className="p-3 bg-light rounded-3 border">
                 <div className="d-flex align-items-center justify-content-between mb-2">
-                  <span className="fw-bold small text-dark">New Arrivals Main Banner (Required Size: 1400×400px)</span>
+                  <span className="fw-bold small text-dark">New Arrivals Main Banner (Required Size: 1400×300px)</span>
                 </div>
                 <div className="d-flex gap-3 align-items-center flex-wrap">
                   {newArrivals && (

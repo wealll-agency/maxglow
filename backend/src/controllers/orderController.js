@@ -202,8 +202,8 @@ export const createOrder = async (req, res, next) => {
 
     // 4. Prepare Razorpay Payload
     const razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_mock',
-      key_secret: process.env.RAZORPAY_KEY_SECRET || 'rzp_secret_mock',
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
     });
 
     const options = {
@@ -229,7 +229,7 @@ export const createOrder = async (req, res, next) => {
       razorpayOrderId: rzpOrder.id,
       amount: options.amount,
       currency: options.currency,
-      key: process.env.RAZORPAY_KEY_ID || 'rzp_test_mock'
+      key: process.env.RAZORPAY_KEY_ID
     });
   } catch (error) {
     next(error);
@@ -252,7 +252,7 @@ export const verifyPayment = async (req, res, next) => {
       return res.status(200).json({ success: true, message: 'Order already paid' });
     }
 
-    const secret = process.env.RAZORPAY_KEY_SECRET || 'rzp_secret_mock';
+    const secret = process.env.RAZORPAY_KEY_SECRET;
 
     const generated_signature = crypto
       .createHmac('sha256', secret)

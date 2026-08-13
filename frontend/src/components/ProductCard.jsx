@@ -113,7 +113,6 @@ const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggl
     : (resolvedProduct.image ? [resolvedProduct.image] : ['/placeholder.png']);
 
   const primaryImage = getImageUrl(allImages[0]);
-  const secondImage = getImageUrl(allImages[1] || allImages[0]);
 
   return (
     <div className="mg-product-card" style={{
@@ -201,7 +200,7 @@ const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggl
         )}
 
         {/* Product image */}
-        <Link href={`/shop-details?name=${encodeURIComponent(resolvedProduct.name)}`} style={{ display: 'block', position: 'relative', height: '100%', width: '100%' }}>
+        <Link href={`/shop-details?id=${resolvedProduct._id}`} style={{ display: 'block', position: 'relative', height: '100%', width: '100%' }}>
           <Image
             src={primaryImage}
             alt={resolvedProduct.name}
@@ -226,7 +225,7 @@ const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggl
         </div>
 
         {/* Product name */}
-        <Link href={`/shop-details?name=${encodeURIComponent(resolvedProduct.name)}`} style={{ textDecoration: 'none', marginBottom: '10px' }}>
+        <Link href={`/shop-details?id=${resolvedProduct._id}`} style={{ textDecoration: 'none', marginBottom: '10px' }}>
           <h3 style={{
             fontFamily: 'var(--font-outfit), sans-serif',
             fontSize: '14px', fontWeight: '600', color: '#1a2332',
@@ -271,7 +270,7 @@ const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggl
             </button>
           ) : resolvedProduct.stock <= 0 ? (
             <Link
-              href={`/shop-details?name=${encodeURIComponent(resolvedProduct.name)}`}
+              href={`/shop-details?id=${resolvedProduct._id}`}
               className="mg-product-action-btn"
               style={{
                 flex: 1, textAlign: 'center', padding: '10px 0',

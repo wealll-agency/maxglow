@@ -226,10 +226,9 @@ process.on('SIGTERM', gracefulShutdown);
 process.on('SIGINT', gracefulShutdown);
 
 process.on('unhandledRejection', (err) => {
-  console.error(`[CRITICAL] Unhandled Rejection: ${err.message}`, err);
-  // In production, unhandled rejections should trigger a clean restart via PM2
-  // to avoid zombie memory states causing 502 Bad Gateway errors.
-  gracefulShutdown();
+  console.error(`[ERROR] Unhandled Promise Rejection: ${err.message}`, err);
+  // Do NOT gracefully shutdown for generic unhandled rejections as it causes 502 loops.
+  // PM2 will only restart if the process crashes via uncaughtException or OOM.
 });
 
 process.on('uncaughtException', (err) => {

@@ -333,7 +333,7 @@ export const exportSalesReportExcel = async (req, res, next) => {
         id: order._id.toString(),
         customer: order.user?.name || 'Guest',
         email: order.user?.email || 'N/A',
-        date: new Date(order.createdAt).toLocaleDateString(),
+        date: order.createdAt ? new Date(order.createdAt).toISOString().split('T')[0] : 'N/A',
         payment: order.paymentStatus,
         order: order.orderStatus,
         subtotal: order.subtotal,

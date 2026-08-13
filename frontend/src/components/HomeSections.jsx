@@ -12,9 +12,9 @@ import { motion } from 'framer-motion';
    ═══════════════════════════════════════════ */
 export const NuttyDelightOffers = () => {
   const [offersState, setOffersState] = useState([
-    { img: '/mg-offer1.jpg', title: 'Herbal Glow Sale', badge: '40% OFF', color: '#DDF4FF' },
-    { img: '/mg-offer2.jpg', title: 'Wellness Special', badge: '30% OFF', color: '#DDF7E3' },
-    { img: '/mg-offer3.jpg', title: 'Combo Deals', badge: '50% OFF', color: '#FEF9E7' },
+    { img: '', title: 'Herbal Glow Sale', badge: '40% OFF', color: '#DDF4FF' },
+    { img: '', title: 'Wellness Special', badge: '30% OFF', color: '#DDF7E3' },
+    { img: '', title: 'Combo Deals', badge: '50% OFF', color: '#FEF9E7' },
   ]);
   const [mounted, setMounted] = useState(false);
 
@@ -30,10 +30,15 @@ export const NuttyDelightOffers = () => {
             if (customOffers[idx] && customOffers[idx].trim() !== '') {
               return { ...offer, img: customOffers[idx] };
             }
-            return offer;
+            return { ...offer, img: `/mg-offer${idx + 1}.jpg` };
           }));
+        } else {
+          setOffersState(prev => prev.map((offer, idx) => ({ ...offer, img: `/mg-offer${idx + 1}.jpg` })));
         }
-      } catch (err) { }
+      } catch (err) {
+        console.error('Failed to load settings:', err);
+        setOffersState(prev => prev.map((offer, idx) => ({ ...offer, img: `/mg-offer${idx + 1}.jpg` })));
+      }
     };
     fetchOffers();
     return () => clearTimeout(timer);
@@ -68,13 +73,17 @@ export const NuttyDelightOffers = () => {
                   position: 'relative', overflow: 'hidden', cursor: 'pointer',
                   background: offer.color, aspectRatio: '16/9',
                 }}>
-                  <Image
-                    src={offer.img}
-                    alt={offer.title}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    style={{ objectFit: 'cover' }}
-                  />
+                  {offer.img ? (
+                    <Image
+                      src={offer.img}
+                      alt={offer.title}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      style={{ objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <div style={{ width: '100%', height: '100%', backgroundColor: '#f1f5f9' }} />
+                  )}
                 </div>
               </Link>
             </div>

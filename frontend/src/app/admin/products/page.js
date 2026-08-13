@@ -1,7 +1,7 @@
 "use client";
 
 import Image from 'next/image';
-
+import { getImageUrl } from '../../../utils/imageConfig';
 
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -194,7 +194,19 @@ export default function AdminProductsPage() {
     setShowForm(false);
   };
 
-  const handleEditClick = (product) => {
+  const handleEditClick = async (productSummary) => {
+    let product = productSummary;
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/products` : 'https://maxglow.in/api/products';
+      const res = await fetch(`${apiUrl}/${productSummary._id}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.product) product = data.product;
+      }
+    } catch (error) {
+      console.error('Failed to fetch full product details', error);
+    }
+
     setEditId(product._id);
     setName(product.name);
     setCategory(product.category);
@@ -218,10 +230,10 @@ export default function AdminProductsPage() {
     setShippingCost(product.shippingCost ? product.shippingCost.toString() : '0');
     setShippingMultiplyWithQty(product.shippingMultiplyWithQty || false);
     setDescription(product.description);
-    setIngredients(product.ingredients.join(', '));
-    setBenefits(product.benefits.join(', '));
-    setBatchNumber(product.batchNumber);
-    setExpiryDate(product.expiryDate.split('T')[0]);
+    setIngredients(product.ingredients?.join(', ') || '');
+    setBenefits(product.benefits?.join(', ') || '');
+    setBatchNumber(product.batchNumber || '');
+    setExpiryDate(product.expiryDate ? product.expiryDate.split('T')[0] : '');
     setStock(product.stock.toString());
     setImagePreviewUrl(product.images[0] || '');
     setImageFile(null);
@@ -349,21 +361,28 @@ export default function AdminProductsPage() {
     payload.append('stock', stock);
     payload.append('packSizes', JSON.stringify(packSizes));
 
+    let imageLayout = [];
     if (imageFile) {
       payload.append('image', imageFile);
+      imageLayout.push('FILE_MAIN');
     } else if (imagePreviewUrl) {
-      payload.append('images', imagePreviewUrl);
+      payload.append('images', imagePreviewUrl); // Keep for backwards compatibility
+      imageLayout.push(imagePreviewUrl);
     }
     
     // Sub-images
     subImageFiles.forEach((file, index) => {
       if (file) {
         payload.append('subImages', file);
+        imageLayout.push('FILE_SUB_' + index);
       } else if (subImagePreviews[index]) {
         // If editing and no new file was chosen, keep the existing URL
-        payload.append('images', subImagePreviews[index]);
+        payload.append('images', subImagePreviews[index]); // Keep for backwards compatibility
+        imageLayout.push(subImagePreviews[index]);
       }
     });
+
+    payload.append('imageLayout', JSON.stringify(imageLayout));
 
     if (videoFile) {
       payload.append('video', videoFile);
@@ -452,7 +471,16 @@ export default function AdminProductsPage() {
               <button className="btn border-0 text-muted" onClick={() => setViewingProduct(null)}><X size={20} /></button>
             </div>
             <div className="card-body text-center">
-              <img src={viewingProduct.images[0] || 'https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=200'} alt="product" className="img-fluid rounded mb-3" style={{ maxHeight: '200px', objectFit: 'cover' }} />
+              <div style={{ position: 'relative', width: '200px', height: '200px', margin: '0 auto 12px' }}>
+                <Image
+                  src={getImageUrl(viewingProduct.images?.[0])}
+                  alt={viewingProduct.name}
+                  fill
+                  sizes="200px"
+                  style={{ objectFit: 'cover', borderRadius: '8px' }}
+                  onError={(e) => { e.currentTarget.src = '/placeholder.png'; }}
+                />
+              </div>
               <h5 className="fw-bold">{viewingProduct.name}</h5>
               <p className="text-muted mb-1">Category: {viewingProduct.category}</p>
               <p className="fw-semibold text-brand fs-5 mb-1">
@@ -660,6 +688,7 @@ export default function AdminProductsPage() {
                     <div className="input-group">
                       <input type="number" className="form-control" value={unitValue} onChange={(e) => setUnitValue(e.target.value)} />
                       <select className="form-select" style={{ maxWidth: '100px' }} value={unit} onChange={(e) => setUnit(e.target.value)}>
+                        <option value="kg">kg</option>
                         <option value="gm">gm</option>
                         <option value="ml">ml</option>
                         <option value="pcs">pcs</option>
@@ -688,7 +717,7 @@ export default function AdminProductsPage() {
                         />
                         {imagePreviewUrl && (
                           <div className="mt-3">
-                            <img src={imagePreviewUrl} alt="Preview" className="img-thumbnail" style={{ height: '100px', width: '100px', objectFit: 'cover' }} />
+                            <img src={imagePreviewUrl} alt="Preview" className="img-thumbnail" style={{ height: '100px', width: '100px', objectFit: 'cover' }} onError={(e) => { e.currentTarget.style.display='none'; }} />
                           </div>
                         )}
                       </div>
@@ -705,7 +734,7 @@ export default function AdminProductsPage() {
                           />
                           {subImagePreviews[index] && (
                             <div className="mt-3">
-                              <img src={subImagePreviews[index]} alt={`Sub Preview ${index + 1}`} className="img-thumbnail" style={{ height: '80px', width: '80px', objectFit: 'cover' }} />
+                              <img src={subImagePreviews[index]} alt={`Sub Preview ${index + 1}`} className="img-thumbnail" style={{ height: '80px', width: '80px', objectFit: 'cover' }} onError={(e) => { e.currentTarget.style.display='none'; }} />
                             </div>
                           )}
                         </div>

@@ -69,28 +69,7 @@ export const updateRefundStatus = async (req, res, next) => {
   }
 };
 
-// @desc    Create a mock refund request (for testing/development)
-// @route   POST /api/refunds/mock
-// @access  Private/Admin
-export const createMockRefundRequest = async (req, res, next) => {
-  try {
-    const { orderId, userId, reason, amount, customerComment, status } = req.body;
-    
-    const refund = new RefundRequest({
-      order: orderId,
-      user: userId,
-      reason,
-      amount,
-      customerComment,
-      status: status || 'Pending'
-    });
-
-    await refund.save();
-    res.status(201).json({ success: true, refund });
-  } catch (error) {
-    next(error);
-  }
-};
+// Mock refund function removed for production safety
 
 // @desc    Create a refund/cancel request by customer
 // @route   POST /api/refunds/request/:orderId
