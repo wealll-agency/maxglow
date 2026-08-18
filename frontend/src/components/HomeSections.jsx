@@ -419,7 +419,7 @@ export const TagsSection = memo(function TagsSection() {
   ];
 
   return (
-    <section className="mg-section-spacing" style={{ background: '#F7FBFD' }}>
+    <section className="mg-section-spacing" style={{ background: '#F7FBFD', paddingTop: '0' }}>
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
 
         <h3 style={{ fontFamily: 'var(--font-outfit)', fontSize: '14px', fontWeight: '700', color: '#94a3b8', marginBottom: '16px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>

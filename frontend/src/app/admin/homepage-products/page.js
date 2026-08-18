@@ -21,12 +21,14 @@ export default function HomepageProductsPage() {
   const [selections, setSelections] = useState({
     showOnHomepage: {},
     newArrival: {},
+    isFeatured: {},
     manualTopSelling: {}
   });
 
   const [saving, setSaving] = useState({
     showOnHomepage: false,
     newArrival: false,
+    isFeatured: false,
     manualTopSelling: false
   });
 
@@ -43,11 +45,13 @@ export default function HomepageProductsPage() {
       const initialSelections = {
         showOnHomepage: {},
         newArrival: {},
+        isFeatured: {},
         manualTopSelling: {}
       };
       products.forEach(p => {
         initialSelections.showOnHomepage[p._id] = p.showOnHomepage || false;
         initialSelections.newArrival[p._id] = p.newArrival || false;
+        initialSelections.isFeatured[p._id] = p.isFeatured || false;
         initialSelections.manualTopSelling[p._id] = p.manualTopSelling || false;
       });
       setSelections(initialSelections);
@@ -128,7 +132,7 @@ export default function HomepageProductsPage() {
 
   const exportToExcel = () => {
     const csvRows = [];
-    const headers = ['Product ID', 'Product Name', 'Category', 'Price', 'Status', 'Show On Homepage', 'New Arrival', 'Manual Top Selling'];
+    const headers = ['Product ID', 'Product Name', 'Category', 'Price', 'Status', 'Show On Homepage', 'New Arrival', 'Trending Now', 'Manual Top Selling'];
     csvRows.push(headers.join(','));
 
     filteredProducts.forEach(prod => {
@@ -140,6 +144,7 @@ export default function HomepageProductsPage() {
         prod.isActive ? 'Active' : 'Inactive',
         selections.showOnHomepage[prod._id] ? 'Yes' : 'No',
         selections.newArrival[prod._id] ? 'Yes' : 'No',
+        selections.isFeatured[prod._id] ? 'Yes' : 'No',
         selections.manualTopSelling[prod._id] ? 'Yes' : 'No'
       ];
       csvRows.push(row.join(','));
@@ -285,6 +290,15 @@ export default function HomepageProductsPage() {
             </li>
             <li className="nav-item">
               <button 
+                className={`nav-link fw-medium border-0 ${activeTab === 'isFeatured' ? 'text-brand border-bottom border-brand border-3' : 'text-muted'}`}
+                onClick={() => setActiveTab('isFeatured')}
+                style={{ backgroundColor: 'transparent' }}
+              >
+                Trending Now
+              </button>
+            </li>
+            <li className="nav-item">
+              <button 
                 className={`nav-link fw-medium border-0 ${activeTab === 'manualTopSelling' ? 'text-brand border-bottom border-brand border-3' : 'text-muted'}`}
                 onClick={() => setActiveTab('manualTopSelling')}
                 style={{ backgroundColor: 'transparent' }}
@@ -352,6 +366,21 @@ export default function HomepageProductsPage() {
                     </button>
                   </div>
                   {renderProductList('newArrival')}
+                </div>
+              )}
+
+              {activeTab === 'isFeatured' && (
+                <div className="animate-fade-in">
+                  <div className="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                      <h5 className="fw-bold mb-1">Trending Now</h5>
+                      <p className="text-muted fs-7 mb-0">Select products to highlight in the Trending Now carousel under the banner.</p>
+                    </div>
+                    <button className="btn btn-brand d-flex align-items-center gap-2" onClick={() => handleSaveFlag('isFeatured')} disabled={saving.isFeatured}>
+                      <Save size={16} /> {saving.isFeatured ? 'Saving...' : 'Save Assignments'}
+                    </button>
+                  </div>
+                  {renderProductList('isFeatured')}
                 </div>
               )}
 

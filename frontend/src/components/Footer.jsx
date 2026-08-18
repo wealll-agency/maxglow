@@ -158,7 +158,7 @@ const Footer = () => {
               </h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {[
-                  { icon: <FiMail size={14} />, text: 'support@gmail.com' },
+                  { icon: <FiMail size={14} />, text: 'support@maxglow.com' },
                   { icon: <FiMapPin size={14} />, text: 'Delhi, India' },
                 ].map((item, idx) => (
                   <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#94a3b8', fontSize: '13px' }}>
@@ -181,12 +181,17 @@ const Footer = () => {
               © 2026 MaxGlow. All rights reserved. <span style={{ opacity: 0.6 }}>v{process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0'}</span>
             </p>
             <div style={{ display: 'flex', gap: '20px' }}>
-              {['Privacy Policy', 'Terms of Service', 'Refund Policy'].map((link, idx) => (
-                <Link key={idx} href="#" style={{ color: '#64748b', fontSize: '12px', textDecoration: 'none', transition: 'color 0.2s ease' }}
+              {[
+                { label: 'Privacy Policy', href: '/privacy-policy' },
+                { label: 'Terms of Service', href: '/terms' },
+                { label: 'Refund & Cancellation Policy', href: '/refund-policy' },
+                { label: 'Shipping Policy', href: '/shipping-policy' }
+              ].map((link, idx) => (
+                <Link key={idx} href={link.href} style={{ color: '#64748b', fontSize: '12px', textDecoration: 'none', transition: 'color 0.2s ease' }}
                   onMouseEnter={e => e.currentTarget.style.color = '#61C454'}
                   onMouseLeave={e => e.currentTarget.style.color = '#64748b'}
                 >
-                  {link}
+                  {link.label}
                 </Link>
               ))}
             </div>

@@ -16,24 +16,27 @@ const Testimonials = dynamic(() => import('../components/Testimonials'));
 async function getHomepageProducts() {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://maxglow.in/api';
   try {
-    const [topRes, arrivalRes] = await Promise.all([
-      fetch(`${baseUrl}/products?topSelling=true&limit=8&inStock=true`, { next: { revalidate: 60 } }),
-      fetch(`${baseUrl}/products?newArrival=true&limit=8&inStock=true`, { next: { revalidate: 60 } }),
+    const [topRes, arrivalRes, trendingRes] = await Promise.all([
+      fetch(`${baseUrl}/products?topSelling=true&limit=8&inStock=true`, { cache: 'no-store' }),
+      fetch(`${baseUrl}/products?newArrival=true&limit=8&inStock=true`, { cache: 'no-store' }),
+      fetch(`${baseUrl}/products?featured=true&limit=8&inStock=true`, { cache: 'no-store' }),
     ]);
     const topData = await topRes.json();
     const arrivalData = await arrivalRes.json();
+    const trendingData = await trendingRes.json();
     return {
       topSellingProducts: topData.success ? topData.products || [] : [],
-      newArrivalProducts: arrivalData.success ? arrivalData.products || [] : []
+      newArrivalProducts: arrivalData.success ? arrivalData.products || [] : [],
+      trendingProducts: trendingData.success ? trendingData.products || [] : []
     };
   } catch (error) {
     console.error("Error fetching homepage products:", error);
-    return { topSellingProducts: [], newArrivalProducts: [] };
+    return { topSellingProducts: [], newArrivalProducts: [], trendingProducts: [] };
   }
 }
 
 export default async function Home() {
-  const { topSellingProducts, newArrivalProducts } = await getHomepageProducts();
+  const { topSellingProducts, newArrivalProducts, trendingProducts } = await getHomepageProducts();
 
   return (
     <main style={{ display: 'flex', flexDirection: 'column' }}>
@@ -73,6 +76,11 @@ export default async function Home() {
 
       {/* Banner */}
       <CashewsBanner />
+
+      {/* Trending Products Carousel */}
+      {trendingProducts.length > 0 && (
+        <ProductCarouselSection title="Trending Products" products={trendingProducts} />
+      )}
 
       {/* Faqs */}
       <Faqs />

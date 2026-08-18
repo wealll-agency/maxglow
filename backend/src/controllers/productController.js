@@ -108,7 +108,7 @@ export const getProducts = async (req, res, next) => {
     const total = await Product.countDocuments(query);
     
     let dbQuery = Product.find(query);
-    dbQuery = dbQuery.select('name category brand price discount discountType images stock isFeatured showOnHomepage newArrival healthyProduct searchTags unit');
+    dbQuery = dbQuery.select('name category brand price discount discountType images stock isFeatured isActive showOnHomepage newArrival healthyProduct searchTags unit');
 
     const products = await dbQuery
       .sort(sortBy)
@@ -474,7 +474,7 @@ export const bulkUpdateHomepageFlags = async (req, res, next) => {
   try {
     const { flag, productIds } = req.body; // flag: showOnHomepage, healthyProduct, newArrival, manualTopSelling
 
-    if (!['showOnHomepage', 'newArrival', 'manualTopSelling', 'healthyProduct'].includes(flag)) {
+    if (!['showOnHomepage', 'newArrival', 'manualTopSelling', 'healthyProduct', 'isFeatured'].includes(flag)) {
       return res.status(400).json({ success: false, message: 'Invalid flag specified' });
     }
     

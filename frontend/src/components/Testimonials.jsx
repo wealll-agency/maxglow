@@ -81,7 +81,7 @@ const Testimonials = () => {
   };
 
   return (
-    <section className="mg-section-spacing" style={{ background: 'linear-gradient(180deg, white 0%, #EAF8FF 100%)' }}>
+    <section className="mg-section-spacing" style={{ background: 'linear-gradient(180deg, white 0%, #EAF8FF 100%)', paddingBottom: '0' }}>
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
         <div style={{ textAlign: 'center', marginBottom: '48px' }}>
           <span style={{
@@ -203,26 +203,34 @@ const Testimonials = () => {
           })}
         </div>
 
-        {/* Summary stats */}
-        <div className="stats-container" style={{
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-          gap: '24px', marginTop: '48px',
-          background: 'white', borderRadius: '20px', padding: '32px',
-          boxShadow: '0 4px 24px rgba(74,144,226,0.08)',
-          border: '1px solid rgba(221,244,255,0.8)',
-        }}>
-          {[
-            { value: '4.9/5', label: 'Average Rating', icon: '⭐' },
-            { value: '50,000+', label: 'Happy Customers', icon: '😊' },
-            { value: '98%', label: 'Would Recommend', icon: '💚' },
-            { value: '5,000+', label: 'Verified Reviews', icon: '✅' },
-          ].map((stat, idx) => (
-            <div key={idx} className="stat-item" style={{ textAlign: 'center' }}>
-              <div className="stat-icon" style={{ fontSize: '28px', marginBottom: '4px' }}>{stat.icon}</div>
-              <div className="stat-value" style={{ fontFamily: 'var(--font-outfit)', fontSize: '24px', fontWeight: '800', color: '#1a2332' }}>{stat.value}</div>
-              <div className="stat-label" style={{ fontSize: '13px', color: '#64748b' }}>{stat.label}</div>
-            </div>
-          ))}
+      </div>
+
+      {/* Summary stats styled exactly like trust-strip */}
+      <div className="trust-strip" style={{ marginTop: '48px' }}>
+        <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
+          <div className="trust-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', textAlign: 'center' }}>
+            {[
+              { value: '4.9/5', label: 'Average Rating', icon: '⭐' },
+              { value: '50,000+', label: 'Happy Customers', icon: '😊' },
+              { value: '98%', label: 'Would Recommend', icon: '💚' },
+              { value: '5,000+', label: 'Verified Reviews', icon: '✅' },
+            ].map((stat, idx) => (
+              <div key={idx} className="trust-item" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+                <div className="trust-icon" style={{
+                  width: '44px', height: '44px', flexShrink: 0,
+                  background: 'linear-gradient(135deg, #EAF8FF, #DDF7E3)',
+                  borderRadius: '12px', display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', fontSize: '20px',
+                }}>
+                  {stat.icon}
+                </div>
+                <div style={{ textAlign: 'left' }}>
+                  <div className="trust-title" style={{ fontFamily: 'var(--font-outfit)', fontSize: '16px', fontWeight: '700', color: '#1a2332' }}>{stat.value}</div>
+                  <div className="trust-sub" style={{ fontSize: '13px', color: '#64748b' }}>{stat.label}</div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
