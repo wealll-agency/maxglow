@@ -48,15 +48,17 @@ export default function DashboardPage() {
       </h5>
       <div className="row g-3 mb-4">
         <div className="col-md-4 col-lg-4">
-          <div className="metric-card d-flex align-items-center justify-content-between p-4 bg-white rounded-4 shadow-sm border-0 h-100">
-            <div>
-              <span className="text-muted fs-7 d-block mb-1">Total Sale</span>
-              <h3 className="fw-bold m-0 text-dark">₹{stats.totalSales.toLocaleString()}</h3>
+          <Link href="/admin/payments" className="text-decoration-none">
+            <div className="metric-card d-flex align-items-center justify-content-between p-4 bg-white rounded-4 shadow-sm border-0 h-100" style={{ cursor: 'pointer', transition: 'transform 0.2s', ':hover': { transform: 'translateY(-2px)' } }}>
+              <div>
+                <span className="text-muted fs-7 d-block mb-1">Total Sale (Click for details)</span>
+                <h3 className="fw-bold m-0 text-dark">₹{stats.totalSales.toLocaleString()}</h3>
+              </div>
+              <div className="rounded-circle p-3 bg-success bg-opacity-10 text-success">
+                <IndianRupee size={24} />
+              </div>
             </div>
-            <div className="rounded-circle p-3 bg-success bg-opacity-10 text-success">
-              <IndianRupee size={24} />
-            </div>
-          </div>
+          </Link>
         </div>
 
 

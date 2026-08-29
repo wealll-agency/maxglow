@@ -16,12 +16,29 @@ export const cleanupAbandonedOrders = async () => {
     });
 
     for (const order of abandonedOrders) {
+      // Claim the order atomically
+      const updatedOrder = await Order.findOneAndUpdate(
+        {
+          _id: order._id,
+          paymentStatus: 'Pending',
+          orderStatus: 'Placed'
+        },
+        {
+          $set: {
+            paymentStatus: 'Failed',
+            orderStatus: 'Cancelled'
+          }
+        },
+        { new: true }
+      );
+
+      if (!updatedOrder) {
+        console.log(`[Cron] Order ${order._id} already claimed or processed by another worker node.`);
+        continue;
+      }
+
       console.log(`[Cron] Cancelling abandoned order ${order._id}`);
       
-      order.paymentStatus = 'Failed';
-      order.orderStatus = 'Cancelled';
-      await order.save();
-
       // Update payment ledger
       const payment = await Payment.findOne({ order: order._id });
       if (payment && payment.status === 'Created') {
@@ -33,21 +50,19 @@ export const cleanupAbandonedOrders = async () => {
       // Restore stock
       for (const item of order.items) {
         await Product.findByIdAndUpdate(item.product, { $inc: { stock: item.quantity, totalSold: -item.quantity } }, { runValidators: true });
-        await Inventory.findOneAndUpdate(
-          { product: item.product },
-          { 
-            $inc: { stockQuantity: item.quantity },
-            $push: {
-              adjustments: {
-                quantityChanged: item.quantity,
-                type: 'AuditAdjustment',
-                reason: `Abandoned Order Timeout Stock Restoral (Order ID: ${order._id})`,
-                adjustedBy: order.user
-              }
-            }
-          },
-          { runValidators: true }
-        );
+        
+        // Find latest batch for the product and increment stock
+        const batch = await Inventory.findOne({ product: item.product }).sort({ expiryDate: -1 });
+        if (batch) {
+          batch.stockQuantity += item.quantity;
+          batch.adjustments.push({
+            quantityChanged: item.quantity,
+            type: 'AuditAdjustment',
+            reason: `Abandoned Order Timeout Stock Restoral (Order ID: ${order._id})`,
+            adjustedBy: order.user
+          });
+          await batch.save();
+        }
       }
     }
   } catch (error) {

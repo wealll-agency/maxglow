@@ -374,9 +374,160 @@ export default function CheckoutPage() {
     }));
   };
 
+  const renderCrossSells = () => {
+    if (!recommendedProducts || recommendedProducts.length === 0) return null;
+    
+    return (
+      <div className="mt-4 pt-4 border-top">
+        <h5 className="fw-bold mb-4 fs-5 d-flex align-items-center gap-2" style={{ color: '#1a2332' }}>
+          <div style={{ background: '#F7FBFD', padding: '8px', borderRadius: '10px' }}><ShoppingBag size={20} color="#4A90E2" /></div>
+          You May Also Like
+        </h5>
+        <div className="row g-4">
+          {recommendedProducts.map(product => {
+            const activePrice = product.price;
+            let imageSrc = getImageUrl(product.images?.[0] || product.image);
+            
+            return (
+              <div key={product._id} className="col-6 col-md-4">
+                <div className="p-3 bg-white border rounded-4 shadow-sm h-100 d-flex flex-column align-items-center text-center transition-all" style={{ border: '1px solid #e2e8f0' }}>
+                  <div style={{ width: '100%', aspectRatio: '1/1', borderRadius: '12px', overflow: 'hidden', backgroundColor: '#f8f9fa', marginBottom: '12px', position: 'relative' }}>
+                    <Image 
+                      src={imageSrc} 
+                      alt={product.name}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      style={{ objectFit: 'cover' }}
+                      onError={(e) => { e.currentTarget.src = '/placeholder.png'; }}
+                    />
+                  </div>
+                  <h6 className="fw-semibold fs-7 mb-2 text-truncate w-100" title={product.name}>{product.name}</h6>
+                  <div className="mb-3">
+                    <span className="fw-bold fs-6 text-dark">₹{activePrice}</span>
+                    {product.discount > 0 && (
+                      <span className="text-muted text-decoration-line-through fs-8 ms-2">₹{product.purchasePrice || product.price}</span>
+                    )}
+                  </div>
+                  <button 
+                    onClick={() => handleAddRecommended(product)}
+                    className="btn btn-outline-brand btn-sm w-100 mt-auto fw-bold"
+                    style={{ borderRadius: '9999px', fontSize: '13px', padding: '8px' }}
+                  >
+                    Add to Order
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="container py-5 animate-fade-in">
-      <h1 className="fw-bold mb-4 display-font">Secure Checkout</h1>
+    <div className="container py-5" style={{ animation: 'fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1)' }}>
+      <style>{`
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .checkout-box {
+          background: #ffffff;
+          border-radius: 20px;
+          border: 1px solid rgba(226, 232, 240, 0.8);
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0,0,0,0.02);
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .checkout-box:hover {
+          box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05), 0 3px 6px rgba(0,0,0,0.03);
+          transform: translateY(-2px);
+        }
+        .glass-box {
+          background: linear-gradient(145deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7));
+          backdrop-filter: blur(12px);
+          border-radius: 24px;
+          border: 1px solid rgba(255,255,255,0.6);
+          box-shadow: 0 15px 40px rgba(0,0,0,0.04);
+        }
+        .form-check-input:checked {
+          background-color: #3BAE56;
+          border-color: #3BAE56;
+        }
+        @media (max-width: 768px) {
+          .container.py-5 {
+            padding-top: 1.5rem !important;
+            padding-bottom: 1.5rem !important;
+          }
+          h4.fw-bold, h5.fw-bold {
+            font-size: 15px !important;
+            margin-bottom: 12px !important;
+            gap: 8px !important;
+          }
+          h4.fw-bold div, h5.fw-bold div {
+            padding: 6px !important;
+            border-radius: 8px !important;
+          }
+          h4.fw-bold div svg, h5.fw-bold div svg {
+            width: 16px !important;
+            height: 16px !important;
+          }
+          .p-4.rounded-4, .rounded-4, .checkout-box {
+            padding: 12px 16px !important;
+            border-radius: 12px !important;
+            margin-bottom: 10px !important;
+          }
+          h6.fw-bold {
+            font-size: 13px !important;
+          }
+          span.badge {
+            font-size: 10px !important;
+            padding: 3px 8px !important;
+          }
+          small.text-muted {
+            font-size: 11px !important;
+            line-height: 1.3 !important;
+          }
+          .mg-input, .form-control {
+            font-size: 12px !important;
+            padding: 8px 12px !important;
+            border-radius: 6px !important;
+          }
+          .btn-sm, .btn {
+            font-size: 11px !important;
+            padding: 6px 12px !important;
+          }
+          .glass-box {
+            padding: 16px !important;
+            border-radius: 16px !important;
+          }
+          .pe-2.custom-scrollbar .d-flex {
+            gap: 12px !important;
+          }
+          .pe-2.custom-scrollbar .fw-bold.fs-7 {
+            font-size: 12px !important;
+          }
+          .pe-2.custom-scrollbar small.fs-8 {
+            font-size: 11px !important;
+          }
+          .pe-2.custom-scrollbar span.fw-bold.text-dark {
+            font-size: 12px !important;
+          }
+          .d-flex.flex-column.gap-2.text-muted.border-top.pt-3.fs-7 {
+            font-size: 12px !important;
+            gap: 6px !important;
+          }
+          .d-flex.justify-content-between.text-dark.fw-bold.fs-5 {
+            font-size: 15px !important;
+          }
+          .btn-mg-green.w-100.py-3 {
+            padding-top: 12px !important;
+            padding-bottom: 12px !important;
+            font-size: 14px !important;
+            border-radius: 10px !important;
+            margin-top: 16px !important;
+          }
+        }
+      `}</style>
 
       <div className="row g-5">
         
@@ -384,9 +535,12 @@ export default function CheckoutPage() {
         <div className="col-lg-7">
           
           {/* Address Section */}
-          <div className="bg-white p-4 rounded-4 shadow-sm border mb-4">
-            <h5 className="fw-bold mb-3 d-flex align-items-center gap-2">
-              <MapPin size={20} color="var(--primary-color)" /> Shipping Address
+          <div className="checkout-box p-4 mb-4 position-relative overflow-hidden">
+            <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '150px', height: '150px', background: 'radial-gradient(circle, rgba(59, 174, 86, 0.05) 0%, rgba(255,255,255,0) 70%)', borderRadius: '50%' }}></div>
+            
+            <h5 className="fw-bold mb-4 d-flex align-items-center gap-3" style={{ color: '#1a2332' }}>
+              <div style={{ background: '#EAF8FF', padding: '10px', borderRadius: '12px', display: 'flex' }}><MapPin size={22} color="#4A90E2" /></div>
+              Shipping Address
             </h5>
 
             {!user ? (
@@ -399,8 +553,8 @@ export default function CheckoutPage() {
                   <div 
                     key={addr._id || idx}
                     onClick={() => setSelectedAddressIndex(idx)}
-                    className={`p-3 rounded border cursor-pointer d-flex justify-content-between align-items-start ${selectedAddressIndex === idx ? 'border-success bg-light' : ''}`}
-                    style={{ cursor: 'pointer' }}
+                    className={`p-4 rounded-4 cursor-pointer d-flex justify-content-between align-items-start ${selectedAddressIndex === idx ? 'bg-white shadow-sm' : 'bg-light'}`}
+                    style={{ border: selectedAddressIndex === idx ? '2px solid #3BAE56' : '1px solid #e2e8f0', cursor: 'pointer', transition: 'all 0.2s ease' }}
                   >
                     <div>
                       <div className="d-flex align-items-center gap-3 mb-1">
@@ -424,9 +578,10 @@ export default function CheckoutPage() {
             {!showNewAddressForm ? (
               <button 
                 onClick={() => setShowNewAddressForm(true)} 
-                className="btn btn-brand-outline btn-sm d-flex align-items-center gap-1 mt-3"
+                className="btn btn-brand-outline btn-sm d-flex align-items-center gap-2 mt-2 px-4 py-2"
+                style={{ borderRadius: '9999px', fontWeight: '600' }}
               >
-                <Plus size={16} /> {(user?.addresses?.length > 0) || (address && city) ? 'Add / Change Address' : 'Add Shipping Address'}
+                <Plus size={18} /> {(user?.addresses?.length > 0) || (address && city) ? 'Add / Change Address' : 'Add Shipping Address'}
               </button>
             ) : (
               <form onSubmit={handleAddAddressSubmit} className="mt-3 pt-3 border-top">
@@ -588,18 +743,19 @@ export default function CheckoutPage() {
                 <span className="badge bg-success">Ready for Checkout</span>
               </div>
             )}
-          </div>
 
-          {/* Payment Card selection */}
-          <div className="bg-white p-4 rounded-4 shadow-sm border">
-            <h5 className="fw-bold mb-3 d-flex align-items-center gap-2">
-              <CreditCard size={20} color="var(--primary-color)" /> Payment Method
+            <hr className="my-4" style={{ borderColor: '#e2e8f0' }} />
+
+            {/* Payment Card selection */}
+            <h5 className="fw-bold mb-4 d-flex align-items-center gap-3" style={{ color: '#1a2332' }}>
+              <div style={{ background: '#ecfdf5', padding: '10px', borderRadius: '12px', display: 'flex' }}><CreditCard size={22} color="#3BAE56" /></div>
+              Payment Method
             </h5>
-            <div className="d-flex flex-column gap-3">
+            <div className="d-flex flex-column gap-3 position-relative" style={{ zIndex: 1 }}>
               <div 
-                className={`p-3 rounded border cursor-pointer d-flex align-items-center gap-3 ${paymentMode === 'Razorpay' ? 'border-success bg-light' : ''}`}
+                className={`p-4 rounded-4 cursor-pointer d-flex align-items-center gap-3 ${paymentMode === 'Razorpay' ? 'bg-white shadow-sm' : 'bg-light'}`}
                 onClick={() => setPaymentMode('Razorpay')}
-                style={{ cursor: 'pointer' }}
+                style={{ border: paymentMode === 'Razorpay' ? '2px solid #3BAE56' : '1px solid #e2e8f0', cursor: 'pointer', transition: 'all 0.2s ease' }}
               >
                 <input type="radio" checked={paymentMode === 'Razorpay'} readOnly className="form-check-input mt-0" />
                 <div>
@@ -609,9 +765,9 @@ export default function CheckoutPage() {
               </div>
               {hasCodPermission && (
                 <div 
-                  className={`p-3 rounded border cursor-pointer d-flex align-items-center gap-3 ${paymentMode === 'COD' ? 'border-success bg-light' : ''}`}
+                  className={`p-4 rounded-4 cursor-pointer d-flex align-items-center gap-3 ${paymentMode === 'COD' ? 'bg-white shadow-sm' : 'bg-light'}`}
                   onClick={() => setPaymentMode('COD')}
-                  style={{ cursor: 'pointer' }}
+                  style={{ border: paymentMode === 'COD' ? '2px solid #3BAE56' : '1px solid #e2e8f0', cursor: 'pointer', transition: 'all 0.2s ease' }}
                 >
                   <input type="radio" checked={paymentMode === 'COD'} readOnly className="form-check-input mt-0" />
                   <div>
@@ -622,22 +778,32 @@ export default function CheckoutPage() {
               )}
             </div>
           </div>
+
+          {/* Cross-Sell Recommendations for Desktop */}
+          <div className="d-none d-lg-block">
+            {renderCrossSells()}
+          </div>
+
         </div>
 
         {/* Right Side: Order summary review */}
-        <div className="col-lg-5">
-          <div className="glass-card p-4">
-            <h4 className="fw-bold mb-3 display-font text-dark border-bottom pb-2">Review Order</h4>
+        <div className="col-lg-5 mt-4 mt-lg-0">
+          <div className="glass-box p-4 sticky-lg-top" style={{ top: '24px', zIndex: 1 }}>
+            <h4 className="fw-bold mb-4 display-font text-dark d-flex align-items-center gap-2">
+              <ShoppingBag size={22} color="#4A90E2" /> Review Order
+            </h4>
 
             {/* Small recap list */}
-            <div className="d-flex flex-column gap-3 mb-4" style={{ maxHeight: '220px', overflowY: 'auto' }}>
+            <div className="d-flex flex-column gap-4 mb-4 pe-2 custom-scrollbar" style={{ maxHeight: '280px', overflowY: 'auto' }}>
               {items.map(item => (
                 <div key={`${item.product}-${item.size}`} className="d-flex align-items-center justify-content-between">
-                  <div className="d-flex align-items-center gap-2">
-                    <ShoppingBag size={18} className="text-muted" />
+                  <div className="d-flex align-items-center gap-3">
+                    <div style={{ width: '48px', height: '48px', borderRadius: '10px', background: '#F7FBFD', border: '1px solid #EAF8FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <ShoppingBag size={20} className="text-muted opacity-50" />
+                    </div>
                     <div>
-                      <span className="fw-semibold text-dark fs-7 d-block text-truncate" style={{ maxWidth: '180px' }}>{item.name}</span>
-                      <small className="text-muted fs-8">Qty: {item.quantity} | Size: {item.size}</small>
+                      <span className="fw-bold text-dark fs-7 d-block text-truncate" style={{ maxWidth: '180px', lineHeight: '1.2' }}>{item.name}</span>
+                      <small className="text-muted fs-8" style={{ fontWeight: '500' }}>Qty: {item.quantity} | Size: {item.size}</small>
                     </div>
                   </div>
                   <span className="fw-bold fs-7 text-dark">₹{item.price * item.quantity}</span>
@@ -655,7 +821,7 @@ export default function CheckoutPage() {
                   value={couponInput}
                   onChange={(e) => setCouponInput(e.target.value)}
                 />
-                <button type="submit" className="btn btn-sm btn-brand px-3">Apply</button>
+                <button type="submit" className="btn-mg-green btn-sm px-3" style={{ borderRadius: '8px', padding: '6px 16px', fontSize: '12px' }}>Apply</button>
               </form>
               {couponError && <div className="text-danger fs-8 mt-1">{couponError}</div>}
               {couponSuccess && <div className="text-success fs-8 mt-1">{couponSuccess}</div>}
@@ -710,58 +876,17 @@ export default function CheckoutPage() {
             <button
               onClick={handlePlaceOrder}
               disabled={loading || isSubmitting || (user && user.addresses?.length === 0) || (!user && (!address || !city))}
-              className="btn btn-brand w-100 py-3 mt-4 fw-bold fs-6 d-flex align-items-center justify-content-center gap-2"
+              className="btn-mg-green w-100 py-3 mt-4 fw-bold fs-6 d-flex align-items-center justify-content-center gap-2"
+              style={{ borderRadius: '14px', boxShadow: '0 8px 25px rgba(59, 174, 86, 0.3)', transition: 'all 0.3s ease', letterSpacing: '0.5px' }}
             >
               {(loading || isSubmitting) ? 'Processing Order...' : 'Pay Now'}
             </button>
           </div>
+        </div>
 
-          {/* Cross-Sell Recommendations */}
-          {recommendedProducts.length > 0 && (
-            <div className="mt-4 pt-3 border-top">
-              <h5 className="fw-bold mb-3 fs-6 d-flex align-items-center gap-2">
-                <ShoppingBag size={16} /> You May Also Like
-              </h5>
-              <div className="row g-3">
-                {recommendedProducts.map(product => {
-                  const activePrice = product.price;
-
-                  let imageSrc = getImageUrl(product.images?.[0] || product.image);
-
-                  return (
-                    <div key={product._id} className="col-6 col-md-4">
-                      <div className="p-2 bg-white border rounded shadow-sm h-100 d-flex flex-column align-items-center text-center">
-                        <div style={{ width: '100%', aspectRatio: '1/1', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#f8f9fa', marginBottom: '8px', position: 'relative' }}>
-                          <Image 
-                            src={imageSrc} 
-                            alt={product.name}
-                            fill
-                            sizes="(max-width: 768px) 100vw, 33vw"
-                            style={{ objectFit: 'cover' }}
-                            onError={(e) => { e.currentTarget.src = '/placeholder.png'; }}
-                          />
-                        </div>
-                        <h6 className="fw-semibold fs-8 mb-1 text-truncate w-100" title={product.name}>{product.name}</h6>
-                        <div className="mb-2">
-                          <span className="fw-bold fs-7 text-dark">₹{activePrice}</span>
-                          {product.discount > 0 && (
-                            <span className="text-muted text-decoration-line-through fs-8 ms-1">₹{product.purchasePrice || product.price}</span>
-                          )}
-                        </div>
-                        <button 
-                          onClick={() => handleAddRecommended(product)}
-                          className="btn btn-outline-brand btn-sm w-100 mt-auto"
-                          style={{ borderRadius: '20px', fontSize: '12px' }}
-                        >
-                          Add
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+        {/* Cross-Sell Recommendations for Mobile */}
+        <div className="col-12 d-lg-none">
+          {renderCrossSells()}
         </div>
 
       </div>

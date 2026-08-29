@@ -3,6 +3,7 @@ import {
   createCoupon,
   applyCoupon,
   getCoupons,
+  getPublicCoupons,
   deleteCoupon,
   getCouponAnalytics
 } from '../controllers/couponController.js';
@@ -15,7 +16,9 @@ router.route('/')
   .post(protect, authorizeRoles('Super Admin', 'Manager'), auditRoute('CREATE_COUPON'), createCoupon)
   .get(protect, authorizeRoles('Super Admin', 'Manager', 'Staff'), getCoupons);
 
-router.post('/apply', protect, applyCoupon);
+router.get('/public', getPublicCoupons);
+
+router.post('/apply', applyCoupon);
 
 router.get('/:id/analytics', protect, authorizeRoles('Super Admin', 'Manager', 'Staff'), getCouponAnalytics);
 

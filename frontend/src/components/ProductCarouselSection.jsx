@@ -12,7 +12,7 @@ const ProductCarouselSection = ({ title, products = [] }) => {
   if (!products || products.length === 0) return null;
 
   return (
-    <section className="mg-section-spacing" style={{ background: 'white', position: 'relative' }}>
+    <section className="mg-section-spacing" style={{ background: 'white', position: 'relative', paddingTop: '20px', paddingBottom: '20px' }}>
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px', flexWrap: 'wrap', gap: '12px' }}>
@@ -40,18 +40,25 @@ const ProductCarouselSection = ({ title, products = [] }) => {
 
         {/* Swiper */}
         <div style={{ position: 'relative' }}>
+          <style>{`
+            @media (max-width: 767px) {
+              .carousel-nav-btn {
+                display: none !important;
+              }
+            }
+          `}</style>
           <Swiper
             modules={[Autoplay, Navigation]}
-            spaceBetween={16}
-            slidesPerView={1}
-            loop={products.length > 4}
+            spaceBetween={10}
+            slidesPerView={2}
+            loop={products.length > 2}
             autoplay={{ delay: 3500, disableOnInteraction: false }}
             navigation={{
               prevEl: `.prev-${title?.replace(/\s/g, '')}`,
               nextEl: `.next-${title?.replace(/\s/g, '')}`,
             }}
             breakpoints={{
-              480: { slidesPerView: 2, spaceBetween: 16 },
+              480: { slidesPerView: 2, spaceBetween: 12 },
               768: { slidesPerView: 3, spaceBetween: 16 },
               1024: { slidesPerView: 4, spaceBetween: 20 },
               1280: { slidesPerView: 4, spaceBetween: 20 },

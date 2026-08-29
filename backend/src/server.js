@@ -37,6 +37,7 @@ import delhiveryRoutes from './routes/delhivery.routes.js';
 import warehouseRoutes from './routes/warehouse.routes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -62,6 +63,13 @@ if (process.env.NODE_ENV === 'production') {
     console.error(`\n[FATAL ERROR] Missing Production Environment Variables: ${missingKeys.join(', ')}`);
     console.error('Shutting down server to prevent silent checkout failures. Please provide these in your environment variables.\n');
     process.exit(1);
+  }
+  
+  if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_ID.startsWith('rzp_test_')) {
+    console.warn('\n[WARNING] Running in production mode but using Razorpay Sandbox/Test keys.');
+  }
+  if (process.env.DELHIVERY_API_TOKEN === 'YOUR_MAXGLOW_DELHIVERY_TOKEN') {
+    console.warn('\n[WARNING] Running in production mode but using placeholder Delhivery token.');
   }
 }
 
@@ -150,6 +158,7 @@ app.use('/api/delhivery', delhiveryRoutes);
 app.use('/api/warehouses', warehouseRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/payments', paymentRoutes);
 // Health check route
 app.get('/api/health', (req, res) => {
   const dbStatus = mongoose.connection.readyState === 1 ? 'healthy' : 'unhealthy';

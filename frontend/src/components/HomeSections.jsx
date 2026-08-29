@@ -134,7 +134,7 @@ export const ShopByCategoryCards = memo(function ShopByCategoryCards() {
   ];
 
   return (
-    <section className="mg-section-spacing" style={{ background: 'white' }}>
+    <section className="mg-section-spacing" style={{ background: 'white', paddingTop: '10px' }}>
       <style dangerouslySetInnerHTML={{
         __html: `
         .shop-by-cat-grid {
@@ -363,7 +363,7 @@ export const Faqs = memo(function Faqs() {
   const [openIdx, setOpenIdx] = useState(null);
 
   return (
-    <section className="mg-section-spacing" style={{ background: 'white' }}>
+    <section className="mg-section-spacing" style={{ background: 'white', paddingBottom: '20px' }}>
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 20px' }}>
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
           <h2 className="mg-section-title">Frequently Asked Questions</h2>

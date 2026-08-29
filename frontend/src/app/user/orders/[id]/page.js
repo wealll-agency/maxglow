@@ -276,6 +276,116 @@ export default function OrderTrackingPage() {
 
   return (
     <div className="container py-5">
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @media (max-width: 768px) {
+            .container.py-5 {
+              padding-top: 1.5rem !important;
+              padding-bottom: 1.5rem !important;
+            }
+            .mb-4 {
+              margin-bottom: 1rem !important;
+            }
+            .mb-4 a {
+              font-size: 12px !important;
+            }
+            .bg-white.p-4.rounded-4.shadow-sm.border {
+              padding: 16px !important;
+              border-radius: 12px !important;
+              margin-bottom: 12px !important;
+            }
+            .bg-white h5.fw-bold {
+              font-size: 14px !important;
+              margin-bottom: 12px !important;
+            }
+            .bg-white h6.fw-bold {
+              font-size: 13px !important;
+            }
+            .bg-white .border-bottom.pb-3.mb-4 h5 {
+              font-size: 14px !important;
+            }
+            .bg-white .border-bottom.pb-3.mb-4 small {
+              font-size: 11px !important;
+            }
+            .bg-white .border-bottom.pb-3.mb-4 .fs-3 {
+              font-size: 18px !important;
+            }
+            .bg-white .border-bottom.pb-3.mb-4 .text-success,
+            .bg-white .border-bottom.pb-3.mb-4 .text-primary,
+            .bg-white .border-bottom.pb-3.mb-4 .text-warning {
+              font-size: 11px !important;
+            }
+            .bg-white .bg-light.p-3.rounded-4.border {
+              padding: 12px !important;
+              border-radius: 10px !important;
+            }
+            .bg-white .bg-light.p-3.rounded-4.border .bg-white.p-2.rounded-circle {
+              width: 32px !important;
+              height: 32px !important;
+              padding: 6px !important;
+            }
+            .bg-white .bg-light.p-3.rounded-4.border .bg-white.p-2.rounded-circle svg {
+              width: 16px !important;
+              height: 16px !important;
+            }
+            .bg-white .bg-light.p-3.rounded-4.border h6 {
+              font-size: 13px !important;
+              margin-bottom: 2px !important;
+            }
+            .bg-white .bg-light.p-3.rounded-4.border p {
+              font-size: 11px !important;
+              line-height: 1.3 !important;
+            }
+            .bg-white .product-img-box {
+              width: 50px !important;
+              height: 50px !important;
+            }
+            .bg-white .product-img-box img {
+              width: 50px !important;
+              height: 50px !important;
+            }
+            .bg-white .flex-grow-1 h6 {
+              font-size: 12px !important;
+            }
+            .bg-white .flex-grow-1 .text-muted {
+              font-size: 11px !important;
+            }
+            .bg-white .pb-3.border-bottom span.fs-5 {
+              font-size: 13px !important;
+            }
+            .bg-white .d-flex.flex-column.gap-3 .d-flex.justify-content-between span {
+              font-size: 12px !important;
+            }
+            .bg-white .d-flex.flex-column.gap-3 .d-flex.justify-content-between.align-items-center span.fs-5 {
+              font-size: 13px !important;
+            }
+            .bg-white .d-flex.flex-column.gap-3 .d-flex.justify-content-between.align-items-center span.fs-4 {
+              font-size: 15px !important;
+            }
+            .bg-white.rounded-4.shadow-sm.border.overflow-hidden h6 {
+              font-size: 13px !important;
+            }
+            .bg-white.rounded-4.shadow-sm.border.overflow-hidden .badge {
+              font-size: 11px !important;
+              padding: 4px 10px !important;
+            }
+            .relative-timeline h6 {
+              font-size: 13px !important;
+            }
+            .relative-timeline .text-muted {
+              font-size: 11px !important;
+            }
+            .relative-timeline .rounded-circle {
+              width: 28px !important;
+              height: 28px !important;
+            }
+            .relative-timeline .rounded-circle svg {
+              width: 14px !important;
+              height: 14px !important;
+            }
+          }
+        `
+      }} />
       
       {/* Success banner */}
       {isNewSuccess && (
@@ -563,7 +673,6 @@ export default function OrderTrackingPage() {
                 <textarea 
                   className="form-control shadow-none bg-light border-0 p-3 rounded-3"
                   rows="4"
-                  placeholder="Type your reason here..."
                   value={refundReason}
                   onChange={(e) => setRefundReason(e.target.value)}
                 ></textarea>

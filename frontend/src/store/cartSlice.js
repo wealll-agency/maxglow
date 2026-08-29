@@ -58,7 +58,7 @@ export const updateCartQuantity = createAsyncThunk(
   }
 );
 
-const calculateTotals = (items, discountPercentage = 0, applicableProducts = [], isCombo = false) => {
+const calculateTotals = (items, discountType = 'percentage', discountPercentage = 0, flatDiscountAmount = 0, applicableProducts = [], isCombo = false) => {
   let subtotal = 0;
   let discountableSubtotal = 0;
 
@@ -86,11 +86,17 @@ const calculateTotals = (items, discountPercentage = 0, applicableProducts = [],
     }
   });
 
-  const discount = Math.round((discountableSubtotal * discountPercentage) / 100);
+  let discount = 0;
+  if (discountType === 'flat') {
+    discount = Math.min(flatDiscountAmount, discountableSubtotal);
+  } else {
+    discount = Math.round((discountableSubtotal * discountPercentage) / 100);
+  }
+  
   const discountedSubtotal = Math.max(0, subtotal - discount);
   // GST (5%) is Included in product MRP
   const tax = Math.round(discountedSubtotal - (discountedSubtotal / 1.05));
-  const shippingFee = discountedSubtotal > 500 || items.length === 0 ? 0 : 40;
+  const shippingFee = subtotal > 999 || items.length === 0 ? 0 : 40;
   const total = discountedSubtotal + shippingFee;
 
   return { subtotal, discount, tax, shippingFee, total, discountableSubtotal };
@@ -101,7 +107,9 @@ const cartSlice = createSlice({
   initialState: {
     items: getInitialCart(),
     couponCode: '',
+    discountType: 'percentage',
     discountPercentage: 0,
+    flatDiscountAmount: 0,
     applicableProducts: [],
     isCombo: false,
     subtotal: 0,
@@ -138,7 +146,7 @@ const cartSlice = createSlice({
         localStorage.setItem('maxglow_cart', JSON.stringify(state.items));
       }
 
-      const totals = calculateTotals(state.items, state.discountPercentage, state.applicableProducts, state.isCombo);
+      const totals = calculateTotals(state.items, state.discountType, state.discountPercentage, state.flatDiscountAmount, state.applicableProducts, state.isCombo);
       Object.assign(state, totals);
     },
     removeFromCartLocal: (state, action) => {
@@ -149,7 +157,7 @@ const cartSlice = createSlice({
         localStorage.setItem('maxglow_cart', JSON.stringify(state.items));
       }
 
-      const totals = calculateTotals(state.items, state.discountPercentage, state.applicableProducts, state.isCombo);
+      const totals = calculateTotals(state.items, state.discountType, state.discountPercentage, state.flatDiscountAmount, state.applicableProducts, state.isCombo);
       Object.assign(state, totals);
     },
     updateCartQuantityLocal: (state, action) => {
@@ -163,23 +171,27 @@ const cartSlice = createSlice({
         localStorage.setItem('maxglow_cart', JSON.stringify(state.items));
       }
 
-      const totals = calculateTotals(state.items, state.discountPercentage, state.applicableProducts, state.isCombo);
+      const totals = calculateTotals(state.items, state.discountType, state.discountPercentage, state.flatDiscountAmount, state.applicableProducts, state.isCombo);
       Object.assign(state, totals);
     },
     applyCouponCode: (state, action) => {
-      const { code, discountPercentage, applicableProducts, isCombo } = action.payload;
+      const { code, discountType, discountPercentage, flatDiscountAmount, applicableProducts, isCombo } = action.payload;
       state.couponCode = code;
-      state.discountPercentage = discountPercentage;
+      state.discountType = discountType || 'percentage';
+      state.discountPercentage = discountPercentage || 0;
+      state.flatDiscountAmount = flatDiscountAmount || 0;
       state.applicableProducts = applicableProducts || [];
       state.isCombo = isCombo || false;
 
-      const totals = calculateTotals(state.items, state.discountPercentage, state.applicableProducts, state.isCombo);
+      const totals = calculateTotals(state.items, state.discountType, state.discountPercentage, state.flatDiscountAmount, state.applicableProducts, state.isCombo);
       Object.assign(state, totals);
     },
     clearCart: (state) => {
       state.items = [];
       state.couponCode = '';
+      state.discountType = 'percentage';
       state.discountPercentage = 0;
+      state.flatDiscountAmount = 0;
       state.applicableProducts = [];
       state.isCombo = false;
       if (typeof window !== 'undefined') {

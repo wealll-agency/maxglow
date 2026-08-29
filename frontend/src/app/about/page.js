@@ -1,19 +1,37 @@
+"use client";
 import Link from 'next/link';
 import Image from 'next/image';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import MgCard from '../../components/ui/MgCard';
+import api from '../../utils/axiosConfig';
+import { getImageUrl } from '../../utils/imageConfig';
 
 export default function AboutPage() {
+  const [content, setContent] = useState(null);
+
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        const res = await api.get('/auth/settings');
+        if (res.data.success && res.data.settings?.about_page_content) {
+          setContent(res.data.settings.about_page_content);
+        }
+      } catch (err) {
+        console.error('Failed to load about page content', err);
+      }
+    };
+    fetchContent();
+  }, []);
   return (
     <>
 
 
       {/* Premium Hero Banner */}
       <section className="position-relative py-5 d-flex align-items-center" style={{ minHeight: '350px' }}>
-        <Image src="/hero_final_1.png" alt="About MaxGlow Banner" fill style={{ objectFit: 'cover', objectPosition: 'center' }} priority />
+        <Image src={content?.hero?.image ? getImageUrl(content.hero.image) : "/hero_final_1.png"} alt="About MaxGlow Banner" fill style={{ objectFit: 'cover', objectPosition: 'center' }} priority />
         <div className="position-absolute w-100 h-100" style={{ top: 0, left: 0, background: 'rgba(0, 0, 0, 0.25)' }}></div>
         <div className="container position-relative z-1 text-center mt-4">
-          <h1 className="text-white fw-bold display-4 mb-3" style={{ textShadow: '0 4px 15px rgba(0,0,0,0.8)' }}>About MaxGlow</h1>
+          <h1 className="text-white fw-bold display-4 mb-3" style={{ textShadow: '0 4px 15px rgba(0,0,0,0.8)' }}>{content?.hero?.heading || 'About MaxGlow'}</h1>
           <nav aria-label="breadcrumb">
             <ol className="breadcrumb justify-content-center mb-0" style={{ fontSize: '1.1rem' }}>
               <li className="breadcrumb-item"><Link href="/" className="text-white text-opacity-75 text-decoration-none" style={{ textShadow: '0 2px 5px rgba(0,0,0,0.8)' }}>Home</Link></li>
@@ -30,7 +48,7 @@ export default function AboutPage() {
             <div className="col-lg-6">
               <div className="position-relative">
                 <Image 
-                  src="/maxglow-hero-products.png" 
+                  src={content?.story?.image ? getImageUrl(content.story.image) : "/maxglow-hero-products.png"} 
                   alt="MaxGlow Store" 
                   width={800} height={600} 
                   style={{ width: '100%', height: 'auto', objectFit: 'cover' }} 
@@ -40,15 +58,26 @@ export default function AboutPage() {
             </div>
             <div className="col-lg-6 ps-lg-5 text-center text-lg-start">
               <span className="d-inline-block px-4 py-2 rounded-pill mb-3 fw-bold shadow-sm" style={{ backgroundColor: '#eef6ff', color: '#1c72b9', fontSize: '0.9rem', letterSpacing: '1px' }}>
-                OUR STORY
+                {content?.story?.tagline || 'OUR STORY'}
               </span>
-              <h2 className="display-5 fw-bold mb-4" style={{ color: '#1e293b' }}>A Legacy of Premium Herbal Wellness & Cosmetics</h2>
-              <p className="text-secondary fs-5 mb-4" style={{ lineHeight: '1.8' }}>
-                At MaxGlow, we believe in delivering the pure bounty of nature to your personal care routine. Our journey started with a simple vision: to bridge the gap between premium organic ingredients and skin-conscious consumers. Over the years, we have mastered the art of formulating the most exquisite herbal face serums, oils, and body care items using botanical extracts sourced from the finest organic gardens.
-              </p>
-              <p className="text-secondary fs-5 mb-5" style={{ lineHeight: '1.8' }}>
-                Every product in our collection is carefully formulated, rigorously tested, and meticulously crafted to preserve the natural active ingredients and therapeutic value. With a deep commitment to excellence, MaxGlow isn't just a cosmetics brand—it's a promise of purity, radiant beauty, and holistic well-being.
-              </p>
+              <h2 className="display-5 fw-bold mb-4" style={{ color: '#1e293b' }}>{content?.story?.heading || 'A Legacy of Premium Herbal Wellness & Cosmetics'}</h2>
+              
+              {content?.story?.paragraphs && content.story.paragraphs.length > 0 ? (
+                content.story.paragraphs.map((para, idx) => (
+                  <p key={`story-para-${idx}`} className={`text-secondary fs-5 ${idx === content.story.paragraphs.length - 1 ? 'mb-5' : 'mb-4'}`} style={{ lineHeight: '1.8', whiteSpace: 'pre-wrap' }}>
+                    {para}
+                  </p>
+                ))
+              ) : (
+                <>
+                  <p className="text-secondary fs-5 mb-4" style={{ lineHeight: '1.8', whiteSpace: 'pre-wrap' }}>
+                    At MaxGlow, we believe in delivering the pure bounty of nature to your personal care routine. Our journey started with a simple vision: to bridge the gap between premium organic ingredients and skin-conscious consumers. Over the years, we have mastered the art of formulating the most exquisite herbal face serums, oils, and body care items using botanical extracts sourced from the finest organic gardens.
+                  </p>
+                  <p className="text-secondary fs-5 mb-5" style={{ lineHeight: '1.8', whiteSpace: 'pre-wrap' }}>
+                    Every product in our collection is carefully formulated, rigorously tested, and meticulously crafted to preserve the natural active ingredients and therapeutic value. With a deep commitment to excellence, MaxGlow isn't just a cosmetics brand—it's a promise of purity, radiant beauty, and holistic well-being.
+                  </p>
+                </>
+              )}
               
               <div className="d-flex align-items-center gap-5 justify-content-center justify-content-lg-start">
                 <div className="d-flex align-items-center gap-3">
@@ -131,31 +160,49 @@ export default function AboutPage() {
         <div className="container py-4">
           <div className="row align-items-center mb-5 pb-5">
             <div className="col-lg-6 order-lg-2 mb-4 mb-lg-0">
-              <Image src="/mg-offer1.jpg" alt="Our Mission" width={800} height={600} style={{ width: '100%', height: 'auto', objectFit: 'cover' }} className="img-fluid rounded-5 shadow-lg" />
+              <Image src={content?.mission?.image ? getImageUrl(content.mission.image) : "/mg-offer1.jpg"} alt="Our Mission" width={800} height={600} style={{ width: '100%', height: 'auto', objectFit: 'cover' }} className="img-fluid rounded-5 shadow-lg" />
             </div>
             <div className="col-lg-6 order-lg-1 pe-lg-5 text-center text-lg-start">
               <span className="d-inline-block px-4 py-2 rounded-pill mb-3 fw-bold shadow-sm" style={{ backgroundColor: '#fff7ed', color: '#ea580c', fontSize: '0.9rem', letterSpacing: '1px' }}>
-                OUR MISSION
+                {content?.mission?.tagline || 'OUR MISSION'}
               </span>
-              <h2 className="display-6 fw-bold mb-4 text-dark">Bringing Nature's Purest to Your Skincare</h2>
-              <p className="text-secondary fs-5 mb-0" style={{ lineHeight: '1.8' }}>
-                Our mission is to establish a robust and ethical extraction process that empowers local herb farmers while delivering uncompromised quality skincare globally. We are dedicated to making botanical excellence and natural glow seamlessly accessible to everyone, ensuring every drop is as wholesome as nature intended.
-              </p>
+              <h2 className="display-6 fw-bold mb-4 text-dark">{content?.mission?.heading || "Bringing Nature's Purest to Your Skincare"}</h2>
+              
+              {content?.mission?.paragraphs && content.mission.paragraphs.length > 0 ? (
+                content.mission.paragraphs.map((para, idx) => (
+                  <p key={`mission-para-${idx}`} className={`text-secondary fs-5 ${idx === content.mission.paragraphs.length - 1 ? 'mb-0' : 'mb-3'}`} style={{ lineHeight: '1.8', whiteSpace: 'pre-wrap' }}>
+                    {para}
+                  </p>
+                ))
+              ) : (
+                <p className="text-secondary fs-5 mb-0" style={{ lineHeight: '1.8', whiteSpace: 'pre-wrap' }}>
+                  Our mission is to establish a robust and ethical extraction process that empowers local herb farmers while delivering uncompromised quality skincare globally. We are dedicated to making botanical excellence and natural glow seamlessly accessible to everyone, ensuring every drop is as wholesome as nature intended.
+                </p>
+              )}
             </div>
           </div>
           
           <div className="row align-items-center pt-5">
             <div className="col-lg-6 mb-4 mb-lg-0">
-              <Image src="/mg-offer2.jpg" alt="Our Vision" width={800} height={600} style={{ width: '100%', height: 'auto', objectFit: 'cover' }} className="img-fluid rounded-5 shadow-lg" />
+              <Image src={content?.vision?.image ? getImageUrl(content.vision.image) : "/mg-offer2.jpg"} alt="Our Vision" width={800} height={600} style={{ width: '100%', height: 'auto', objectFit: 'cover' }} className="img-fluid rounded-5 shadow-lg" />
             </div>
             <div className="col-lg-6 ps-lg-5 text-center text-lg-start">
               <span className="d-inline-block px-4 py-2 rounded-pill mb-3 fw-bold shadow-sm" style={{ backgroundColor: '#f5f3ff', color: '#7c3aed', fontSize: '0.9rem', letterSpacing: '1px' }}>
-                OUR VISION
+                {content?.vision?.tagline || 'OUR VISION'}
               </span>
-              <h2 className="display-6 fw-bold mb-4 text-dark">Redefining Premium Natural Beauty</h2>
-              <p className="text-secondary fs-5 mb-0" style={{ lineHeight: '1.8' }}>
-                We envision a world where wholesome, natural skincare universally replaces chemical and processed alternatives. By continuously innovating and expanding our sustainably sourced offerings, we strive to become the leading symbol of purity, enriching skin health and fostering a globally beauty-conscious community.
-              </p>
+              <h2 className="display-6 fw-bold mb-4 text-dark">{content?.vision?.heading || "Redefining the Future of Organic Beauty"}</h2>
+              
+              {content?.vision?.paragraphs && content.vision.paragraphs.length > 0 ? (
+                content.vision.paragraphs.map((para, idx) => (
+                  <p key={`vision-para-${idx}`} className={`text-secondary fs-5 ${idx === content.vision.paragraphs.length - 1 ? 'mb-4' : 'mb-3'}`} style={{ lineHeight: '1.8', whiteSpace: 'pre-wrap' }}>
+                    {para}
+                  </p>
+                ))
+              ) : (
+                <p className="text-secondary fs-5 mb-4" style={{ lineHeight: '1.8', whiteSpace: 'pre-wrap' }}>
+                  We envision a world where luxury skincare is intrinsically linked with planetary well-being. Our goal is to pioneer the most innovative, sustainable, and 100% organic wellness brand in the industry, inspiring millions to embrace their natural glow while safeguarding the environment for future generations.
+                </p>
+              )}
             </div>
           </div>
         </div>

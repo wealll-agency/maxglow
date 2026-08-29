@@ -251,14 +251,14 @@ const ReelCard = ({ reel }) => {
 
 /* ── Main Section ── */
 const ReelsSection = () => {
-  const [reelsState, setReelsState] = useState([]);
+  const [reelsState, setReelsState] = useState(reels);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchReels = async () => {
       try {
         const { default: api } = await import('../utils/axiosConfig');
-        const res = await api.get('/products?showInReels=true&inStock=true');
+        const res = await api.get('/products?showInReels=true');
         if (res.data.success && res.data.products) {
           const fetchedReels = res.data.products
             .filter(p => p.videos && p.videos.length > 0)
@@ -297,7 +297,9 @@ const ReelsSection = () => {
                 originalProduct: { ...p, price: finalPrice }
               };
             });
-          setReelsState(fetchedReels);
+          if (fetchedReels.length > 0) {
+            setReelsState(fetchedReels);
+          }
         }
       } catch (err) {
         console.error("Failed to fetch reels", err);
@@ -308,7 +310,7 @@ const ReelsSection = () => {
     fetchReels();
   }, []);
 
-  if (loading || reelsState.length === 0) return null;
+  if (reelsState.length === 0) return null;
 
   return (
     <section className="reels-section">

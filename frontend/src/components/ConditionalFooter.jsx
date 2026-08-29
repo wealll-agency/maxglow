@@ -12,5 +12,13 @@ export default function ConditionalFooter() {
     return null;
   }
   
+  if (pathname === '/login' || pathname === '/register') {
+    return (
+      <div className="d-none d-md-block">
+        <Footer />
+      </div>
+    );
+  }
+  
   return <Footer />;
 }

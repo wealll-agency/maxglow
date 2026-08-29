@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import React, { memo, useState, useEffect } from 'react';
 import api from '../utils/axiosConfig';
+import { getImageUrl } from '../utils/imageConfig';
 
 const NewArrivalBanner = () => {
   const [bgImage, setBgImage] = useState('');
@@ -14,6 +15,7 @@ const NewArrivalBanner = () => {
         if (res.data.success && res.data.settings?.media_new_arrivals) {
           if (res.data.settings.media_new_arrivals.trim() !== '') {
             setBgImage(res.data.settings.media_new_arrivals);
+            return;
           }
         }
       } catch (err) {
@@ -25,7 +27,7 @@ const NewArrivalBanner = () => {
   }, []);
 
   return (
-    <section className="mg-section-spacing" style={{ background: 'white' }}>
+    <section className="mg-section-spacing" style={{ background: 'white', paddingBottom: '10px' }}>
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
         
         {/* Banner Card */}
@@ -45,20 +47,11 @@ const NewArrivalBanner = () => {
             height: 100%;
             object-fit: cover;
             display: block;
-          }
-          @media (max-width: 768px) {
-            .new-arrival-banner-card {
-              aspect-ratio: auto;
-            }
-            .new-arrival-banner-img {
-              height: 140px !important;
-            }
-          }
         ` }} />
         <Link href="/shop" className="new-arrival-banner-card">
           {bgImage ? (
             <Image
-              src={bgImage}
+              src={getImageUrl(bgImage)}
               alt="New Arrivals Banner"
               width={1400}
               height={300}

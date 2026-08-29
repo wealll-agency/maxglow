@@ -26,7 +26,7 @@ const CashewsBanner = () => {
 
   // getImageUrl imported from utils/imageConfig.js
   return (
-    <section className="mg-section-spacing" style={{ background: 'white' }}>
+    <section className="mg-section-spacing" style={{ background: 'white', paddingBottom: '10px' }}>
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
         
         {/* Default text removed as requested */}
@@ -48,15 +48,6 @@ const CashewsBanner = () => {
               height: 100%;
               object-fit: cover;
               display: block;
-            }
-            @media (max-width: 768px) {
-              .trending-banner-card {
-                aspect-ratio: auto;
-              }
-              .trending-banner-img {
-                height: 140px !important;
-              }
-            }
           ` }} />
           {bannerImg ? (
             <Image

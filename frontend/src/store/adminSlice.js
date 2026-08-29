@@ -8,6 +8,7 @@ const REFUNDS_URL = '/refunds';
 const DELHIVERY_URL = '/delhivery';
 const WAREHOUSES_URL = '/warehouses';
 const CATEGORIES_URL = '/categories';
+const PAYMENTS_URL = '/payments';
 
 export const fetchDashboardStats = createAsyncThunk(
   'admin/fetchDashboardStats',
@@ -17,6 +18,30 @@ export const fetchDashboardStats = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch dashboard statistics');
+    }
+  }
+);
+
+export const fetchPayments = createAsyncThunk(
+  'admin/fetchPayments',
+  async ({ page = 1, limit = 50 }, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`${PAYMENTS_URL}?page=${page}&limit=${limit}`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch payments');
+    }
+  }
+);
+
+export const markPaymentAsPaid = createAsyncThunk(
+  'admin/markPaymentAsPaid',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await axios.put(`${PAYMENTS_URL}/${id}/mark-paid`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to mark payment as paid');
     }
   }
 );
@@ -366,6 +391,10 @@ const adminSlice = createSlice({
     productsLoading: false,
     refundsLoading: false,
     categories: [],
+    payments: [],
+    paymentsTotalPages: 1,
+    paymentsCurrentPage: 1,
+    paymentsLoading: false,
     error: null
   },
   reducers: {
@@ -402,6 +431,31 @@ const adminSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      
+      // Payments
+      .addCase(fetchPayments.pending, (state) => {
+        state.paymentsLoading = true;
+      })
+      .addCase(fetchPayments.fulfilled, (state, action) => {
+        state.paymentsLoading = false;
+        state.payments = action.payload.payments;
+        state.paymentsTotalPages = action.payload.pages;
+        state.paymentsCurrentPage = action.payload.page;
+      })
+      .addCase(fetchPayments.rejected, (state, action) => {
+        state.paymentsLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(markPaymentAsPaid.fulfilled, (state, action) => {
+        const updatedPayment = action.payload.payment;
+        if (updatedPayment) {
+          const index = state.payments.findIndex(p => p._id === updatedPayment._id);
+          if (index > -1) {
+            state.payments[index] = updatedPayment;
+          }
+        }
+      })
+
       .addCase(createCategory.fulfilled, (state, action) => {
         if (action.payload.category) {
           state.categories.push(action.payload.category);

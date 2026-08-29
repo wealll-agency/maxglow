@@ -81,7 +81,7 @@ const Testimonials = () => {
   };
 
   return (
-    <section className="mg-section-spacing" style={{ background: 'linear-gradient(180deg, white 0%, #EAF8FF 100%)', paddingBottom: '0' }}>
+    <section className="mg-section-spacing" style={{ background: 'linear-gradient(180deg, white 0%, #EAF8FF 100%)', paddingBottom: '0', paddingTop: '10px' }}>
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
         <div style={{ textAlign: 'center', marginBottom: '48px' }}>
           <span style={{

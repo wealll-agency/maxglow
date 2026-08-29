@@ -32,6 +32,7 @@ function ShopContent() {
   const sortRef = useRef(null);
   const [viewType, setViewType] = useState('grid');
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+  const [showAllCategories, setShowAllCategories] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -380,7 +381,6 @@ function ShopContent() {
                     <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '12px', color: '#94a3b8' }}>₹</span>
                     <input
                       type="number"
-                      placeholder="Min"
                       className="mg-input"
                       value={priceFrom}
                       onChange={(e) => setPriceFrom(e.target.value)}
@@ -392,7 +392,6 @@ function ShopContent() {
                     <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '12px', color: '#94a3b8' }}>₹</span>
                     <input
                       type="number"
-                      placeholder="Max"
                       className="mg-input"
                       value={priceTo}
                       onChange={(e) => setPriceTo(e.target.value)}
@@ -430,21 +429,38 @@ function ShopContent() {
               <div style={{ borderTop: '1.5px solid #f1f5f9', padding: '16px 0' }}>
                 <h4 style={{ fontFamily: 'var(--font-outfit)', fontSize: '14px', fontWeight: '700', color: '#1a2332', marginBottom: '12px' }}>Category</h4>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {dynamicCategories.length > 0 ? dynamicCategories.map(cat => (
-                    <button
-                      key={cat}
-                      onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
-                      style={{
-                        padding: '6px 14px', borderRadius: '9999px', fontSize: '12px', fontWeight: '600',
-                        background: selectedCategory === cat ? '#DDF7E3' : '#F7FBFD',
-                        border: `1.5px solid ${selectedCategory === cat ? '#3BAE56' : '#e2e8f0'}`,
-                        color: selectedCategory === cat ? '#3BAE56' : '#374151', cursor: 'pointer',
-                        transition: 'all 0.15s ease',
-                      }}
-                    >
-                      {cat}
-                    </button>
-                  )) : (
+                  {dynamicCategories.length > 0 ? (
+                    <>
+                      {(showAllCategories ? dynamicCategories : dynamicCategories.slice(0, 6)).map(cat => (
+                        <button
+                          key={cat}
+                          onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
+                          style={{
+                            padding: '6px 14px', borderRadius: '9999px', fontSize: '12px', fontWeight: '600',
+                            background: selectedCategory === cat ? '#DDF7E3' : '#F7FBFD',
+                            border: `1.5px solid ${selectedCategory === cat ? '#3BAE56' : '#e2e8f0'}`,
+                            color: selectedCategory === cat ? '#3BAE56' : '#374151', cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                      {dynamicCategories.length > 6 && (
+                        <button
+                          onClick={() => setShowAllCategories(!showAllCategories)}
+                          style={{
+                            padding: '6px 14px', borderRadius: '9999px', fontSize: '12px', fontWeight: '700',
+                            background: 'transparent', border: 'none', color: '#4A90E2', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', gap: '4px'
+                          }}
+                        >
+                          {showAllCategories ? 'View Less' : 'View All'}
+                          <FiChevronDown style={{ transform: showAllCategories ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                        </button>
+                      )}
+                    </>
+                  ) : (
                     <span style={{ fontSize: '12px', color: '#94a3b8' }}>Loading...</span>
                   )}
                 </div>
@@ -671,9 +687,9 @@ function ShopContent() {
           <div>
             <h4 style={{ fontFamily: 'var(--font-outfit)', fontSize: '14px', fontWeight: '700', color: '#1a2332', marginBottom: '12px' }}>Price Range</h4>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <input type="number" placeholder="Min" className="mg-input" value={priceFrom} onChange={(e) => setPriceFrom(e.target.value)} style={{ padding: '8px 12px' }} />
+              <input type="number" className="mg-input" value={priceFrom} onChange={(e) => setPriceFrom(e.target.value)} style={{ padding: '8px 12px' }} />
               <span style={{ color: '#94a3b8' }}>-</span>
-              <input type="number" placeholder="Max" className="mg-input" value={priceTo} onChange={(e) => setPriceTo(e.target.value)} style={{ padding: '8px 12px' }} />
+              <input type="number" className="mg-input" value={priceTo} onChange={(e) => setPriceTo(e.target.value)} style={{ padding: '8px 12px' }} />
             </div>
           </div>
 
@@ -702,20 +718,37 @@ function ShopContent() {
           <div>
             <h4 style={{ fontFamily: 'var(--font-outfit)', fontSize: '14px', fontWeight: '700', color: '#1a2332', marginBottom: '12px' }}>Category</h4>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-              {dynamicCategories.length > 0 ? dynamicCategories.map(cat => (
-                <button
-                  key={cat}
-                  onClick={() => { setSelectedCategory(selectedCategory === cat ? null : cat); setIsMobileFilterOpen(false); }}
-                  style={{
-                    padding: '6px 14px', borderRadius: '9999px', fontSize: '12px', fontWeight: '600',
-                    background: selectedCategory === cat ? '#DDF7E3' : '#F7FBFD',
-                    border: `1.5px solid ${selectedCategory === cat ? '#3BAE56' : '#e2e8f0'}`,
-                    color: selectedCategory === cat ? '#3BAE56' : '#374151', cursor: 'pointer',
-                  }}
-                >
-                  {cat}
-                </button>
-              )) : (
+              {dynamicCategories.length > 0 ? (
+                <>
+                  {(showAllCategories ? dynamicCategories : dynamicCategories.slice(0, 6)).map(cat => (
+                    <button
+                      key={cat}
+                      onClick={() => { setSelectedCategory(selectedCategory === cat ? null : cat); setIsMobileFilterOpen(false); }}
+                      style={{
+                        padding: '6px 14px', borderRadius: '9999px', fontSize: '12px', fontWeight: '600',
+                        background: selectedCategory === cat ? '#DDF7E3' : '#F7FBFD',
+                        border: `1.5px solid ${selectedCategory === cat ? '#3BAE56' : '#e2e8f0'}`,
+                        color: selectedCategory === cat ? '#3BAE56' : '#374151', cursor: 'pointer',
+                      }}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                  {dynamicCategories.length > 6 && (
+                    <button
+                      onClick={() => setShowAllCategories(!showAllCategories)}
+                      style={{
+                        padding: '6px 14px', borderRadius: '9999px', fontSize: '12px', fontWeight: '700',
+                        background: 'transparent', border: 'none', color: '#4A90E2', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', gap: '4px'
+                      }}
+                    >
+                      {showAllCategories ? 'View Less' : 'View All'}
+                      <FiChevronDown style={{ transform: showAllCategories ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                    </button>
+                  )}
+                </>
+              ) : (
                 <span style={{ fontSize: '12px', color: '#94a3b8' }}>Loading...</span>
               )}
             </div>

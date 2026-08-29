@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import User from '../models/User.js';
 import Product from '../models/Product.js';
+import { invalidateUserCache } from '../middleware/auth.js';
 
 // Helper to populate and calculate cart details
 const populateCartItems = async (cartItems) => {
@@ -85,6 +86,7 @@ export const performSync = async (userId, localCart, localWishlist) => {
     user.cart = Array.from(cartMap.values());
     await user.save({ session });
     await session.commitTransaction();
+    invalidateUserCache(userId);
 
     // 3. Populate and recalculate final server-side data
     const populatedCart = await populateCartItems(user.cart);
@@ -157,6 +159,7 @@ export const addToCart = async (req, res, next) => {
       user.cart.push({ product, quantity, selectedAttributes });
     }
     await user.save();
+    invalidateUserCache(req.user._id);
     
     const populatedCart = await populateCartItems(user.cart);
     res.json({ success: true, cart: populatedCart });
@@ -173,6 +176,7 @@ export const removeFromCart = async (req, res, next) => {
     const user = await User.findById(req.user._id);
     user.cart = user.cart.filter(i => i.product.toString() !== req.params.productId);
     await user.save();
+    invalidateUserCache(req.user._id);
 
     const populatedCart = await populateCartItems(user.cart);
     res.json({ success: true, cart: populatedCart });
@@ -196,6 +200,7 @@ export const toggleWishlist = async (req, res, next) => {
       user.wishlist.push(productId);
     }
     await user.save();
+    invalidateUserCache(req.user._id);
 
     const populatedWishlist = await Product.find({ _id: { $in: user.wishlist }, isActive: true }).select('name price stock images discount discountType slug category').lean();
     res.json({ success: true, wishlist: populatedWishlist });

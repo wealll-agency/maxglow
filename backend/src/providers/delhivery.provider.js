@@ -10,8 +10,8 @@ class DelhiveryProvider extends ShippingProvider {
   }
 
   getHeaders() {
-    if (!this.token) {
-      throw new Error('Delhivery API token is missing in configuration.');
+    if (!this.token || this.token === 'YOUR_MAXGLOW_DELHIVERY_TOKEN') {
+      throw new Error('Delhivery API token is missing or set to placeholder in configuration.');
     }
     return {
       'Authorization': `Token ${this.token}`,
@@ -26,6 +26,9 @@ class DelhiveryProvider extends ShippingProvider {
    */
   async createShipment(payload) {
     try {
+      if (!this.token || this.token === 'YOUR_MAXGLOW_DELHIVERY_TOKEN') {
+        throw new Error('Delhivery API token is missing or set to placeholder in configuration.');
+      }
       const params = new URLSearchParams();
       params.append('format', 'json');
       params.append('data', JSON.stringify(payload));

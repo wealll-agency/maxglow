@@ -16,12 +16,16 @@ export default function CouponManagerPage() {
   
   const [formData, setFormData] = useState({
     code: '',
+    discountType: 'percentage',
     discountPercentage: '',
+    flatDiscountAmount: '',
+    minOrderValue: '',
     expiryDate: '',
     usageLimit: 100,
     applicableProducts: [],
     isCombo: false
   });
+  const [couponMode, setCouponMode] = useState('purchase'); // 'purchase' or 'product'
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
@@ -84,9 +88,19 @@ export default function CouponManagerPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (formData.isCombo && formData.applicableProducts.length < 2) {
-      setError('Combo coupons must have at least 2 applicable products selected.');
-      return;
+    let submissionData = { ...formData };
+    if (couponMode === 'purchase') {
+      submissionData.applicableProducts = [];
+      submissionData.isCombo = false;
+    } else {
+      if (submissionData.isCombo && submissionData.applicableProducts.length < 2) {
+        setError('Combo coupons must have at least 2 applicable products selected.');
+        return;
+      }
+      if (submissionData.applicableProducts.length === 0) {
+        setError('Please select at least one applicable product.');
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -94,11 +108,14 @@ export default function CouponManagerPage() {
     setSuccess(null);
 
     try {
-      await api.post(`/coupons`, formData);
+      await api.post(`/coupons`, submissionData);
       setSuccess('Coupon created successfully!');
       setFormData({
         code: '',
+        discountType: 'percentage',
         discountPercentage: '',
+        flatDiscountAmount: '',
+        minOrderValue: '',
         expiryDate: '',
         usageLimit: 100,
         applicableProducts: [],
@@ -301,15 +318,79 @@ export default function CouponManagerPage() {
                 />
               </div>
 
+              {/* Coupon Mode Selection */}
+              <div className="mb-4">
+                <label className="form-label fs-7 fw-semibold text-dark mb-2">Coupon Mode</label>
+                <div className="d-flex gap-2">
+                  <button 
+                    type="button"
+                    className={`btn flex-fill py-2 fs-7 fw-semibold transition-all ${couponMode === 'purchase' ? 'btn-brand shadow-sm' : 'btn-light text-secondary border'}`}
+                    onClick={() => setCouponMode('purchase')}
+                  >
+                    Purchase Based
+                  </button>
+                  <button 
+                    type="button"
+                    className={`btn flex-fill py-2 fs-7 fw-semibold transition-all ${couponMode === 'product' ? 'btn-brand shadow-sm' : 'btn-light text-secondary border'}`}
+                    onClick={() => setCouponMode('product')}
+                  >
+                    Product Based
+                  </button>
+                </div>
+                <p className="text-muted fs-8 mt-2 mb-0">
+                  {couponMode === 'purchase' ? 'Applies to the total cart value based on a minimum purchase amount.' : 'Applies only to specific selected products.'}
+                </p>
+              </div>
+
+              {/* Discount Type Selection */}
               <div className="mb-3">
-                <label className="form-label fs-7 fw-semibold">Discount Percentage (%)</label>
+                <label className="form-label fs-7 fw-semibold">Discount Type</label>
+                <select 
+                  className="form-select bg-light border-0"
+                  value={formData.discountType}
+                  onChange={(e) => setFormData({...formData, discountType: e.target.value})}
+                >
+                  <option value="percentage">Percentage (%)</option>
+                  <option value="flat">Flat Amount (₹)</option>
+                </select>
+              </div>
+
+              {/* Dynamic Discount Input */}
+              {formData.discountType === 'percentage' ? (
+                <div className="mb-3">
+                  <label className="form-label fs-7 fw-semibold">Discount Percentage (%)</label>
+                  <input 
+                    type="number" 
+                    className="form-control bg-light border-0" 
+                    value={formData.discountPercentage} 
+                    onChange={(e) => setFormData({...formData, discountPercentage: e.target.value})}
+                    required 
+                    min="1" max="100"
+                  />
+                </div>
+              ) : (
+                <div className="mb-3">
+                  <label className="form-label fs-7 fw-semibold">Flat Discount Amount (₹)</label>
+                  <input 
+                    type="number" 
+                    className="form-control bg-light border-0" 
+                    value={formData.flatDiscountAmount} 
+                    onChange={(e) => setFormData({...formData, flatDiscountAmount: e.target.value})}
+                    required 
+                    min="1"
+                  />
+                </div>
+              )}
+
+              {/* Minimum Purchase Amount */}
+              <div className="mb-3">
+                <label className="form-label fs-7 fw-semibold">Min Purchase Amount (₹)</label>
                 <input 
                   type="number" 
                   className="form-control bg-light border-0" 
-                  value={formData.discountPercentage} 
-                  onChange={(e) => setFormData({...formData, discountPercentage: e.target.value})}
-                  required 
-                  min="1" max="100"
+                  value={formData.minOrderValue} 
+                  onChange={(e) => setFormData({...formData, minOrderValue: e.target.value})}
+                  min="0"
                 />
               </div>
 
@@ -324,113 +405,118 @@ export default function CouponManagerPage() {
                 />
               </div>
 
-              {/* Combo Coupon Card */}
-              <div 
-                className={`mb-4 p-3 rounded-3 border cursor-pointer transition-all ${
-                  formData.isCombo ? 'bg-primary bg-opacity-10 border-primary shadow-sm' : 'bg-light border-gray'
-                }`}
-                onClick={() => setFormData({ ...formData, isCombo: !formData.isCombo })}
-              >
-                <div className="d-flex align-items-center gap-3">
+              {/* Product Mode Options (Combo & Applicable Products) */}
+              {couponMode === 'product' && (
+                <>
+                  {/* Combo Coupon Card */}
                   <div 
-                    className={`d-flex align-items-center justify-content-center rounded-2 transition-all flex-shrink-0 ${
-                      formData.isCombo ? 'bg-primary text-white border-primary' : 'bg-white border text-transparent'
+                    className={`mb-4 p-3 rounded-3 border cursor-pointer transition-all ${
+                      formData.isCombo ? 'bg-primary bg-opacity-10 border-primary shadow-sm' : 'bg-light border-gray'
                     }`}
-                    style={{ 
-                      width: '20px', 
-                      height: '20px', 
-                      border: formData.isCombo ? '2px solid #3b82f6' : '2px solid #cbd5e1',
-                      backgroundColor: formData.isCombo ? '#3b82f6' : '#ffffff'
-                    }}
+                    onClick={() => setFormData({ ...formData, isCombo: !formData.isCombo })}
                   >
-                    <Check size={14} strokeWidth={3.5} color={formData.isCombo ? '#ffffff' : 'transparent'} />
-                  </div>
-                  <div>
-                    <span className={`fs-7 ${formData.isCombo ? 'fw-bold text-dark' : 'fw-semibold text-secondary'}`}>
-                      Is this a Combo Coupon?
-                    </span>
-                  </div>
-                </div>
-                <div className="text-muted fs-8 mt-2 ms-4 ps-2">
-                  If checked, customer must have ALL selected products below in their cart to use this coupon. Minimum 2 products required.
-                </div>
-              </div>
-
-              {/* Applicable Products Section */}
-              <div className="mb-4">
-                <label className="form-label fs-7 fw-semibold text-dark mb-1">Applicable Products</label>
-                <p className="text-muted fs-8 mb-2">Select "All Products" for storewide discount or check specific products below.</p>
-                
-                <div className="border rounded-3 bg-white p-2">
-                  {/* All Products (Storewide) Option */}
-                  <div 
-                    className={`p-2.5 rounded-2 border mb-2 cursor-pointer transition-all ${
-                      formData.applicableProducts.length === 0 ? 'bg-success bg-opacity-10 border-success shadow-sm' : 'bg-light border-gray'
-                    }`}
-                    onClick={handleToggleAllProducts}
-                  >
-                    <div className="d-flex align-items-center justify-content-between">
-                      <div className="d-flex align-items-center gap-3">
-                        <div 
-                          className={`d-flex align-items-center justify-content-center rounded-2 transition-all flex-shrink-0 ${
-                            formData.applicableProducts.length === 0 ? 'bg-success text-white border-success' : 'bg-white border text-transparent'
-                          }`}
-                          style={{ 
-                            width: '20px', 
-                            height: '20px', 
-                            border: formData.applicableProducts.length === 0 ? '2px solid #10b981' : '2px solid #cbd5e1',
-                            backgroundColor: formData.applicableProducts.length === 0 ? '#10b981' : '#ffffff'
-                          }}
-                        >
-                          <Check size={14} strokeWidth={3.5} color={formData.applicableProducts.length === 0 ? '#ffffff' : 'transparent'} />
-                        </div>
-                        <span className={`fs-7 ${formData.applicableProducts.length === 0 ? 'fw-bold text-dark' : 'fw-semibold text-secondary'}`}>
-                          All Products (Storewide Coupon)
+                    <div className="d-flex align-items-center gap-3">
+                      <div 
+                        className={`d-flex align-items-center justify-content-center rounded-2 transition-all flex-shrink-0 ${
+                          formData.isCombo ? 'bg-primary text-white border-primary' : 'bg-white border text-transparent'
+                        }`}
+                        style={{ 
+                          width: '20px', 
+                          height: '20px', 
+                          border: formData.isCombo ? '2px solid #3b82f6' : '2px solid #cbd5e1',
+                          backgroundColor: formData.isCombo ? '#3b82f6' : '#ffffff'
+                        }}
+                      >
+                        <Check size={14} strokeWidth={3.5} color={formData.isCombo ? '#ffffff' : 'transparent'} />
+                      </div>
+                      <div>
+                        <span className={`fs-7 ${formData.isCombo ? 'fw-bold text-dark' : 'fw-semibold text-secondary'}`}>
+                          Is this a Combo Coupon?
                         </span>
                       </div>
-                      <span className="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 fs-9 fw-bold px-2 py-1">
-                        STOREWIDE
-                      </span>
+                    </div>
+                    <div className="text-muted fs-8 mt-2 ms-4 ps-2">
+                      If checked, customer must have ALL selected products below in their cart to use this coupon. Minimum 2 products required.
                     </div>
                   </div>
 
-                  {/* Individual Products Checkbox List */}
-                  <div className="d-flex flex-column gap-1.5 p-1" style={{ maxHeight: '180px', overflowY: 'auto' }}>
-                    {products.map(product => {
-                      const isChecked = formData.applicableProducts.length === 0 || formData.applicableProducts.includes(product._id);
-                      return (
-                        <div 
-                          key={product._id} 
-                          className={`d-flex align-items-center justify-content-between p-2.5 rounded-2 border cursor-pointer transition-all ${
-                            isChecked ? 'bg-primary bg-opacity-10 border-primary-subtle' : 'bg-white border-light-subtle hover-bg-light'
-                          }`}
-                          onClick={() => handleToggleProduct(product._id)}
-                        >
+                  {/* Applicable Products Section */}
+                  <div className="mb-4">
+                    <label className="form-label fs-7 fw-semibold text-dark mb-1">Applicable Products</label>
+                    <p className="text-muted fs-8 mb-2">Select "All Products" for storewide discount or check specific products below.</p>
+                    
+                    <div className="border rounded-3 bg-white p-2">
+                      {/* All Products (Storewide) Option */}
+                      <div 
+                        className={`p-2.5 rounded-2 border mb-2 cursor-pointer transition-all ${
+                          formData.applicableProducts.length === 0 ? 'bg-success bg-opacity-10 border-success shadow-sm' : 'bg-light border-gray'
+                        }`}
+                        onClick={handleToggleAllProducts}
+                      >
+                        <div className="d-flex align-items-center justify-content-between">
                           <div className="d-flex align-items-center gap-3">
                             <div 
                               className={`d-flex align-items-center justify-content-center rounded-2 transition-all flex-shrink-0 ${
-                                isChecked ? 'bg-primary text-white border-primary' : 'bg-white border text-transparent'
+                                formData.applicableProducts.length === 0 ? 'bg-success text-white border-success' : 'bg-white border text-transparent'
                               }`}
                               style={{ 
-                                width: '18px', 
-                                height: '18px', 
-                                border: isChecked ? '2px solid #3b82f6' : '2px solid #cbd5e1',
-                                backgroundColor: isChecked ? '#3b82f6' : '#ffffff'
+                                width: '20px', 
+                                height: '20px', 
+                                border: formData.applicableProducts.length === 0 ? '2px solid #10b981' : '2px solid #cbd5e1',
+                                backgroundColor: formData.applicableProducts.length === 0 ? '#10b981' : '#ffffff'
                               }}
                             >
-                              <Check size={12} strokeWidth={3.5} color={isChecked ? '#ffffff' : 'transparent'} />
+                              <Check size={14} strokeWidth={3.5} color={formData.applicableProducts.length === 0 ? '#ffffff' : 'transparent'} />
                             </div>
-                            <span className={`fs-7 ${isChecked ? 'fw-bold text-dark' : 'fw-medium text-secondary'}`}>
-                              {product.name}
+                            <span className={`fs-7 ${formData.applicableProducts.length === 0 ? 'fw-bold text-dark' : 'fw-semibold text-secondary'}`}>
+                              All Products (Storewide Coupon)
                             </span>
                           </div>
-                          <span className="fs-8 fw-bold text-muted ms-2">₹{product.price}</span>
+                          <span className="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 fs-9 fw-bold px-2 py-1">
+                            STOREWIDE
+                          </span>
                         </div>
-                      );
-                    })}
+                      </div>
+
+                      {/* Individual Products Checkbox List */}
+                      <div className="d-flex flex-column gap-1.5 p-1" style={{ maxHeight: '180px', overflowY: 'auto' }}>
+                        {products.map(product => {
+                          const isChecked = formData.applicableProducts.length === 0 || formData.applicableProducts.includes(product._id);
+                          return (
+                            <div 
+                              key={product._id} 
+                              className={`d-flex align-items-center justify-content-between p-2.5 rounded-2 border cursor-pointer transition-all ${
+                                isChecked ? 'bg-primary bg-opacity-10 border-primary-subtle' : 'bg-white border-light-subtle hover-bg-light'
+                              }`}
+                              onClick={() => handleToggleProduct(product._id)}
+                            >
+                              <div className="d-flex align-items-center gap-3">
+                                <div 
+                                  className={`d-flex align-items-center justify-content-center rounded-2 transition-all flex-shrink-0 ${
+                                    isChecked ? 'bg-primary text-white border-primary' : 'bg-white border text-transparent'
+                                  }`}
+                                  style={{ 
+                                    width: '18px', 
+                                    height: '18px', 
+                                    border: isChecked ? '2px solid #3b82f6' : '2px solid #cbd5e1',
+                                    backgroundColor: isChecked ? '#3b82f6' : '#ffffff'
+                                  }}
+                                >
+                                  <Check size={12} strokeWidth={3.5} color={isChecked ? '#ffffff' : 'transparent'} />
+                                </div>
+                                <span className={`fs-7 ${isChecked ? 'fw-bold text-dark' : 'fw-medium text-secondary'}`}>
+                                  {product.name}
+                                </span>
+                              </div>
+                              <span className="fs-8 fw-bold text-muted ms-2">₹{product.price}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+                </>
+              )}
 
               <button type="submit" className="btn btn-brand w-100 py-2 fw-semibold" disabled={isSubmitting}>
                 {isSubmitting ? 'Creating...' : 'Create Coupon'}
@@ -471,7 +557,11 @@ export default function CouponManagerPage() {
                           <span className="badge bg-dark px-2 py-1 fs-8 font-monospace">{coupon.code}</span>
                           {coupon.isCombo && <span className="badge bg-primary ms-2 px-2 py-1 fs-8">COMBO</span>}
                         </td>
-                        <td className="fw-bold text-success">{coupon.discountPercentage}% OFF</td>
+                        <td className="fw-bold text-success">
+                          {coupon.discountType === 'flat' 
+                            ? `₹${coupon.flatDiscountAmount} OFF` 
+                            : `${coupon.discountPercentage}% OFF`}
+                        </td>
                         <td style={{ maxWidth: '200px' }}>
                           {coupon.applicableProducts && coupon.applicableProducts.length > 0 ? (
                             <div className="d-flex flex-wrap gap-1">
@@ -535,7 +625,7 @@ export default function CouponManagerPage() {
                     Real-time aggregated metrics computed dynamically from orders database.
                   </p>
                 </div>
-                <div className="d-flex gap-2 align-items-center">
+                <div className="d-flex gap-2 align-items-center ms-auto">
                   <button 
                     onClick={exportAnalyticsCSV} 
                     disabled={!analyticsData || analyticsLoading}

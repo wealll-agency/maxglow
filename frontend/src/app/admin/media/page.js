@@ -39,6 +39,12 @@ export default function AdminMedia() {
     'https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
     'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4'
   ]);
+  const [aboutContent, setAboutContent] = useState({
+    hero: { image: '', heading: '' },
+    story: { image: '', tagline: '', heading: '', paragraphs: [''] },
+    mission: { image: '', tagline: '', heading: '', paragraphs: [''] },
+    vision: { image: '', tagline: '', heading: '', paragraphs: [''] }
+  });
 
   useEffect(() => {
     fetchData();
@@ -83,6 +89,16 @@ export default function AdminMedia() {
           setShopByProducts(settingsRes.data.settings.media_shop_by_products);
         }
         if (Array.isArray(media_reels) && media_reels.length) setReels(media_reels);
+        if (settingsRes.data.settings.about_page_content) {
+          const content = settingsRes.data.settings.about_page_content;
+          if (!content.story.paragraphs) content.story.paragraphs = [content.story.p1, content.story.p2].filter(Boolean);
+          if (content.story.paragraphs.length === 0) content.story.paragraphs = [''];
+          if (!content.mission.paragraphs) content.mission.paragraphs = [content.mission.p].filter(Boolean);
+          if (content.mission.paragraphs.length === 0) content.mission.paragraphs = [''];
+          if (!content.vision.paragraphs) content.vision.paragraphs = [content.vision.p].filter(Boolean);
+          if (content.vision.paragraphs.length === 0) content.vision.paragraphs = [''];
+          setAboutContent(content);
+        }
       }
 
       if (categoriesRes.data && categoriesRes.data.categories) {
@@ -181,6 +197,38 @@ export default function AdminMedia() {
     }
   };
 
+  const handleAboutContentFileUpload = async (e, sectionName) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    setUploading(true);
+    showAlert(`Uploading image for ${sectionName}...`, 'info');
+
+    try {
+      const res = await api.post('/uploads', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      if (res.data.success) {
+        showAlert('Upload successful!', 'success');
+        const url = res.data.url;
+        setAboutContent(prev => ({
+          ...prev,
+          [sectionName]: { ...prev[sectionName], image: url }
+        }));
+      } else {
+        throw new Error(res.data.message || 'Upload failed');
+      }
+    } catch (err) {
+      showAlert(err.response?.data?.message || err.message || 'Upload failed', 'error');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleShopByProductIconUpload = async (e, index) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -249,7 +297,7 @@ export default function AdminMedia() {
             <div className="card-header bg-white border-0 pt-4 pb-2 d-flex justify-content-between align-items-center">
               <div>
                 <h5 className="fw-bold text-dark mb-1">1. Hero Slider Images</h5>
-                <p className="text-muted small mb-0">Recommended Dimensions: <strong>1920 × 800px</strong> (21:9 Aspect Ratio). Auto-slides on homepage.</p>
+                <p className="text-muted small mb-0">Recommended Dimensions: <strong>1920 × 800px</strong> (2.4:1 Aspect Ratio). Auto-slides on homepage.</p>
               </div>
               <button className="btn btn-sm btn-success px-4 rounded-pill fw-bold" onClick={() => handleSaveSection('Hero Images', { media_hero: heroImages })} disabled={saving || uploading}>
                 Save Section
@@ -604,11 +652,11 @@ export default function AdminMedia() {
                     <div className="row g-3">
                       <div className="col-md-4">
                         <label className="form-label small fw-bold">Label Name</label>
-                        <input type="text" className="form-control" value={cat.label || ''} onChange={e => setShopByProducts(prev => { const arr = [...prev]; arr[idx].label = e.target.value; return arr; })} placeholder="e.g. Skin Care" />
+                        <input type="text" className="form-control" value={cat.label || ''} onChange={e => setShopByProducts(prev => { const arr = [...prev]; arr[idx].label = e.target.value; return arr; })} />
                       </div>
                       <div className="col-md-4">
                         <label className="form-label small fw-bold">Search Query / Target</label>
-                        <input type="text" className="form-control" value={cat.query || ''} onChange={e => setShopByProducts(prev => { const arr = [...prev]; arr[idx].query = e.target.value; return arr; })} placeholder="e.g. Skin Care" />
+                        <input type="text" className="form-control" value={cat.query || ''} onChange={e => setShopByProducts(prev => { const arr = [...prev]; arr[idx].query = e.target.value; return arr; })} />
                       </div>
                       <div className="col-md-2">
                         <label className="form-label small fw-bold">Circle Color</label>
@@ -633,6 +681,200 @@ export default function AdminMedia() {
               >
                 + Add New Category
               </button>
+            </div>
+          </div>
+        </div>
+
+        {/* 7. About Us Page Content */}
+        <div className="col-12 mb-5">
+          <div className="card shadow-sm border-0 rounded-4">
+            <div className="card-header bg-white border-0 pt-4 pb-2 d-flex justify-content-between align-items-center">
+              <div>
+                <h5 className="fw-bold text-dark mb-1">7. About Us Page Content</h5>
+                <p className="text-muted small mb-0">Manage texts and images displayed on the About Us page dynamically.</p>
+              </div>
+              <button className="btn btn-sm btn-success px-4 rounded-pill fw-bold" onClick={() => handleSaveSection('About Us Content', { about_page_content: aboutContent })} disabled={saving || uploading}>
+                Save About Us Content
+              </button>
+            </div>
+            <div className="card-body">
+              
+              {/* Hero Section */}
+              <div className="mb-4 p-3 bg-light rounded-3 border">
+                <h6 className="fw-bold text-dark border-bottom pb-2 mb-3">Hero Banner Section</h6>
+                <div className="row g-3">
+                  <div className="col-md-6">
+                    <label className="form-label small fw-bold">Hero Image</label>
+                    <div className="d-flex gap-3 align-items-center">
+                      {aboutContent.hero.image && (
+                        <img src={getImageUrl(aboutContent.hero.image)} alt="Hero" style={{ width: '80px', height: '40px', objectFit: 'cover', borderRadius: '4px' }} />
+                      )}
+                      <input type="file" className="form-control" accept="image/*" onChange={(e) => handleAboutContentFileUpload(e, 'hero')} />
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label small fw-bold">Main Heading</label>
+                    <input type="text" className="form-control" value={aboutContent.hero.heading} onChange={(e) => setAboutContent(p => ({...p, hero: {...p.hero, heading: e.target.value}}))} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Our Story Section */}
+              <div className="mb-4 p-3 bg-light rounded-3 border">
+                <h6 className="fw-bold text-dark border-bottom pb-2 mb-3">Our Story Section</h6>
+                <div className="row g-3">
+                  <div className="col-md-12">
+                    <label className="form-label small fw-bold">Story Image (Square/Portrait Recommended)</label>
+                    <div className="d-flex gap-3 align-items-center">
+                      {aboutContent.story.image && (
+                        <img src={getImageUrl(aboutContent.story.image)} alt="Story" style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px' }} />
+                      )}
+                      <input type="file" className="form-control" accept="image/*" onChange={(e) => handleAboutContentFileUpload(e, 'story')} />
+                    </div>
+                  </div>
+                  <div className="col-md-4">
+                    <label className="form-label small fw-bold">Tagline (e.g. OUR STORY)</label>
+                    <input type="text" className="form-control" value={aboutContent.story.tagline} onChange={(e) => setAboutContent(p => ({...p, story: {...p.story, tagline: e.target.value}}))} />
+                  </div>
+                  <div className="col-md-8">
+                    <label className="form-label small fw-bold">Heading</label>
+                    <input type="text" className="form-control" value={aboutContent.story.heading} onChange={(e) => setAboutContent(p => ({...p, story: {...p.story, heading: e.target.value}}))} />
+                  </div>
+                  {aboutContent.story.paragraphs.map((para, idx) => (
+                    <div className="col-md-12" key={`story-p-${idx}`}>
+                      <div className="d-flex justify-content-between mb-1">
+                        <label className="form-label small fw-bold mb-0">Paragraph {idx + 1}</label>
+                        {aboutContent.story.paragraphs.length > 1 && (
+                          <button 
+                            className="btn btn-sm text-danger p-0 border-0" 
+                            style={{ fontSize: '12px' }}
+                            onClick={() => {
+                              const arr = [...aboutContent.story.paragraphs];
+                              arr.splice(idx, 1);
+                              setAboutContent(p => ({...p, story: {...p.story, paragraphs: arr}}));
+                            }}
+                          ><i className="fas fa-trash-alt me-1"></i>Remove</button>
+                        )}
+                      </div>
+                      <textarea className="form-control" rows="3" value={para} onChange={(e) => {
+                        const arr = [...aboutContent.story.paragraphs];
+                        arr[idx] = e.target.value;
+                        setAboutContent(p => ({...p, story: {...p.story, paragraphs: arr}}));
+                      }}></textarea>
+                    </div>
+                  ))}
+                  <div className="col-md-12">
+                    <button className="btn btn-sm btn-outline-primary" onClick={() => setAboutContent(p => ({...p, story: {...p.story, paragraphs: [...p.story.paragraphs, '']}}))}>
+                      <i className="fas fa-plus me-1"></i> Add New Paragraph
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Our Mission Section */}
+              <div className="mb-4 p-3 bg-light rounded-3 border">
+                <h6 className="fw-bold text-dark border-bottom pb-2 mb-3">Our Mission Section</h6>
+                <div className="row g-3">
+                  <div className="col-md-12">
+                    <label className="form-label small fw-bold">Mission Image (Landscape Recommended)</label>
+                    <div className="d-flex gap-3 align-items-center">
+                      {aboutContent.mission.image && (
+                        <img src={getImageUrl(aboutContent.mission.image)} alt="Mission" style={{ width: '80px', height: '50px', objectFit: 'cover', borderRadius: '4px' }} />
+                      )}
+                      <input type="file" className="form-control" accept="image/*" onChange={(e) => handleAboutContentFileUpload(e, 'mission')} />
+                    </div>
+                  </div>
+                  <div className="col-md-4">
+                    <label className="form-label small fw-bold">Tagline</label>
+                    <input type="text" className="form-control" value={aboutContent.mission.tagline} onChange={(e) => setAboutContent(p => ({...p, mission: {...p.mission, tagline: e.target.value}}))} />
+                  </div>
+                  <div className="col-md-8">
+                    <label className="form-label small fw-bold">Heading</label>
+                    <input type="text" className="form-control" value={aboutContent.mission.heading} onChange={(e) => setAboutContent(p => ({...p, mission: {...p.mission, heading: e.target.value}}))} />
+                  </div>
+                  {aboutContent.mission.paragraphs.map((para, idx) => (
+                    <div className="col-md-12" key={`mission-p-${idx}`}>
+                      <div className="d-flex justify-content-between mb-1">
+                        <label className="form-label small fw-bold mb-0">Paragraph {idx + 1}</label>
+                        {aboutContent.mission.paragraphs.length > 1 && (
+                          <button 
+                            className="btn btn-sm text-danger p-0 border-0" 
+                            style={{ fontSize: '12px' }}
+                            onClick={() => {
+                              const arr = [...aboutContent.mission.paragraphs];
+                              arr.splice(idx, 1);
+                              setAboutContent(p => ({...p, mission: {...p.mission, paragraphs: arr}}));
+                            }}
+                          ><i className="fas fa-trash-alt me-1"></i>Remove</button>
+                        )}
+                      </div>
+                      <textarea className="form-control" rows="3" value={para} onChange={(e) => {
+                        const arr = [...aboutContent.mission.paragraphs];
+                        arr[idx] = e.target.value;
+                        setAboutContent(p => ({...p, mission: {...p.mission, paragraphs: arr}}));
+                      }}></textarea>
+                    </div>
+                  ))}
+                  <div className="col-md-12">
+                    <button className="btn btn-sm btn-outline-primary" onClick={() => setAboutContent(p => ({...p, mission: {...p.mission, paragraphs: [...p.mission.paragraphs, '']}}))}>
+                      <i className="fas fa-plus me-1"></i> Add New Paragraph
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Our Vision Section */}
+              <div className="mb-4 p-3 bg-light rounded-3 border">
+                <h6 className="fw-bold text-dark border-bottom pb-2 mb-3">Our Vision Section</h6>
+                <div className="row g-3">
+                  <div className="col-md-12">
+                    <label className="form-label small fw-bold">Vision Image (Landscape Recommended)</label>
+                    <div className="d-flex gap-3 align-items-center">
+                      {aboutContent.vision.image && (
+                        <img src={getImageUrl(aboutContent.vision.image)} alt="Vision" style={{ width: '80px', height: '50px', objectFit: 'cover', borderRadius: '4px' }} />
+                      )}
+                      <input type="file" className="form-control" accept="image/*" onChange={(e) => handleAboutContentFileUpload(e, 'vision')} />
+                    </div>
+                  </div>
+                  <div className="col-md-4">
+                    <label className="form-label small fw-bold">Tagline</label>
+                    <input type="text" className="form-control" value={aboutContent.vision.tagline} onChange={(e) => setAboutContent(p => ({...p, vision: {...p.vision, tagline: e.target.value}}))} />
+                  </div>
+                  <div className="col-md-8">
+                    <label className="form-label small fw-bold">Heading</label>
+                    <input type="text" className="form-control" value={aboutContent.vision.heading} onChange={(e) => setAboutContent(p => ({...p, vision: {...p.vision, heading: e.target.value}}))} />
+                  </div>
+                  {aboutContent.vision.paragraphs.map((para, idx) => (
+                    <div className="col-md-12" key={`vision-p-${idx}`}>
+                      <div className="d-flex justify-content-between mb-1">
+                        <label className="form-label small fw-bold mb-0">Paragraph {idx + 1}</label>
+                        {aboutContent.vision.paragraphs.length > 1 && (
+                          <button 
+                            className="btn btn-sm text-danger p-0 border-0" 
+                            style={{ fontSize: '12px' }}
+                            onClick={() => {
+                              const arr = [...aboutContent.vision.paragraphs];
+                              arr.splice(idx, 1);
+                              setAboutContent(p => ({...p, vision: {...p.vision, paragraphs: arr}}));
+                            }}
+                          ><i className="fas fa-trash-alt me-1"></i>Remove</button>
+                        )}
+                      </div>
+                      <textarea className="form-control" rows="3" value={para} onChange={(e) => {
+                        const arr = [...aboutContent.vision.paragraphs];
+                        arr[idx] = e.target.value;
+                        setAboutContent(p => ({...p, vision: {...p.vision, paragraphs: arr}}));
+                      }}></textarea>
+                    </div>
+                  ))}
+                  <div className="col-md-12">
+                    <button className="btn btn-sm btn-outline-primary" onClick={() => setAboutContent(p => ({...p, vision: {...p.vision, paragraphs: [...p.vision.paragraphs, '']}}))}>
+                      <i className="fas fa-plus me-1"></i> Add New Paragraph
+                    </button>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
         </div>

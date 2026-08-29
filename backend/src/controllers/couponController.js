@@ -6,7 +6,7 @@ import { logActivity } from '../middleware/logger.js';
 // @route   POST /api/coupons
 // @access  Private/Admin/Manager
 export const createCoupon = async (req, res, next) => {
-  const { code, discountPercentage, expiryDate, usageLimit, applicableProducts, isCombo } = req.body;
+  const { code, discountType, discountPercentage, flatDiscountAmount, expiryDate, usageLimit, applicableProducts, isCombo, minOrderValue } = req.body;
 
   try {
     const codeUpper = code.toUpperCase().trim();
@@ -18,10 +18,13 @@ export const createCoupon = async (req, res, next) => {
 
     const coupon = await Coupon.create({
       code: codeUpper,
-      discountPercentage,
+      discountType: discountType || 'percentage',
+      discountPercentage: discountPercentage || 0,
+      flatDiscountAmount: flatDiscountAmount || 0,
       expiryDate: new Date(expiryDate),
       usageLimit: usageLimit || 100,
       isCombo: isCombo || false,
+      minOrderValue: minOrderValue || 0,
       applicableProducts: applicableProducts || []
     });
 
@@ -37,7 +40,7 @@ export const createCoupon = async (req, res, next) => {
 // @route   POST /api/coupons/apply
 // @access  Private
 export const applyCoupon = async (req, res, next) => {
-  const { code } = req.body;
+  const { code, cartTotal } = req.body;
 
   try {
     if (!code) {
@@ -54,12 +57,19 @@ export const applyCoupon = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Coupon is expired, inactive, or has reached its usage limit' });
     }
 
+    if (cartTotal !== undefined && coupon.minOrderValue > 0 && cartTotal < coupon.minOrderValue) {
+      return res.status(400).json({ success: false, message: `This coupon is only valid for orders above ₹${coupon.minOrderValue}` });
+    }
+
     res.json({
       success: true,
       message: 'Coupon applied successfully',
-      discountPercentage: coupon.discountPercentage,
+      discountType: coupon.discountType || 'percentage',
+      discountPercentage: coupon.discountPercentage || 0,
+      flatDiscountAmount: coupon.flatDiscountAmount || 0,
       code: coupon.code,
       isCombo: coupon.isCombo,
+      minOrderValue: coupon.minOrderValue,
       applicableProducts: coupon.applicableProducts
     });
   } catch (error) {
@@ -74,6 +84,25 @@ export const getCoupons = async (req, res, next) => {
   try {
     const coupons = await Coupon.find({}).sort({ createdAt: -1 }).populate('applicableProducts', 'name');
     res.json({ success: true, coupons });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get all active public coupons
+// @route   GET /api/coupons/public
+// @access  Public
+export const getPublicCoupons = async (req, res, next) => {
+  try {
+    const coupons = await Coupon.find({ 
+      isActive: true, 
+      expiryDate: { $gt: new Date() } 
+    }).sort({ minOrderValue: 1 }).select('code discountType discountPercentage flatDiscountAmount minOrderValue expiryDate isCombo');
+    
+    // Filter out coupons that have reached usage limit
+    const validCoupons = coupons.filter(c => c.usageCount === undefined || c.usageCount < c.usageLimit || c.usageLimit === undefined);
+    
+    res.json({ success: true, coupons: validCoupons });
   } catch (error) {
     next(error);
   }

@@ -1093,7 +1093,6 @@ export default function AdminProductsPage() {
                       className="form-control" 
                       value={newCategoryName} 
                       onChange={(e) => setNewCategoryName(e.target.value)}
-                      placeholder="e.g. Skin Care"
                     />
                     <button type="button" className="btn btn-brand" onClick={handleAddCategorySubmit}>Add</button>
                   </div>
@@ -1147,7 +1146,6 @@ export default function AdminProductsPage() {
                       className="form-control" 
                       value={newSubCategoryName} 
                       onChange={(e) => setNewSubCategoryName(e.target.value)}
-                      placeholder="e.g. Face Wash"
                     />
                     <button type="button" className="btn btn-brand" onClick={handleAddSubCategorySubmit}>Add</button>
                   </div>

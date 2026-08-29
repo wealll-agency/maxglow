@@ -47,7 +47,7 @@ function CartPage() {
       setCouponError('');
       setCouponSuccess('');
       
-      const response = await api.post(`/coupons/apply`, { code: couponInput.trim() });
+      const response = await api.post(`/coupons/apply`, { code: couponInput.trim(), cartTotal: subtotal });
       const applicableProductsList = response.data.applicableProducts || [];
 
       if (applicableProductsList.length > 0) {
@@ -178,7 +178,6 @@ function CartPage() {
               <form onSubmit={handleApplyCoupon} style={{ display: 'flex', gap: '8px' }}>
                 <input
                   type="text"
-                  placeholder="COUPON CODE"
                   className="mg-input"
                   value={couponInput}
                   onChange={(e) => setCouponInput(e.target.value.toUpperCase())}

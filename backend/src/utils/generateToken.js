@@ -18,7 +18,7 @@ const generateToken = (res, userId, rememberMe = true) => {
     httpOnly: true,
     secure: isProd,
     sameSite: 'lax',
-    ...(isProd && { domain: process.env.COOKIE_DOMAIN || '.maxglow.in' })
+    ...(isProd && { domain: process.env.COOKIE_DOMAIN || '.maxglowon.com' })
   };
 
   if (rememberMe) {

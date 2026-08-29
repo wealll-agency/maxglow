@@ -141,6 +141,32 @@ function ShopDetailsContent() {
     : [];
   const recommendedList = relatedProducts.slice(0, 4);
 
+  const handleShare = async () => {
+    const shareData = {
+      title: realProduct?.name || 'MaxGlow Product',
+      text: `Check out ${realProduct?.name} on MaxGlow!`,
+      url: window.location.href,
+    };
+
+    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          console.error('Error sharing:', err);
+        }
+      }
+    } else {
+      // Fallback: Copy to clipboard
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        showAlert('Link copied to clipboard!', 'success');
+      } catch (err) {
+        showAlert('Failed to copy link.', 'error');
+      }
+    }
+  };
+
   const handleAddToCart = () => {
     const mockProduct = {
       _id: realProduct._id,
@@ -155,7 +181,6 @@ function ShopDetailsContent() {
       quantity,
       size: selectedPack || defaultPackName
     }));
-    showAlert('Product added to cart successfully!', 'success');
   };
 
   const handleBuyNow = () => {
@@ -372,6 +397,15 @@ function ShopDetailsContent() {
         }
         
         @media (max-width: 768px) {
+          .mobile-reviews-section {
+            width: calc(100% + 40px) !important;
+            margin-left: -20px !important;
+            margin-right: -20px !important;
+            border-radius: 0px !important;
+            border-left: none !important;
+            border-right: none !important;
+            padding: 24px 20px !important;
+          }
           .product-details-container {
             padding-bottom: 24px !important;
           }
@@ -513,7 +547,7 @@ function ShopDetailsContent() {
             {/* Trust / Brand pillars row */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', borderTop: '1px solid #e2e8f0', paddingTop: '24px', textAlign: 'center' }}>
               {[
-                { icon: <Leaf size={22} color="#3BAE56" />, bg: '#DDF7E3', label: '100% Organic' },
+                { icon: <Leaf size={22} color="#3BAE56" />, bg: '#DDF7E3', label: 'Organic Fusion' },
                 { icon: <Heart size={22} color="#ef4444" />, bg: '#ffe4e6', label: 'Cruelty Free' },
                 { icon: <ShieldCheck size={22} color="#8b5cf6" />, bg: '#f3e8ff', label: 'Toxin Free' },
                 { icon: <Award size={22} color="#4A90E2" />, bg: '#EAF8FF', label: 'Derm Tested' },
@@ -538,7 +572,7 @@ function ShopDetailsContent() {
               <span style={{ fontSize: '11px', fontWeight: '700', color: '#3BAE56', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                 {realProduct.brand || 'MaxGlow'}
               </span>
-              <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>
+              <button onClick={handleShare} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }} aria-label="Share product">
                 <Share2 size={18} />
               </button>
             </div>

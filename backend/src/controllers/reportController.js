@@ -36,6 +36,12 @@ export const getDashboardSummary = async (req, res, next) => {
     endOfWeek.setDate(startOfWeek.getDate() + 6);
     endOfWeek.setHours(23, 59, 59, 999);
 
+    // Condition to include only valid revenue: Only orders that are actually PAID (excluding Cancelled/Returned)
+    const validRevenueMatch = {
+      orderStatus: { $nin: ['Cancelled', 'Returned'] },
+      paymentStatus: 'Paid'
+    };
+
     // Parallelize all DB queries with Promise.all
     const [
       salesAggregation,
@@ -53,7 +59,7 @@ export const getDashboardSummary = async (req, res, next) => {
     ] = await Promise.all([
       // 1. Sales & Revenue
       Order.aggregate([
-        { $match: { paymentStatus: 'Paid', orderStatus: { $ne: 'Cancelled' } } },
+        { $match: validRevenueMatch },
         { $group: { _id: null, totalSales: { $sum: '$totalAmount' }, count: { $sum: 1 } } }
       ]),
       // 2. Customers
@@ -70,32 +76,32 @@ export const getDashboardSummary = async (req, res, next) => {
       ]),
       // 6. Wallet Aggregation
       Order.aggregate([
-        { $match: { paymentStatus: 'Paid', orderStatus: { $ne: 'Cancelled' } } },
+        { $match: validRevenueMatch },
         { $group: { _id: null, totalDeliveryCharge: { $sum: '$shippingFee' }, totalTaxCollected: { $sum: '$tax' } } }
       ]),
-      // 7. Pending Amount
+      // 7. Pending Amount (Only non-COD pending amounts, e.g. failed online attempts that are still pending)
       Order.aggregate([
-        { $match: { paymentStatus: 'Pending', orderStatus: { $ne: 'Cancelled' } } },
+        { $match: { paymentStatus: 'Pending', paymentMode: { $ne: 'COD' }, orderStatus: { $nin: ['Cancelled', 'Returned'] } } },
         { $group: { _id: null, pendingAmount: { $sum: '$totalAmount' } } }
       ]),
       // 8. Yearly Sales
       Order.aggregate([
-        { $match: { orderStatus: { $ne: 'Cancelled' }, createdAt: { $gte: startOfYear, $lte: endOfYear } } },
+        { $match: { ...validRevenueMatch, createdAt: { $gte: startOfYear, $lte: endOfYear } } },
         { $group: { _id: { $month: '$createdAt' }, revenue: { $sum: '$totalAmount' }, orders: { $sum: 1 } } }
       ]),
       // 9. Monthly Sales
       Order.aggregate([
-        { $match: { orderStatus: { $ne: 'Cancelled' }, createdAt: { $gte: startOfMonth, $lte: endOfMonth } } },
+        { $match: { ...validRevenueMatch, createdAt: { $gte: startOfMonth, $lte: endOfMonth } } },
         { $group: { _id: { $dayOfMonth: '$createdAt' }, revenue: { $sum: '$totalAmount' }, orders: { $sum: 1 } } }
       ]),
       // 10. Weekly Sales
       Order.aggregate([
-        { $match: { orderStatus: { $ne: 'Cancelled' }, createdAt: { $gte: startOfWeek, $lte: endOfWeek } } },
+        { $match: { ...validRevenueMatch, createdAt: { $gte: startOfWeek, $lte: endOfWeek } } },
         { $group: { _id: { $dayOfWeek: '$createdAt' }, revenue: { $sum: '$totalAmount' }, orders: { $sum: 1 } } }
       ]),
       // 11. Top Products
       Order.aggregate([
-        { $match: { paymentStatus: 'Paid', orderStatus: { $ne: 'Cancelled' } } },
+        { $match: validRevenueMatch },
         { $unwind: '$items' },
         {
           $group: {

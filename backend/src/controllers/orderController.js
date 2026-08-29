@@ -69,24 +69,43 @@ const calculateOrderTotals = async (items, couponCode) => {
 
   if (couponCode) {
     const coupon = await Coupon.findOne({ code: couponCode.toUpperCase().trim() });
-    if (coupon && coupon.isValid()) {
-      if (coupon.applicableProducts && coupon.applicableProducts.length > 0) {
-        items.forEach(item => {
-          if (coupon.applicableProducts.some(p => p.toString() === item.product.toString())) {
-            discountableSubtotal += item.price * item.quantity;
-          }
-        });
-      } else {
-        discountableSubtotal = subtotal;
-      }
-      discount = Math.round((discountableSubtotal * coupon.discountPercentage) / 100);
+    if (!coupon) {
+      const err = new Error('Coupon code not found');
+      err.statusCode = 404;
+      throw err;
+    }
+    if (!coupon.isValid()) {
+      const err = new Error('Coupon is expired, inactive, or has reached its usage limit');
+      err.statusCode = 400;
+      throw err;
+    }
+    if (coupon.minOrderValue > 0 && subtotal < coupon.minOrderValue) {
+      const err = new Error(`Order subtotal (₹${subtotal}) is below the minimum required spend of ₹${coupon.minOrderValue} for coupon ${coupon.code}`);
+      err.statusCode = 400;
+      throw err;
+    }
+
+    if (coupon.applicableProducts && coupon.applicableProducts.length > 0) {
+      items.forEach(item => {
+        if (coupon.applicableProducts.some(p => p.toString() === item.product.toString())) {
+          discountableSubtotal += item.price * item.quantity;
+        }
+      });
+    } else {
+      discountableSubtotal = subtotal;
+    }
+
+    if (coupon.discountType === 'flat') {
+      discount = Math.min(coupon.flatDiscountAmount || 0, discountableSubtotal);
+    } else {
+      discount = Math.round((discountableSubtotal * (coupon.discountPercentage || 0)) / 100);
     }
   }
 
   const discountedSubtotal = Math.max(0, subtotal - discount);
   // GST 5% is Included in product MRP
   const tax = Math.round(discountedSubtotal - (discountedSubtotal / 1.05));
-  const shippingFee = discountedSubtotal > 500 || items.length === 0 ? 0 : 40;
+  const shippingFee = subtotal > 999 || items.length === 0 ? 0 : 40;
   const totalAmount = discountedSubtotal + shippingFee;
 
   return { subtotal, discount, tax, shippingFee, totalAmount, validatedItems: items };
@@ -127,80 +146,135 @@ export const createOrder = async (req, res, next) => {
       addressType: deliveryAddress?.addressType || 'Home'
     };
 
-    const order = new Order({
-      user: req.user._id,
-      items: validatedItems,
-      deliveryAddress: mappedDeliveryAddress,
-      couponCode,
-      couponDiscount: discount,
-      subtotal,
-      shippingFee,
-      tax,
-      totalAmount,
-      paymentMode,
-      paymentStatus: 'Pending',
-      orderStatus: 'Placed'
-    });
+    const session = await mongoose.startSession();
+    let savedOrder;
+    try {
+      session.startTransaction();
 
-    const savedOrder = await order.save();
+      const order = new Order({
+        user: req.user._id,
+        items: validatedItems,
+        deliveryAddress: mappedDeliveryAddress,
+        couponCode,
+        couponDiscount: discount,
+        subtotal,
+        shippingFee,
+        tax,
+        totalAmount,
+        paymentMode,
+        paymentStatus: 'Pending',
+        orderStatus: 'Placed'
+      });
 
-    // 2. Reduce Stock in Inventory & Product Collections
-    for (const item of validatedItems) {
-      await Product.findByIdAndUpdate(item.product, { $inc: { stock: -item.quantity, totalSold: item.quantity } }, { runValidators: true });
-      await Inventory.findOneAndUpdate(
-        { product: item.product },
-        { 
-          $inc: { stockQuantity: -item.quantity },
-          $push: {
-            adjustments: {
-              quantityChanged: -item.quantity,
+      savedOrder = await order.save({ session });
+
+      // 2. Reduce Stock in Inventory & Product Collections (with FEFO sequential batches)
+      for (const item of validatedItems) {
+        await Product.findByIdAndUpdate(
+          item.product,
+          { $inc: { stock: -item.quantity, totalSold: item.quantity } },
+          { runValidators: true, session }
+        );
+
+        let remainingToDeduct = item.quantity;
+        const batches = await Inventory.find({
+          product: item.product,
+          stockQuantity: { $gt: 0 },
+          expiryDate: { $gt: new Date() }
+        }).sort({ expiryDate: 1 }).session(session);
+
+        if (batches.length === 0) {
+          // Fallback if no active batches are found, just to avoid breaking
+          const firstBatch = await Inventory.findOne({ product: item.product }).session(session);
+          if (firstBatch) {
+            firstBatch.stockQuantity = Math.max(0, firstBatch.stockQuantity - remainingToDeduct);
+            firstBatch.adjustments.push({
+              quantityChanged: -remainingToDeduct,
+              type: 'Sale',
+              reason: `Order Placement - Fallback (Local ID: ${savedOrder._id})`,
+              adjustedBy: req.user._id
+            });
+            await firstBatch.save({ session });
+          }
+        } else {
+          for (const batch of batches) {
+            if (remainingToDeduct <= 0) break;
+            const deductQty = Math.min(batch.stockQuantity, remainingToDeduct);
+            batch.stockQuantity -= deductQty;
+            remainingToDeduct -= deductQty;
+
+            batch.adjustments.push({
+              quantityChanged: -deductQty,
               type: 'Sale',
               reason: `Order Placement (Local ID: ${savedOrder._id})`,
               adjustedBy: req.user._id
-            }
+            });
+            await batch.save({ session });
           }
-        },
-        { runValidators: true }
-      );
-    }
 
-    // Increment Coupon usages if code was valid
-    if (couponCode && discount > 0) {
-      await Coupon.findOneAndUpdate(
-        { code: couponCode.toUpperCase() },
-        { $inc: { usageCount: 1 } }
-      );
-    }
+          if (remainingToDeduct > 0 && batches.length > 0) {
+            const lastBatch = batches[batches.length - 1];
+            lastBatch.stockQuantity = Math.max(0, lastBatch.stockQuantity - remainingToDeduct);
+            lastBatch.adjustments.push({
+              quantityChanged: -remainingToDeduct,
+              type: 'Sale',
+              reason: `Order Placement - Sync adjustment (Local ID: ${savedOrder._id})`,
+              adjustedBy: req.user._id
+            });
+            await lastBatch.save({ session });
+          }
+        }
+      }
 
-    // If COD, we can skip CCAvenue processing
-    if (paymentMode === 'COD') {
-      await Payment.create({
+      // Increment Coupon usages if code was valid
+      if (couponCode && discount > 0) {
+        await Coupon.findOneAndUpdate(
+          { code: couponCode.toUpperCase() },
+          { $inc: { usageCount: 1 } },
+          { session }
+        );
+      }
+
+      // If COD, we can create the COD Payment ledger and commit
+      if (paymentMode === 'COD') {
+        await Payment.create([{
+          order: savedOrder._id,
+          razorpayOrderId: `COD-${savedOrder._id}`,
+          amount: totalAmount,
+          status: 'Created',
+          paymentMode: 'COD'
+        }], { session });
+
+        await session.commitTransaction();
+        session.endSession();
+
+        await logActivity(req.user._id, 'CREATE_ORDER', `Created COD order ID: ${savedOrder._id}`, req);
+
+        return res.status(201).json({
+          success: true,
+          order: savedOrder,
+          message: 'Order placed successfully'
+        });
+      }
+
+      // 3. Create Payment ledger record for Razorpay (pending)
+      await Payment.create([{
         order: savedOrder._id,
-        razorpayOrderId: `COD-${savedOrder._id}`,
+        razorpayOrderId: 'pending',
         amount: totalAmount,
         status: 'Created',
-        paymentMode: 'COD'
-      });
+        paymentMode: paymentMode
+      }], { session });
 
-      await logActivity(req.user._id, 'CREATE_ORDER', `Created COD order ID: ${savedOrder._id}`, req);
-
-      return res.status(201).json({
-        success: true,
-        order: savedOrder,
-        message: 'Order placed successfully'
-      });
+      await session.commitTransaction();
+    } catch (dbError) {
+      await session.abortTransaction();
+      throw dbError;
+    } finally {
+      session.endSession();
     }
 
-    // 3. Create Payment ledger record for Razorpay
-    const payment = await Payment.create({
-      order: savedOrder._id,
-      razorpayOrderId: 'pending', // Will update below
-      amount: totalAmount,
-      status: 'Created',
-      paymentMode: paymentMode
-    });
-
-    // 4. Prepare Razorpay Payload
+    // 4. Prepare Razorpay Payload (Outside Database Transaction)
     const razorpay = new Razorpay({
       key_id: process.env.RAZORPAY_KEY_ID,
       key_secret: process.env.RAZORPAY_KEY_SECRET,
@@ -215,17 +289,14 @@ export const createOrder = async (req, res, next) => {
 
     const rzpOrder = await razorpay.orders.create(options);
 
-    payment.razorpayOrderId = rzpOrder.id;
-    await payment.save();
-
-    savedOrder.razorpayOrderId = rzpOrder.id;
-    await savedOrder.save();
+    await Payment.findOneAndUpdate({ order: savedOrder._id }, { $set: { razorpayOrderId: rzpOrder.id } });
+    const finalOrder = await Order.findByIdAndUpdate(savedOrder._id, { $set: { razorpayOrderId: rzpOrder.id } }, { new: true });
 
     await logActivity(req.user._id, 'CREATE_ORDER', `Created order ID: ${savedOrder._id}, initiating Razorpay transaction`, req);
 
     res.status(201).json({
       success: true,
-      order: savedOrder,
+      order: finalOrder,
       razorpayOrderId: rzpOrder.id,
       amount: options.amount,
       currency: options.currency,
@@ -252,6 +323,11 @@ export const verifyPayment = async (req, res, next) => {
       return res.status(200).json({ success: true, message: 'Order already paid' });
     }
 
+    // Atomic check to prevent processing if it was already failed/processed
+    if (order.paymentStatus !== 'Pending') {
+      return res.status(400).json({ success: false, message: `Order payment status is ${order.paymentStatus}, cannot verify payment.` });
+    }
+
     const secret = process.env.RAZORPAY_KEY_SECRET;
 
     const generated_signature = crypto
@@ -262,50 +338,83 @@ export const verifyPayment = async (req, res, next) => {
     const payment = await Payment.findOne({ razorpayOrderId: razorpay_order_id });
 
     if (generated_signature === razorpay_signature) {
-      order.paymentStatus = 'Paid';
-      order.orderStatus = 'Confirmed';
-      order.confirmedAt = Date.now();
-      order.razorpayPaymentId = razorpay_payment_id;
-      order.razorpaySignature = razorpay_signature;
-      await order.save();
+      // Transition atomically from Pending -> Paid
+      const updatedOrder = await Order.findOneAndUpdate(
+        { _id: order_id, paymentStatus: 'Pending' },
+        {
+          $set: {
+            paymentStatus: 'Paid',
+            orderStatus: 'Confirmed',
+            confirmedAt: Date.now(),
+            razorpayPaymentId: razorpay_payment_id,
+            razorpaySignature: razorpay_signature
+          }
+        },
+        { new: true }
+      );
+
+      if (!updatedOrder) {
+        return res.status(400).json({ success: false, message: 'Order already processed by another concurrent request.' });
+      }
 
       if (payment) {
-        payment.status = 'Captured';
-        payment.razorpayPaymentId = razorpay_payment_id;
-        payment.razorpaySignature = razorpay_signature;
-        await payment.save();
+        await Payment.findOneAndUpdate(
+          { _id: payment._id, status: 'Created' },
+          {
+            $set: {
+              status: 'Captured',
+              razorpayPaymentId: razorpay_payment_id,
+              razorpaySignature: razorpay_signature
+            }
+          }
+        );
       }
 
       return res.status(200).json({ success: true, message: 'Payment verified successfully' });
     } else {
-      // Payment Failed Signature Mismatch
-      order.paymentStatus = 'Failed';
-      await order.save();
+      // Transition atomically from Pending -> Failed
+      const updatedOrder = await Order.findOneAndUpdate(
+        { _id: order_id, paymentStatus: 'Pending' },
+        {
+          $set: {
+            paymentStatus: 'Failed'
+          }
+        },
+        { new: true }
+      );
 
-      if (payment) {
-        payment.status = 'Failed';
-        payment.failureMessage = 'Signature mismatch';
-        await payment.save();
+      if (!updatedOrder) {
+        return res.status(400).json({ success: false, message: 'Order already processed by another concurrent request.' });
       }
 
-      // Restore Stock
+      if (payment) {
+        await Payment.findOneAndUpdate(
+          { _id: payment._id, status: 'Created' },
+          {
+            $set: {
+              status: 'Failed',
+              failureMessage: 'Signature mismatch'
+            }
+          }
+        );
+      }
+
+      // Restore Stock (Only executed once, because only one process can transition from Pending -> Failed)
       for (const item of order.items) {
         await Product.findByIdAndUpdate(item.product, { $inc: { stock: item.quantity, totalSold: -item.quantity } }, { runValidators: true });
-        await Inventory.findOneAndUpdate(
-          { product: item.product },
-          { 
-            $inc: { stockQuantity: item.quantity },
-            $push: {
-              adjustments: {
-                quantityChanged: item.quantity,
-                type: 'AuditAdjustment',
-                reason: `Payment Verification Failure Stock Restoral (Order ID: ${order._id})`,
-                adjustedBy: order.user
-              }
-            }
-          },
-          { runValidators: true }
-        );
+        
+        // Find latest batch for the product and increment stock
+        const batch = await Inventory.findOne({ product: item.product }).sort({ expiryDate: -1 });
+        if (batch) {
+          batch.stockQuantity += item.quantity;
+          batch.adjustments.push({
+            quantityChanged: item.quantity,
+            type: 'AuditAdjustment',
+            reason: `Payment Verification Failure Stock Restoral (Order ID: ${order._id})`,
+            adjustedBy: order.user
+          });
+          await batch.save();
+        }
       }
 
       return res.status(400).json({ success: false, message: 'Payment verification failed (Signature Mismatch)' });

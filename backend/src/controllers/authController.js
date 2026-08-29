@@ -3,6 +3,7 @@ import generateToken from '../utils/generateToken.js';
 import { logActivity } from '../middleware/logger.js';
 import jwt from 'jsonwebtoken';
 import SystemSetting from '../models/SystemSetting.js';
+import { invalidateUserCache } from '../middleware/auth.js';
 
 import { performSync } from './userController.js';
 
@@ -121,11 +122,12 @@ export const logoutUser = async (req, res, next) => {
     if (req.user) {
       await logActivity(req.user._id, 'LOGOUT', `User logged out`, req);
     }
+    const isProd = process.env.NODE_ENV === 'production' || process.env.COOKIE_SECURE === 'true';
     const cookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isProd,
       sameSite: 'lax',
-      ...(process.env.NODE_ENV === 'production' && { domain: process.env.COOKIE_DOMAIN || '.maxglow.in' }),
+      ...(isProd && { domain: process.env.COOKIE_DOMAIN || '.maxglowon.com' }),
       expires: new Date(0)
     };
     res.cookie('token', '', cookieOptions);
@@ -166,10 +168,12 @@ export const refreshTokenUser = async (req, res, next) => {
       { expiresIn: '7d' }
     );
 
+    const isProd = process.env.NODE_ENV === 'production' || process.env.COOKIE_SECURE === 'true';
     res.cookie('token', accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isProd,
       sameSite: 'lax',
+      ...(isProd && { domain: process.env.COOKIE_DOMAIN || '.maxglowon.com' }),
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
@@ -233,6 +237,7 @@ export const updateUserProfile = async (req, res, next) => {
 
       migrateLegacyAddresses(user);
       const updatedUser = await user.save();
+      invalidateUserCache(user._id);
       await logActivity(user._id, 'UPDATE_PROFILE', `User updated profile settings`, req);
 
       res.json({
@@ -272,6 +277,7 @@ export const updateFcmToken = async (req, res, next) => {
     if (!user.fcmTokens.includes(token)) {
       user.fcmTokens.push(token);
       await user.save();
+      invalidateUserCache(user._id);
     }
 
     res.json({ success: true, message: 'FCM Token registered' });
@@ -312,6 +318,7 @@ export const addAddress = async (req, res, next) => {
       { new: true }
     );
 
+    invalidateUserCache(req.user._id);
     await logActivity(user._id, 'ADD_ADDRESS', `Added address for: ${name}`, req);
     res.status(201).json({ success: true, addresses: updatedUser.addresses });
   } catch (error) {
@@ -358,6 +365,7 @@ export const updateAddress = async (req, res, next) => {
       { new: true }
     );
 
+    invalidateUserCache(req.user._id);
     await logActivity(req.user._id, 'UPDATE_ADDRESS', `Updated address ID: ${req.params.id}`, req);
     res.json({ success: true, addresses: updatedUser.addresses });
   } catch (error) {
@@ -377,6 +385,7 @@ export const deleteAddress = async (req, res, next) => {
     );
 
     if (updatedUser) {
+      invalidateUserCache(req.user._id);
       await logActivity(req.user._id, 'DELETE_ADDRESS', `Deleted address ID: ${req.params.id}`, req);
       res.json({ success: true, addresses: updatedUser.addresses });
     } else {
@@ -405,7 +414,7 @@ export const getSystemSettings = async (req, res, next) => {
       });
     }
 
-    const keys = ['cod', 'refund', 'topSellingSource', 'media_hero', 'media_new_arrivals', 'media_trending_banner', 'media_offers', 'media_category_banner', 'media_category_banners', 'media_reels'];
+    const keys = ['cod', 'refund', 'topSellingSource', 'media_hero', 'media_new_arrivals', 'media_trending_banner', 'media_offers', 'media_category_banner', 'media_category_banners', 'media_reels', 'about_page_content', 'media_shop_by_products'];
     const docs = await SystemSetting.find({ key: { $in: keys } }).lean();
     const map = new Map(docs.map(d => [d.key, d.value]));
 
@@ -420,6 +429,8 @@ export const getSystemSettings = async (req, res, next) => {
       media_category_banner: map.has('media_category_banner') ? map.get('media_category_banner') : null,
       media_category_banners: map.has('media_category_banners') ? map.get('media_category_banners') : {},
       media_reels: map.has('media_reels') ? map.get('media_reels') : null,
+      about_page_content: map.has('about_page_content') ? map.get('about_page_content') : null,
+      media_shop_by_products: map.has('media_shop_by_products') ? map.get('media_shop_by_products') : null,
     };
 
     cachedSettings = settings;
@@ -453,7 +464,9 @@ export const updateSystemSettings = async (req, res, next) => {
         { key: 'media_offers', type: 'array' },
         { key: 'media_category_banner', type: 'string' },
         { key: 'media_category_banners', type: 'object' },
-        { key: 'media_reels', type: 'array' }
+        { key: 'media_reels', type: 'array' },
+        { key: 'about_page_content', type: 'object' },
+        { key: 'media_shop_by_products', type: 'array' }
       ];
 
       for (const field of keysToUpdate) {

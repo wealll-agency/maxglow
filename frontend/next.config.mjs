@@ -14,7 +14,8 @@ const backendUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  reactStrictMode: false,
+  compress: true,
   allowedDevOrigins: ['192.168.1.3'],
   generateBuildId: async () => {
     return appVersion;
@@ -30,6 +31,7 @@ const nextConfig = {
     outputFileTracingRoot: path.resolve(process.cwd(), '..'),
   },
   images: {
+    unoptimized: true,
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 2592000, // 30 days — safe because S3 URLs include timestamp (unique per upload)

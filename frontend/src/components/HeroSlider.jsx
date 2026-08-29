@@ -60,7 +60,7 @@ export default function HeroSlider() {
           }
           @media (max-width: 991px) {
             .hero-banner-section { margin-bottom: 0px !important; padding-bottom: 0px !important; }
-            .carousel-mask { min-height: unset; aspect-ratio: auto !important; }
+            .carousel-mask { min-height: unset; aspect-ratio: 1920/800 !important; }
           }
         ` }} />
         <div
@@ -71,7 +71,7 @@ export default function HeroSlider() {
             boxShadow: 'none',
             position: 'relative',
             width: '100%',
-            aspectRatio: '1920/600',
+            aspectRatio: '1920/800',
             backgroundColor: '#e5e7eb',
           }}
         />
@@ -101,6 +101,7 @@ export default function HeroSlider() {
           boxShadow: 'none',
           position: 'relative',
           width: '100%',
+          aspectRatio: '1920/800',
         }}
       >
         <style dangerouslySetInnerHTML={{ __html: `
@@ -109,7 +110,7 @@ export default function HeroSlider() {
           }
           @media (max-width: 991px) {
             .hero-banner-section { margin-bottom: 0px !important; padding-bottom: 0px !important; }
-            .carousel-mask { min-height: unset; aspect-ratio: auto !important; }
+            .carousel-mask { min-height: unset; aspect-ratio: 1920/800 !important; }
           }
           /* Ensure images do not bleed out or cause collapse */
           .hero-slider-track { height: 100%; }
@@ -176,13 +177,14 @@ export default function HeroSlider() {
                 src={img}
                 alt={`MaxGlow Premium Herbal Wellness ${idx + 1}`}
                 width={1920}
-                height={600}
+                height={800}
                 priority={idx === 0}
                 fetchPriority={idx === 0 ? "high" : "auto"}
                 sizes="100vw"
                 style={{
                   width: '100%',
-                  height: 'auto',
+                  height: '100%',
+                  objectFit: 'cover',
                   display: 'block',
                   margin: '0 auto'
                 }}

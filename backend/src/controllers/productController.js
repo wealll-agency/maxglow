@@ -4,6 +4,7 @@ import SystemSetting from '../models/SystemSetting.js';
 import StockNotification from '../models/StockNotification.js';
 import { logActivity } from '../middleware/logger.js';
 import { uploadFile } from '../services/storageService.js';
+import { sendEmail } from '../utils/mail.js';
 
 // High-Performance In-Memory Query Cache
 const productsMemoryCache = new Map();
@@ -108,7 +109,7 @@ export const getProducts = async (req, res, next) => {
     const total = await Product.countDocuments(query);
     
     let dbQuery = Product.find(query);
-    dbQuery = dbQuery.select('name category brand price discount discountType images stock isFeatured isActive showOnHomepage newArrival healthyProduct searchTags unit');
+    dbQuery = dbQuery.select('name category brand price discount discountType images videos stock isFeatured isActive showOnHomepage newArrival healthyProduct searchTags unit');
 
     const products = await dbQuery
       .sort(sortBy)
@@ -395,9 +396,16 @@ export const updateProduct = async (req, res, next) => {
           if (pendingNotifications.length > 0) {
             console.log(`[RESTOCK NOTIFICATION] Triggering notifications for ${pendingNotifications.length} users for product ${product.name}`);
             
-            // Here you would trigger an email/sms service for each pending user
+            // Trigger email service for each pending user
             for (const notification of pendingNotifications) {
               console.log(`[EMAIL DISPATCH] Sending Restock Email to ${notification.email} (User: ${notification.user?.name}) for Product: ${product.name}`);
+              
+              await sendEmail(
+                notification.email,
+                `MaxGlow Product Restock Notification: ${product.name}`,
+                `Dear ${notification.user?.name || 'Customer'},\n\nWe are pleased to inform you that the product "${product.name}" is back in stock!\n\nVisit us to place your order now.\n\nBest regards,\nMaxGlow Team`,
+                `<p>Dear ${notification.user?.name || 'Customer'},</p><p>We are pleased to inform you that the product <strong>${product.name}</strong> is back in stock!</p><p>Visit us to place your order now.</p><br/><p>Best regards,<br/>MaxGlow Team</p>`
+              ).catch(err => console.error(`Error sending email inside notification loop: ${err.message}`));
               
               notification.status = 'Completed';
               await notification.save();

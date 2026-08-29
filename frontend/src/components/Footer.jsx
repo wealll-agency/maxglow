@@ -71,14 +71,16 @@ const Footer = () => {
               {/* Social Icons */}
               <div style={{ display: 'flex', gap: '10px' }}>
                 {[
-                  { icon: <FiInstagram size={16} />, href: '#', color: '#E1306C' },
-                  { icon: <FiFacebook size={16} />, href: '#', color: '#1877F2' },
+                  { icon: <FiInstagram size={16} />, href: 'https://www.instagram.com/maxglowherbals?igsi=OHgwZmFvbGNhcjZ1', color: '#E1306C' },
+                  { icon: <FiFacebook size={16} />, href: 'https://www.facebook.com/share/1C1AdhokbG/', color: '#1877F2' },
                   { icon: <FiTwitter size={16} />, href: '#', color: '#1DA1F2' },
                   { icon: <FiYoutube size={16} />, href: '#', color: '#FF0000' },
                 ].map((social, idx) => (
                   <Link
                     key={idx}
                     href={social.href}
+                    target={social.href !== '#' ? '_blank' : undefined}
+                    rel={social.href !== '#' ? 'noopener noreferrer' : undefined}
                     style={{
                       width: '36px', height: '36px', borderRadius: '10px',
                       background: 'rgba(255,255,255,0.08)',
@@ -178,7 +180,7 @@ const Footer = () => {
             flexWrap: 'wrap', gap: '12px',
           }}>
             <p style={{ color: '#64748b', fontSize: '13px', margin: 0 }}>
-              © 2026 MaxGlow. All rights reserved. <span style={{ opacity: 0.6 }}>v{process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0'}</span>
+              © 2026 JAINSONS HERBO LABS PRIVATE LIMITED. All rights reserved.
             </p>
             <div style={{ display: 'flex', gap: '20px' }}>
               {[
