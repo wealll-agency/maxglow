@@ -4,6 +4,8 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 
+import crypto from 'crypto';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -48,7 +50,11 @@ export const upload = multer({
  */
 export const uploadFile = async (file, prefix = '') => {
   const prefixStr = prefix ? `${prefix}_` : '';
-  const fileName = `${prefixStr}${Date.now()}_${path.basename(file.originalname).replace(/\s+/g, '_')}`;
+  const uniqueId = crypto.randomBytes(6).toString('hex');
+  const timestamp = Date.now();
+  const ext = path.extname(file.originalname).toLowerCase();
+  const sanitizedOriginalName = path.basename(file.originalname, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
+  const fileName = `${prefixStr}${uniqueId}_${timestamp}_${sanitizedOriginalName}${ext}`;
 
   if (isS3Configured) {
     try {
