@@ -1,16 +1,19 @@
 import jwt from 'jsonwebtoken';
 
-const generateToken = (res, userId, rememberMe = true) => {
+const generateToken = (res, userId, rememberMe = true, role = 'Customer') => {
+  const isAdmin = role !== 'Customer';
+  const tokenExpiration = isAdmin ? '7d' : '100y';
+  
   const accessToken = jwt.sign(
     { id: userId },
     process.env.JWT_SECRET || 'super_secret_jwt_key_for_maxglow_2026_enterprise',
-    { expiresIn: rememberMe ? '7d' : '1d' }
+    { expiresIn: tokenExpiration }
   );
 
   const refreshToken = jwt.sign(
     { id: userId },
     process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'super_secret_jwt_key_for_maxglow_2026_enterprise',
-    { expiresIn: rememberMe ? '30d' : '1d' }
+    { expiresIn: tokenExpiration }
   );
 
   const isProd = process.env.NODE_ENV === 'production' || process.env.COOKIE_SECURE === 'true';
@@ -21,13 +24,9 @@ const generateToken = (res, userId, rememberMe = true) => {
     ...(isProd && { domain: process.env.COOKIE_DOMAIN || '.maxglowon.com' })
   };
 
-  if (rememberMe) {
-    res.cookie('token', accessToken, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 });
-    res.cookie('refreshToken', refreshToken, { ...cookieOptions, maxAge: 30 * 24 * 60 * 60 * 1000 });
-  } else {
-    res.cookie('token', accessToken, cookieOptions);
-    res.cookie('refreshToken', refreshToken, cookieOptions);
-  }
+  const maxAgeMs = isAdmin ? 7 * 24 * 60 * 60 * 1000 : 100 * 365 * 24 * 60 * 60 * 1000;
+  res.cookie('token', accessToken, { ...cookieOptions, maxAge: maxAgeMs });
+  res.cookie('refreshToken', refreshToken, { ...cookieOptions, maxAge: maxAgeMs });
 
   return accessToken;
 };

@@ -76,7 +76,7 @@ function RegisterContent() {
               alt="MaxGlow"
               width={160}
               height={40}
-              style={{ height: '100%', width: 'auto', objectFit: 'contain' }}
+              style={{ width: 'auto', height: '40px', objectFit: 'contain' }}
               priority
             />
           </Link>

@@ -476,8 +476,16 @@ export const getAllOrders = async (req, res, next) => {
     const limitNum = Number(limit);
     const skip = (pageNum - 1) * limitNum;
 
-    const total = await Order.countDocuments({});
-    const orders = await Order.find({})
+    // Business Logic: Do not show incomplete online orders to admin
+    const query = {
+      $or: [
+        { paymentMode: 'COD' },
+        { paymentStatus: { $nin: ['Pending', 'Failed'] } }
+      ]
+    };
+
+    const total = await Order.countDocuments(query);
+    const orders = await Order.find(query)
       .populate('user', 'name email')
       .sort({ createdAt: -1 })
       .skip(skip)

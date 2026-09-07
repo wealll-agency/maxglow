@@ -1,15 +1,16 @@
 "use client";
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import React, { useState, useEffect, useRef, memo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { logoutUser } from '../store/authSlice';
 import {
   FiSearch, FiX, FiUser, FiHeart, FiShoppingBag,
-  FiMenu, FiLogIn, FiLogOut, FiPackage, FiSettings, FiChevronDown
+  FiMenu, FiLogIn, FiLogOut, FiPackage, FiSettings, FiChevronDown,
+  FiGift, FiInfo
 } from 'react-icons/fi';
-import { Leaf } from 'lucide-react';
+import { Leaf, Flame, Award, Sparkles } from 'lucide-react';
 import { MdDashboard } from 'react-icons/md';
 import CartOffcanvas from './CartOffcanvas';
 
@@ -23,6 +24,8 @@ const Header = () => {
   const [isMounted, setIsMounted] = useState(false);
   const searchRef = useRef(null);
   const userDropdownRef = useRef(null);
+
+  const pathname = usePathname();
 
   useEffect(() => {
     setIsMounted(true);
@@ -96,10 +99,10 @@ const Header = () => {
   };
 
   const navLinks = [
-    { href: '/shop', label: 'Shop' },
-    { href: '/shop?sort=bestselling', label: 'Bestsellers' },
-    { href: '/build-combo', label: 'Combos' },
-    { href: '/about', label: 'About' },
+    { href: '/shop', label: 'SHOP', icon: <FiShoppingBag size={16} /> },
+    { href: '/shop?sort=bestselling', label: 'BESTSELLERS', icon: <Award size={16} /> },
+    { href: '/combos', label: 'COMBO BOX', icon: <FiGift size={16} /> },
+    { href: '/about', label: 'ABOUT', icon: <Leaf size={16} /> },
   ];
 
   return (
@@ -117,87 +120,94 @@ const Header = () => {
           boxShadow: isScrolled ? '0 4px 20px rgba(74,144,226,0.1)' : 'none',
         }}
       >
-        <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', height: '64px', gap: '24px', justifyContent: 'space-between' }}>
+        <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px', position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', height: '64px', gap: '20px', justifyContent: 'space-between' }}>
 
             {/* Logo */}
-            <Link href="/" prefetch={true} onMouseEnter={() => router.prefetch('/')} style={{ textDecoration: 'none', flexShrink: 0, display: 'flex', alignItems: 'center', height: '40px' }}>
+            <Link href="/" prefetch={true} onMouseEnter={() => router.prefetch('/')} style={{ textDecoration: 'none', flexShrink: 0, display: 'flex', alignItems: 'center', height: '100%' }}>
               <img
                 src="/logo.png"
                 alt="MaxGlow"
-                style={{ height: '40px', width: 'auto', objectFit: 'contain' }}
+                className="nav-logo"
               />
             </Link>
 
-            {/* Desktop Nav */}
-            <nav style={{ display: 'flex', alignItems: 'center', gap: '2px', flex: 1 }} className="hide-mobile">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  prefetch={true}
-                  onMouseEnter={() => router.prefetch(link.href)}
-                  className="mg-nav-link"
-                >
-                  {link.label}
-                </Link>
-              ))}
+            {/* Desktop Centered Icon + Label Navigation */}
+            <nav className="mg-center-nav hide-mobile">
+              {navLinks.map((link) => {
+                const isActive = link.href === '/' 
+                  ? pathname === '/' 
+                  : (pathname === link.href || (link.href !== '/' && pathname?.startsWith(link.href)));
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    prefetch={true}
+                    onMouseEnter={() => router.prefetch(link.href)}
+                    className={`mg-nav-icon-link ${isActive ? 'active' : ''}`}
+                    title={link.label}
+                  >
+                    {link.icon}
+                    <span className="mg-nav-text">{link.label}</span>
+                  </Link>
+                );
+              })}
             </nav>
 
-            {/* Search Bar */}
-            <div ref={searchRef} style={{ position: 'relative', flexShrink: 0 }} className="hide-mobile">
-              {isSearchOpen ? (
-                <form onSubmit={handleSearch} style={{
-                  display: 'flex', alignItems: 'center',
-                  background: 'white',
-                  border: '1.5px solid #4A90E2',
-                  borderRadius: '9999px',
-                  padding: '6px 16px',
-                  boxShadow: '0 0 0 3px rgba(74,144,226,0.15)',
-                  width: '260px',
-                  transition: 'all 0.3s ease',
-                }}>
-                  <FiSearch size={16} color="#94a3b8" style={{ flexShrink: 0 }} />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+            {/* Right Actions & Search */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+              
+              {/* Search Bar */}
+              <div ref={searchRef} style={{ position: 'relative', flexShrink: 0 }} className="hide-mobile">
+                {isSearchOpen ? (
+                  <form onSubmit={handleSearch} style={{
+                    display: 'flex', alignItems: 'center',
+                    background: 'white',
+                    border: '1.5px solid #4A90E2',
+                    borderRadius: '9999px',
+                    padding: '5px 14px',
+                    boxShadow: '0 0 0 3px rgba(74,144,226,0.15)',
+                    width: '240px',
+                    transition: 'all 0.3s ease',
+                  }}>
+                    <FiSearch size={15} color="#94a3b8" style={{ flexShrink: 0 }} />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      style={{
+                        border: 'none', background: 'transparent', outline: 'none',
+                        flex: 1, padding: '0 6px', fontSize: '13.5px', color: '#1a2332',
+                      }}
+                      autoFocus
+                    />
+                    <button type="button" onClick={() => setIsSearchOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#94a3b8' }}>
+                      <FiX size={15} />
+                    </button>
+                  </form>
+                ) : (
+                  <button
+                    onClick={() => setIsSearchOpen(true)}
                     style={{
-                      border: 'none', background: 'transparent', outline: 'none',
-                      flex: 1, padding: '0 8px', fontSize: '14px', color: '#1a2332',
+                      display: 'flex', alignItems: 'center', gap: '6px',
+                      background: '#F7FBFD', border: '1.5px solid rgba(221,244,255,0.8)',
+                      borderRadius: '9999px', padding: '6px 14px',
+                      fontSize: '12.5px', color: '#94a3b8', cursor: 'pointer',
+                      transition: 'all 0.2s ease', whiteSpace: 'nowrap',
                     }}
-                    autoFocus
-                  />
-                  <button type="button" onClick={() => setIsSearchOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#94a3b8' }}>
-                    <FiX size={16} />
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#4A90E2'; e.currentTarget.style.background = 'white'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(221,244,255,0.8)'; e.currentTarget.style.background = '#F7FBFD'; }}
+                  >
+                    <FiSearch size={14} />
+                    Search on MaxGlow
                   </button>
-                </form>
-              ) : (
-                <button
-                  onClick={() => setIsSearchOpen(true)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '8px',
-                    background: '#F7FBFD', border: '1.5px solid rgba(221,244,255,0.8)',
-                    borderRadius: '9999px', padding: '7px 16px',
-                    fontSize: '13px', color: '#94a3b8', cursor: 'pointer',
-                    transition: 'all 0.2s ease', whiteSpace: 'nowrap',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#4A90E2'; e.currentTarget.style.background = 'white'; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(221,244,255,0.8)'; e.currentTarget.style.background = '#F7FBFD'; }}
-                >
-                  <FiSearch size={15} />
-                  Search on MaxGlow
-                </button>
-              )}
-            </div>
+                )}
+              </div>
 
-            {/* Right Actions */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-
-              {/* User */}
+              {/* User Dropdown */}
               <div ref={userDropdownRef} style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }} className="hide-mobile">
-                <button className="mg-action-btn" onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)} type="button">
-                  <FiUser size={20} />
+                <button className="mg-action-btn" onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)} type="button" title="My Profile / Account">
+                  <FiUser size={18} />
                 </button>
                 {isUserDropdownOpen && (
                   <div className="mg-dropdown">
@@ -209,27 +219,27 @@ const Header = () => {
                         </div>
                         {(user?.role === 'Super Admin' || user?.role === 'Manager' || user?.role === 'Staff') && (
                           <Link href="/admin/dashboard" className="mg-dropdown-item" onClick={() => setIsUserDropdownOpen(false)}>
-                            <MdDashboard size={16} color="#4A90E2" /> Admin Panel
+                            <MdDashboard size={15} color="#4A90E2" /> Admin Panel
                           </Link>
                         )}
                         <Link href="/user/profile" className="mg-dropdown-item" onClick={() => setIsUserDropdownOpen(false)}>
-                          <FiUser size={16} color="#4A90E2" /> My Profile
+                          <FiUser size={15} color="#4A90E2" /> My Profile
                         </Link>
                         <Link href="/user/orders" className="mg-dropdown-item" onClick={() => setIsUserDropdownOpen(false)}>
-                          <FiPackage size={16} color="#3BAE56" /> My Orders
+                          <FiPackage size={15} color="#3BAE56" /> My Orders
                         </Link>
                         <div className="mg-dropdown-divider" />
                         <button onClick={handleLogout} className="mg-dropdown-item danger">
-                          <FiLogOut size={16} color="#ef4444" /> Log Out
+                          <FiLogOut size={15} color="#ef4444" /> Log Out
                         </button>
                       </>
                     ) : (
                       <>
                         <Link href="/login" className="mg-dropdown-item" onClick={() => setIsUserDropdownOpen(false)}>
-                          <FiLogIn size={16} color="#3BAE56" /> Sign In
+                          <FiLogIn size={15} color="#3BAE56" /> Sign In
                         </Link>
                         <Link href="/register" className="mg-dropdown-item" onClick={() => setIsUserDropdownOpen(false)}>
-                          <FiUser size={16} color="#4A90E2" /> Sign Up
+                          <FiUser size={15} color="#4A90E2" /> Sign Up
                         </Link>
                       </>
                     )}
@@ -238,32 +248,34 @@ const Header = () => {
               </div>
 
               {/* Wishlist / Favourites */}
-              <Link href="/wishlist" prefetch={true} onMouseEnter={() => router.prefetch('/wishlist')} className="mg-action-btn" style={{ color: '#374151' }}>
-                <FiHeart size={20} />
+              <Link href="/wishlist" prefetch={true} onMouseEnter={() => router.prefetch('/wishlist')} className="mg-action-btn" style={{ color: '#374151' }} title="Wishlist">
+                <FiHeart size={18} />
                 {isMounted && wishlistCount > 0 && (
                   <span className="mg-action-badge">{wishlistCount}</span>
                 )}
               </Link>
 
-              {/* Cart */}
+              {/* Cart Button */}
               <button
                 className="mg-action-btn"
                 onClick={() => setIsCartOpen(true)}
                 type="button"
                 style={{ color: '#374151' }}
+                title="Your Cart"
               >
-                <FiShoppingBag size={20} />
+                <FiShoppingBag size={18} />
                 <span className="mg-action-badge">{isMounted ? cartCount : 0}</span>
               </button>
 
-              {/* Mobile hamburger */}
+              {/* Mobile Hamburger */}
               <button
                 className="mg-action-btn show-mobile"
                 onClick={() => setIsMobileMenuOpen(true)}
                 type="button"
                 style={{ color: '#374151' }}
+                title="Menu"
               >
-                <FiMenu size={22} />
+                <FiMenu size={20} />
               </button>
             </div>
           </div>
@@ -331,7 +343,7 @@ const Header = () => {
               prefetch={true}
               onClick={() => setIsMobileMenuOpen(false)}
               style={{
-                display: 'flex', alignItems: 'center', padding: '14px 12px',
+                display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px',
                 borderRadius: '10px', fontSize: '15px', fontWeight: '600',
                 color: '#374151', textDecoration: 'none',
                 fontFamily: 'var(--font-outfit), sans-serif',
@@ -344,14 +356,15 @@ const Header = () => {
               }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#374151'; }}
             >
-              {link.label}
+              <span style={{ display: 'flex', alignItems: 'center', color: '#3BAE56' }}>{link.icon}</span>
+              <span>{link.label}</span>
             </Link>
           ))}
           <Link
             href="/user/orders"
             onClick={() => setIsMobileMenuOpen(false)}
             style={{
-              display: 'flex', alignItems: 'center', padding: '14px 12px',
+              display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px',
               borderRadius: '10px', fontSize: '15px', fontWeight: '600',
               color: '#374151', textDecoration: 'none',
               fontFamily: 'var(--font-outfit), sans-serif',
@@ -360,7 +373,8 @@ const Header = () => {
             onMouseEnter={e => { e.currentTarget.style.background = '#DDF7E3'; e.currentTarget.style.color = '#3BAE56'; }}
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#374151'; }}
           >
-            My Orders
+            <span style={{ display: 'flex', alignItems: 'center', color: '#3BAE56' }}><FiPackage size={19} /></span>
+            <span>My Orders</span>
           </Link>
         </nav>
 
@@ -368,32 +382,34 @@ const Header = () => {
         <div style={{ padding: '16px', paddingBottom: '40px', borderTop: '1px solid #f1f5f9' }}>
           {user ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <Link href="/user/profile" className="btn-mg-outline" onClick={() => setIsMobileMenuOpen(false)} style={{ justifyContent: 'center', fontSize: '14px', padding: '10px 20px' }}>
-                <FiUser size={16} /> My Profile
-              </Link>
-              {['Super Admin', 'Manager', 'Staff'].includes(user.role) && (
-                <Link href="/admin/dashboard" className="btn-mg-primary" onClick={() => setIsMobileMenuOpen(false)} style={{ justifyContent: 'center', fontSize: '14px', padding: '10px 20px', background: '#3BAE56', color: '#fff', border: 'none' }}>
-                  <MdDashboard size={16} style={{ marginRight: '6px' }} /> Go to Admin Portal
+              <div style={{ padding: '10px 12px', background: '#F7FBFD', borderRadius: '10px', border: '1px solid #EAF8FF' }}>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#1a2332' }}>{user.name}</div>
+                <div style={{ fontSize: '12px', color: '#94a3b8' }}>{user.email}</div>
+              </div>
+              {(user?.role === 'Super Admin' || user?.role === 'Manager' || user?.role === 'Staff') && (
+                <Link href="/admin/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="btn-mg-outline" style={{ fontSize: '13px', padding: '8px 16px', textAlign: 'center', justifyContent: 'center' }}>
+                  Admin Panel
                 </Link>
               )}
-              <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff0f0', border: 'none', borderRadius: '9999px', padding: '10px', color: '#ef4444', fontWeight: '600', cursor: 'pointer', fontSize: '14px' }}>
-                <FiLogOut size={16} style={{ marginRight: '6px' }} /> Log Out
+              <Link href="/user/profile" onClick={() => setIsMobileMenuOpen(false)} className="btn-mg-outline" style={{ fontSize: '13px', padding: '8px 16px', textAlign: 'center', justifyContent: 'center' }}>
+                My Profile
+              </Link>
+              <button onClick={handleLogout} className="btn-mg-green" style={{ fontSize: '13px', padding: '8px 16px', textAlign: 'center', justifyContent: 'center', background: '#fee2e2', color: '#dc2626', border: 'none' }}>
+                Log Out
               </button>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <Link href="/login" className="btn-mg-primary" onClick={() => setIsMobileMenuOpen(false)} style={{ justifyContent: 'center', fontSize: '14px', padding: '11px 20px' }}>
-                <FiLogIn size={16} /> Sign In
+              <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="btn-mg-green" style={{ fontSize: '14px', textAlign: 'center', justifyContent: 'center' }}>
+                Sign In
               </Link>
-              <Link href="/register" className="btn-mg-outline" onClick={() => setIsMobileMenuOpen(false)} style={{ justifyContent: 'center', fontSize: '14px', padding: '10px 20px' }}>
-                <FiUser size={16} /> Sign Up
+              <Link href="/register" onClick={() => setIsMobileMenuOpen(false)} className="btn-mg-outline" style={{ fontSize: '14px', textAlign: 'center', justifyContent: 'center' }}>
+                Create Account
               </Link>
             </div>
           )}
         </div>
       </div>
-
-
     </>
   );
 };

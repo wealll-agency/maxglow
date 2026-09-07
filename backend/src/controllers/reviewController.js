@@ -1,5 +1,7 @@
+import mongoose from 'mongoose';
 import Review from '../models/Review.js';
 import Order from '../models/Order.js';
+import Product from '../models/Product.js';
 import { logActivity } from '../middleware/logger.js';
 
 // @desc    Add review for a product
@@ -35,6 +37,17 @@ export const createProductReview = async (req, res, next) => {
       isVerifiedPurchase
     });
 
+    const reviews = await Review.find({ product: productId });
+    const numReviews = reviews.length;
+    const avgRating = reviews.reduce((acc, item) => item.rating + acc, 0) / numReviews;
+
+    const mongoose = (await import('mongoose')).default;
+    const Product = mongoose.model('Product');
+    await Product.findByIdAndUpdate(productId, {
+      rating: avgRating,
+      numReviews: numReviews
+    });
+
     await logActivity(req.user._id, 'ADD_REVIEW', `Submitted product review for product ID: ${productId}`, req);
 
     res.status(201).json({ success: true, review });
@@ -48,7 +61,17 @@ export const createProductReview = async (req, res, next) => {
 // @access  Public
 export const getProductReviews = async (req, res, next) => {
   try {
-    const reviews = await Review.find({ product: req.params.productId })
+    let productId = req.params.productId;
+
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      const product = await Product.findOne({ slug: productId });
+      if (!product) {
+        return res.status(404).json({ success: false, message: 'Product not found' });
+      }
+      productId = product._id;
+    }
+
+    const reviews = await Review.find({ product: productId })
       .populate('user', 'name')
       .sort({ createdAt: -1 });
 
@@ -78,3 +101,40 @@ export const getFeaturedReviews = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Delete a review (Admin only)
+// @route   DELETE /api/reviews/:id
+// @access  Private/Admin
+export const deleteProductReview = async (req, res, next) => {
+  try {
+    const review = await Review.findById(req.params.id);
+    if (!review) {
+      return res.status(404).json({ success: false, message: 'Review not found' });
+    }
+
+    const productId = review.product;
+
+    await Review.findByIdAndDelete(req.params.id);
+
+    // Recalculate product rating and numReviews
+    const mongoose = (await import('mongoose')).default;
+    const Product = mongoose.model('Product');
+    const remainingReviews = await Review.find({ product: productId });
+    const numReviews = remainingReviews.length;
+    const avgRating = numReviews > 0 
+      ? (remainingReviews.reduce((acc, item) => item.rating + acc, 0) / numReviews) 
+      : 0;
+
+    await Product.findByIdAndUpdate(productId, {
+      rating: Number(avgRating.toFixed(1)),
+      numReviews: numReviews
+    });
+
+    await logActivity(req.user._id, 'DELETE_REVIEW', `Deleted review (${req.params.id}) for product ID: ${productId}`, req);
+
+    res.json({ success: true, message: 'Review deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+

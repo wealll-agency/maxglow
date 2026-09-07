@@ -10,7 +10,14 @@ export const getNotifications = async (req, res) => {
     const last7Days = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
     // New orders (Placed in last 7 days)
-    const newOrders = await Order.find({ createdAt: { $gte: last7Days } })
+    const newOrdersQuery = {
+      createdAt: { $gte: last7Days },
+      $or: [
+        { paymentMode: 'COD' },
+        { paymentStatus: { $nin: ['Pending', 'Failed'] } }
+      ]
+    };
+    const newOrders = await Order.find(newOrdersQuery)
       .populate('user', 'name email')
       .sort({ createdAt: -1 })
       .limit(20)
@@ -215,8 +222,18 @@ export const getStockNotificationsAdmin = async (req, res) => {
 // GET /api/notifications/badge-counts
 export const getBadgeCounts = async (req, res) => {
   try {
-    const ordersCount = await Order.countDocuments({ orderStatus: 'Placed' });
+    const ordersCount = await Order.countDocuments({ 
+      orderStatus: { $in: ['Placed', 'Confirmed'] },
+      $or: [
+        { paymentMode: 'COD' },
+        { paymentStatus: { $nin: ['Pending', 'Failed'] } }
+      ]
+    });
     const refundsCount = await RefundRequest.countDocuments({ status: 'Pending' });
+    const refundsApproved = await RefundRequest.countDocuments({ status: 'Approved' });
+    const refundsRefunded = await RefundRequest.countDocuments({ status: 'Refunded' });
+    const refundsRejected = await RefundRequest.countDocuments({ status: 'Rejected' });
+
     const enquiriesCount = await Enquiry.countDocuments({ isRead: false });
     
     res.json({
@@ -224,6 +241,12 @@ export const getBadgeCounts = async (req, res) => {
       counts: {
         orders: ordersCount,
         refunds: refundsCount,
+        refundDetails: {
+          pending: refundsCount,
+          approved: refundsApproved,
+          refunded: refundsRefunded,
+          rejected: refundsRejected
+        },
         enquiries: enquiriesCount
       }
     });

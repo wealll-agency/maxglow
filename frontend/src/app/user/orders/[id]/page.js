@@ -540,7 +540,7 @@ export default function OrderTrackingPage() {
             <div className="d-flex flex-column gap-3">
               {order.items.map((item, index) => {
                 const productId = item.product?._id ? String(item.product._id) : (item.product ? String(item.product) : null);
-                const productUrl = productId ? `/shop-details?id=${productId}` : null;
+                const productUrl = productId ? `/product/${productId}` : null;
 
                 const itemContent = (
                   <div className="d-flex align-items-center gap-3">

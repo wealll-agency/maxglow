@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { createOrder } from '../../store/ordersSlice.js';
-import { clearCart, addToCart, applyCouponCode } from '../../store/cartSlice.js';
+import { clearCart, addToCart, applyCouponCode, clearRemovedCouponNotice } from '../../store/cartSlice.js';
 import api from '../../utils/axiosConfig.js';
 import { addAddress } from '../../store/authSlice.js';
 import Link from 'next/link';
@@ -35,7 +35,7 @@ export default function CheckoutPage() {
   const router = useRouter();
 
   const { user } = useSelector((state) => state.auth);
-  const { items, couponCode, subtotal, discount, tax, shippingFee, total, isCombo, applicableProducts, discountPercentage } = useSelector((state) => state.cart);
+  const { items, isHydrated, isCartSyncing, couponCode, subtotal, discount, tax, shippingFee, total, isCombo, applicableProducts, discountPercentage, removedCouponNotice } = useSelector((state) => state.cart);
   const { loading, error } = useSelector((state) => state.orders);
   const { showAlert } = useNotification();
 
@@ -51,6 +51,13 @@ export default function CheckoutPage() {
   const [couponInput, setCouponInput] = useState('');
   const [couponError, setCouponError] = useState('');
   const [couponSuccess, setCouponSuccess] = useState('');
+
+  useEffect(() => {
+    if (removedCouponNotice) {
+      setCouponError(removedCouponNotice);
+      dispatch(clearRemovedCouponNotice());
+    }
+  }, [removedCouponNotice, dispatch]);
 
   // New Address Form fields
   const [addrName, setAddrName] = useState('');
@@ -156,14 +163,14 @@ export default function CheckoutPage() {
   }, [user, dispatch]);
 
   useEffect(() => {
-    if (!isMounted) return;
-    // Redirect if cart is empty
+    if (!isMounted || !isHydrated || isCartSyncing) return;
+    // Redirect if cart is empty after hydration and API sync completes
     if (items.length === 0) {
       router.push('/shop');
     }
-  }, [items, router, isMounted]);
+  }, [items, router, isMounted, isHydrated, isCartSyncing]);
 
-  if (!isMounted || items.length === 0) {
+  if (!isMounted || !isHydrated || isCartSyncing || items.length === 0) {
     return (
       <div className="container py-5 text-center d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '60vh' }}>
         <div className="spinner-border text-success mb-3" role="status">
@@ -325,7 +332,7 @@ export default function CheckoutPage() {
   };
 
   const handleApplyCoupon = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     setCouponError('');
     setCouponSuccess('');
     
@@ -335,34 +342,38 @@ export default function CheckoutPage() {
     }
 
     try {
-      const response = await api.post(`/coupons/apply`, { code: couponInput.trim() });
+      const response = await api.post(`/coupons/apply`, { code: couponInput.trim(), cartTotal: subtotal });
       
-      const applicableProducts = response.data.applicableProducts || [];
+      const applicableProductsList = response.data.applicableProducts || [];
 
-      if (applicableProducts.length > 0) {
-        const hasEligibleItem = items.some(item => applicableProducts.includes(item.product));
+      if (applicableProductsList.length > 0) {
+        const hasEligibleItem = items.some(item => applicableProductsList.includes(typeof item.product === 'object' ? item.product._id : item.product));
         if (!hasEligibleItem && !response.data.isCombo) {
           setCouponError('This coupon is not valid for any items in your cart.');
-          dispatch(applyCouponCode({ code: '', discountPercentage: 0, applicableProducts: [], isCombo: false }));
+          dispatch(applyCouponCode({ code: '', discountType: 'percentage', discountPercentage: 0, flatDiscountAmount: 0, applicableProducts: [], isCombo: false, minOrderValue: 0 }));
           return;
         }
       }
 
       dispatch(applyCouponCode({
         code: response.data.code,
+        discountType: response.data.discountType,
         discountPercentage: response.data.discountPercentage,
-        applicableProducts: applicableProducts,
-        isCombo: response.data.isCombo
+        flatDiscountAmount: response.data.flatDiscountAmount,
+        applicableProducts: applicableProductsList,
+        isCombo: response.data.isCombo,
+        minOrderValue: response.data.minOrderValue || 0
       }));
 
-      if (applicableProducts.length > 0) {
-        setCouponSuccess(`Coupon "${response.data.code}" applied! ${response.data.discountPercentage}% Discount on eligible items.`);
+      const discText = response.data.discountType === 'flat' ? `₹${response.data.flatDiscountAmount}` : `${response.data.discountPercentage}%`;
+      if (applicableProductsList.length > 0) {
+        setCouponSuccess(`Coupon "${response.data.code}" applied! ${discText} Discount on eligible items.`);
       } else {
-        setCouponSuccess(`Coupon "${response.data.code}" applied! ${response.data.discountPercentage}% Storewide Discount.`);
+        setCouponSuccess(`Coupon "${response.data.code}" applied! ${discText} Storewide Discount.`);
       }
     } catch (error) {
       setCouponError(error.response?.data?.message || 'Failed to apply coupon');
-      dispatch(applyCouponCode({ code: '', discountPercentage: 0, applicableProducts: [], isCombo: false }));
+      dispatch(applyCouponCode({ code: '', discountType: 'percentage', discountPercentage: 0, flatDiscountAmount: 0, applicableProducts: [], isCombo: false, minOrderValue: 0 }));
     }
   };
 
@@ -425,12 +436,9 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="container py-5" style={{ animation: 'fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1)' }}>
+    <>
+    <div className="container py-5">
       <style>{`
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(30px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
         .checkout-box {
           background: #ffffff;
           border-radius: 20px;
@@ -453,11 +461,11 @@ export default function CheckoutPage() {
           background-color: #3BAE56;
           border-color: #3BAE56;
         }
-        @media (max-width: 768px) {
-          .container.py-5 {
-            padding-top: 1.5rem !important;
-            padding-bottom: 1.5rem !important;
-          }
+          @media (max-width: 768px) {
+            .container.py-5 {
+              padding-top: 1.5rem !important;
+              padding-bottom: 95px !important;
+            }
           h4.fw-bold, h5.fw-bold {
             font-size: 15px !important;
             margin-bottom: 12px !important;
@@ -466,6 +474,31 @@ export default function CheckoutPage() {
           h4.fw-bold div, h5.fw-bold div {
             padding: 6px !important;
             border-radius: 8px !important;
+          }
+          .mobile-sticky-checkout-btn-wrapper {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+            padding: 12px 16px;
+            padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+            z-index: 1020;
+            transform: translate3d(0, 0, 0);
+            -webkit-transform: translate3d(0, 0, 0);
+            will-change: transform;
+            box-sizing: border-box;
+          }
+          @media (max-width: 768px) {
+            .mobile-sticky-checkout-btn-wrapper {
+              display: block !important;
+            }
+          }
+          .mobile-sticky-checkout-btn-wrapper button {
+            margin-top: 0 !important;
           }
           h4.fw-bold div svg, h5.fw-bold div svg {
             width: 16px !important;
@@ -873,14 +906,16 @@ export default function CheckoutPage() {
             {error && <div className="alert alert-danger p-2 fs-8 mt-3">{error}</div>}
             {paymentError && <div className="alert alert-danger p-2 fs-8 mt-3"><i className="fas fa-exclamation-triangle me-1"></i> {paymentError}</div>}
 
-            <button
-              onClick={handlePlaceOrder}
-              disabled={loading || isSubmitting || (user && user.addresses?.length === 0) || (!user && (!address || !city))}
-              className="btn-mg-green w-100 py-3 mt-4 fw-bold fs-6 d-flex align-items-center justify-content-center gap-2"
-              style={{ borderRadius: '14px', boxShadow: '0 8px 25px rgba(59, 174, 86, 0.3)', transition: 'all 0.3s ease', letterSpacing: '0.5px' }}
-            >
-              {(loading || isSubmitting) ? 'Processing Order...' : 'Pay Now'}
-            </button>
+            <div className="d-none d-md-block">
+              <button
+                onClick={handlePlaceOrder}
+                disabled={loading || isSubmitting || (user && user.addresses?.length === 0) || (!user && (!address || !city))}
+                className="btn-mg-green w-100 py-3 mt-4 fw-bold fs-6 d-flex align-items-center justify-content-center gap-2"
+                style={{ borderRadius: '14px', boxShadow: '0 8px 25px rgba(59, 174, 86, 0.3)', transition: 'all 0.3s ease', letterSpacing: '0.5px' }}
+              >
+                {(loading || isSubmitting) ? 'Processing Order...' : 'Pay Now'}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -891,5 +926,32 @@ export default function CheckoutPage() {
 
       </div>
     </div>
+    
+      {/* Mobile Sticky Checkout Bar */}
+      <div className="mobile-sticky-checkout-btn-wrapper">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', width: '100%' }}>
+          <div>
+            <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Total Payable</div>
+            <div style={{ fontSize: '18px', fontWeight: 800, color: '#1a2332', fontFamily: 'var(--font-outfit)', lineHeight: 1.1 }}>₹{total}</div>
+          </div>
+          <button
+            type="button"
+            onClick={handlePlaceOrder}
+            disabled={loading || isSubmitting || (user && user.addresses?.length === 0) || (!user && (!address || !city))}
+            className="btn-mg-green fw-bold fs-6 d-flex align-items-center justify-content-center gap-2"
+            style={{
+              flex: 1,
+              borderRadius: '12px',
+              boxShadow: '0 6px 20px rgba(59, 174, 86, 0.35)',
+              padding: '12px 18px',
+              fontSize: '15px',
+              margin: 0
+            }}
+          >
+            {(loading || isSubmitting) ? 'Processing Order...' : 'Pay Now'}
+          </button>
+        </div>
+      </div>
+    </>
   );
 }

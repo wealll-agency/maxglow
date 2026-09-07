@@ -1,14 +1,11 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/products` : 'https://maxglow.in/api/products';
-const REVIEWS_URL = process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/reviews` : 'https://maxglow.in/api/reviews';
+import api from '../utils/axiosConfig';
 
 export const fetchProducts = createAsyncThunk(
   'products/fetchAll',
   async (filterParams = {}, { rejectWithValue }) => {
     try {
-      const response = await axios.get(API_URL, { params: filterParams });
+      const response = await api.get('/products', { params: filterParams });
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch products');
@@ -20,7 +17,7 @@ export const fetchProductDetails = createAsyncThunk(
   'products/fetchDetails',
   async (productId, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`${API_URL}/${productId}`);
+      const response = await api.get(`/products/${productId}`);
       return response.data.product;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch product details');
@@ -32,7 +29,7 @@ export const fetchProductReviews = createAsyncThunk(
   'products/fetchReviews',
   async (productId, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`${REVIEWS_URL}/product/${productId}`);
+      const response = await api.get(`/reviews/product/${productId}`);
       return response.data.reviews;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to load reviews');
@@ -44,10 +41,22 @@ export const submitProductReview = createAsyncThunk(
   'products/submitReview',
   async (reviewData, { rejectWithValue }) => {
     try {
-      const response = await axios.post(REVIEWS_URL, reviewData, { withCredentials: true });
+      const response = await api.post('/reviews', reviewData);
       return response.data.review;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to submit review');
+    }
+  }
+);
+
+export const deleteProductReview = createAsyncThunk(
+  'products/deleteReview',
+  async (reviewId, { rejectWithValue }) => {
+    try {
+      const response = await api.delete(`/reviews/${reviewId}`);
+      return { reviewId, ...response.data };
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to delete review');
     }
   }
 );
@@ -61,7 +70,8 @@ const productsSlice = createSlice({
     currentPage: 1,
     selectedProduct: null,
     reviews: [],
-    loading: false,
+    loading: true,
+    isFetched: false,
     detailsLoading: false,
     reviewsLoading: false,
     error: null
@@ -70,6 +80,13 @@ const productsSlice = createSlice({
     clearSelectedProduct: (state) => {
       state.selectedProduct = null;
       state.reviews = [];
+    },
+    hydrateProducts: (state, action) => {
+      if (Array.isArray(action.payload) && action.payload.length > 0) {
+        state.items = action.payload;
+        state.loading = false;
+        state.isFetched = true;
+      }
     }
   },
   extraReducers: (builder) => {
@@ -83,13 +100,23 @@ const productsSlice = createSlice({
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload?.products || [];
+        state.isFetched = true;
+        const productsList = action.payload?.products || [];
+        state.items = productsList;
         state.total = action.payload?.total || 0;
         state.pages = action.payload?.pages || 1;
         state.currentPage = action.payload?.currentPage || 1;
+        if (typeof window !== 'undefined' && productsList.length > 0) {
+          try {
+            localStorage.setItem('maxglow_cached_products', JSON.stringify(productsList));
+          } catch (e) {
+            console.error('Failed to cache products', e);
+          }
+        }
       })
       .addCase(fetchProducts.rejected, (state, action) => {
         state.loading = false;
+        state.isFetched = true;
         state.error = action.payload;
       })
       // Fetch Product Details
@@ -116,9 +143,13 @@ const productsSlice = createSlice({
       // Submit Review
       .addCase(submitProductReview.fulfilled, (state, action) => {
         state.reviews.unshift(action.payload);
+      })
+      // Delete Review
+      .addCase(deleteProductReview.fulfilled, (state, action) => {
+        state.reviews = state.reviews.filter(r => r._id !== action.payload.reviewId);
       });
   }
 });
 
-export const { clearSelectedProduct } = productsSlice.actions;
+export const { clearSelectedProduct, hydrateProducts } = productsSlice.actions;
 export default productsSlice.reducer;

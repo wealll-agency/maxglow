@@ -12,6 +12,9 @@ try {
 
 const backendUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api$/, '') : '';
 
+if (!process.env.NEXT_PUBLIC_APP_URL) {
+  throw new Error('NEXT_PUBLIC_APP_URL is not defined in the environment variables. SEO features require a valid domain.');
+}
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
@@ -31,7 +34,6 @@ const nextConfig = {
     outputFileTracingRoot: path.resolve(process.cwd(), '..'),
   },
   images: {
-    unoptimized: true,
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 2592000, // 30 days — safe because S3 URLs include timestamp (unique per upload)
@@ -56,6 +58,34 @@ const nextConfig = {
         source: '/uploads/:path*',
         destination: `${backendUrl}/uploads/:path*`,
       },
+    ];
+  },
+  async redirects() {
+    return [
+      {
+        source: '/shop-details',
+        has: [
+          {
+            type: 'query',
+            key: 'id',
+            value: '(?<id>.*)',
+          },
+        ],
+        destination: '/product/:id',
+        permanent: true,
+      },
+      {
+        source: '/shop-details',
+        has: [
+          {
+            type: 'query',
+            key: 'name',
+            value: '(?<name>.*)',
+          },
+        ],
+        destination: '/shop', // Fallback for name-based query
+        permanent: true,
+      }
     ];
   },
 };

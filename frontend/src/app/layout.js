@@ -17,6 +17,7 @@ const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-int
 const outfit = Outfit({ subsets: ['latin'], display: 'swap', variable: '--font-outfit' });
 
 export const metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL),
   title: {
     default: 'MaxGlow — Premium Herbal Wellness',
     template: '%s | MaxGlow'
@@ -27,7 +28,14 @@ export const metadata = {
     title: 'MaxGlow — Premium Herbal Wellness',
     description: 'Premium herbal products for Healthy Skin, Hair & Life.',
     type: 'website',
+    url: '/',
+    siteName: 'MaxGlow'
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'MaxGlow — Premium Herbal Wellness',
+    description: 'Premium herbal products for Healthy Skin, Hair & Life.'
+  }
 };
 
 export const viewport = {

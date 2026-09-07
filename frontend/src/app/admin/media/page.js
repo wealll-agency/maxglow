@@ -12,8 +12,11 @@ export default function AdminMedia() {
 
   // States
   const [heroImages, setHeroImages] = useState(['/hero_final_1.png', '/hero_final_2.png', '/hero_final_3.png']);
+  const [heroImagesMobile, setHeroImagesMobile] = useState(['', '', '']);
   const [newArrivals, setNewArrivals] = useState('/new_arrival_banner.png');
+  const [newArrivalsMobile, setNewArrivalsMobile] = useState('');
   const [trendingBanner, setTrendingBanner] = useState('/trending_banner.png');
+  const [trendingBannerMobile, setTrendingBannerMobile] = useState('');
   const [offers, setOffers] = useState(['/mg-offer1.jpg', '/mg-offer2.jpg', '/mg-offer3.jpg']);
   const [categoryBanner, setCategoryBanner] = useState('/trending_banner.png');
   const [categoryBanners, setCategoryBanners] = useState({
@@ -76,10 +79,13 @@ export default function AdminMedia() {
       ]);
 
       if (settingsRes.data.success && settingsRes.data.settings) {
-        const { media_hero, media_new_arrivals, media_trending_banner, media_offers, media_category_banner, media_category_banners, media_reels } = settingsRes.data.settings;
+        const { media_hero, media_hero_mobile, media_new_arrivals, media_new_arrivals_mobile, media_trending_banner, media_trending_banner_mobile, media_offers, media_category_banner, media_category_banners, media_reels } = settingsRes.data.settings;
         if (Array.isArray(media_hero) && media_hero.length) setHeroImages(media_hero);
+        if (Array.isArray(media_hero_mobile) && media_hero_mobile.length) setHeroImagesMobile(media_hero_mobile);
         if (media_new_arrivals) setNewArrivals(media_new_arrivals);
+        if (media_new_arrivals_mobile) setNewArrivalsMobile(media_new_arrivals_mobile);
         if (media_trending_banner) setTrendingBanner(media_trending_banner);
+        if (media_trending_banner_mobile) setTrendingBannerMobile(media_trending_banner_mobile);
         if (Array.isArray(media_offers) && media_offers.length) setOffers(media_offers);
         if (media_category_banner) setCategoryBanner(media_category_banner);
         if (media_category_banners && typeof media_category_banners === 'object') {
@@ -129,7 +135,7 @@ export default function AdminMedia() {
     }
   };
 
-  const handleFileUpload = async (e, setter, isArray = false, array = [], index = null) => {
+  const handleFileUpload = async (e, setter, isArray = false, index = null) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -149,9 +155,11 @@ export default function AdminMedia() {
         const url = res.data.url;
         
         if (isArray && index !== null) {
-          const newArr = [...array];
-          newArr[index] = url;
-          setter(newArr);
+          setter(prev => {
+            const newArr = [...(prev || [])];
+            newArr[index] = url;
+            return newArr;
+          });
         } else {
           setter(url);
         }
@@ -271,6 +279,20 @@ export default function AdminMedia() {
     newArr.splice(index, 1);
     setter(newArr);
   };
+  
+  const removePairedArrayItem = (idx) => {
+    const newHero = [...heroImages];
+    const newHeroMobile = [...heroImagesMobile];
+    newHero.splice(idx, 1);
+    newHeroMobile.splice(idx, 1);
+    setHeroImages(newHero);
+    setHeroImagesMobile(newHeroMobile);
+  };
+  
+  const addPairedArrayItem = () => {
+    setHeroImages([...heroImages, '']);
+    setHeroImagesMobile([...heroImagesMobile, '']);
+  };
 
   if (loading) {
     return <div className="p-4">Loading Media Settings...</div>;
@@ -297,9 +319,9 @@ export default function AdminMedia() {
             <div className="card-header bg-white border-0 pt-4 pb-2 d-flex justify-content-between align-items-center">
               <div>
                 <h5 className="fw-bold text-dark mb-1">1. Hero Slider Images</h5>
-                <p className="text-muted small mb-0">Recommended Dimensions: <strong>1920 × 800px</strong> (2.4:1 Aspect Ratio). Auto-slides on homepage.</p>
+                <p className="text-muted small mb-0">Manage Desktop and Mobile slides. Desktop: <strong>1920×800px</strong>. Mobile: <strong>1080×1080px (Square)</strong>.</p>
               </div>
-              <button className="btn btn-sm btn-success px-4 rounded-pill fw-bold" onClick={() => handleSaveSection('Hero Images', { media_hero: heroImages })} disabled={saving || uploading}>
+              <button className="btn btn-sm btn-success px-4 rounded-pill fw-bold" onClick={() => handleSaveSection('Hero Images', { media_hero: heroImages, media_hero_mobile: heroImagesMobile })} disabled={saving || uploading}>
                 Save Section
               </button>
             </div>
@@ -307,9 +329,14 @@ export default function AdminMedia() {
               {(Array.isArray(heroImages) ? heroImages : []).map((img, idx) => (
                 <div key={idx} className="mb-3 p-3 bg-light rounded-3 border">
                   <div className="d-flex align-items-center justify-content-between mb-2">
-                    <span className="fw-bold small text-dark">Hero Slide Image #{idx + 1} (Required Size: 1920×800px)</span>
+                    <span className="fw-bold small text-dark">Slide #{idx + 1}</span>
+                    <button className="btn btn-outline-danger btn-sm" onClick={() => removePairedArrayItem(idx)}>Remove Slide</button>
                   </div>
-                  <div className="d-flex gap-3 align-items-center flex-wrap">
+                  
+                  {/* Desktop Upload */}
+                  <div className="mb-3 p-2 bg-white rounded border">
+                    <span className="small fw-bold text-muted d-block mb-2">Desktop Image (1920×800px)</span>
+                    <div className="d-flex gap-3 align-items-center flex-wrap">
                     {img && (
                       <div className="d-flex align-items-center gap-2 bg-white p-2 rounded border">
                         <img 
@@ -326,14 +353,41 @@ export default function AdminMedia() {
                         type="file" 
                         className="form-control" 
                         accept="image/*"
-                        onChange={(e) => handleFileUpload(e, setHeroImages, true, heroImages, idx)} 
+                        onChange={(e) => handleFileUpload(e, setHeroImages, true, idx)} 
                       />
                     </div>
-                    <button className="btn btn-outline-danger" onClick={() => removeArrayItem(setHeroImages, heroImages, idx)}>Remove Slide</button>
                   </div>
+                  </div>
+
+                  {/* Mobile Upload */}
+                  <div className="p-2 bg-white rounded border">
+                    <span className="small fw-bold text-muted d-block mb-2">Mobile Image (Recommended: 1080×1080px - Square)</span>
+                    <div className="d-flex gap-3 align-items-center flex-wrap">
+                    {heroImagesMobile[idx] && (
+                      <div className="d-flex align-items-center gap-2 bg-light p-2 rounded border">
+                        <img 
+                          src={getImageUrl(heroImagesMobile[idx])} 
+                          alt="Mobile Hero Preview" 
+                          style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '6px' }}
+                          onError={(e) => { e.target.style.display = 'none'; }}
+                        />
+                        <span className="small text-truncate" style={{ maxWidth: '180px' }}>{heroImagesMobile[idx].split('/').pop()}</span>
+                      </div>
+                    )}
+                    <div className="flex-grow-1" style={{ maxWidth: '300px' }}>
+                      <input 
+                        type="file" 
+                        className="form-control" 
+                        accept="image/*"
+                        onChange={(e) => handleFileUpload(e, setHeroImagesMobile, true, idx)} 
+                      />
+                    </div>
+                    </div>
+                  </div>
+
                 </div>
               ))}
-              <button className="btn btn-outline-success btn-sm mt-2 rounded-pill fw-semibold" onClick={() => addArrayItem(setHeroImages, heroImages)}>+ Upload Another Slide Image</button>
+              <button className="btn btn-outline-success btn-sm mt-2 rounded-pill fw-semibold" onClick={addPairedArrayItem}>+ Add Another Slide</button>
             </div>
           </div>
         </div>
@@ -344,16 +398,16 @@ export default function AdminMedia() {
             <div className="card-header bg-white border-0 pt-4 pb-2 d-flex justify-content-between align-items-center">
               <div>
                 <h5 className="fw-bold text-dark mb-1">2. New Arrivals Banner</h5>
-                <p className="text-muted small mb-0">Recommended Dimensions: <strong>1400 × 300px</strong>. Displayed inside New Arrivals homepage section.</p>
+                <p className="text-muted small mb-0">Manage Desktop and Mobile banners for the New Arrivals section.</p>
               </div>
-              <button className="btn btn-sm btn-success px-4 rounded-pill fw-bold" onClick={() => handleSaveSection('New Arrivals', { media_new_arrivals: newArrivals })} disabled={saving || uploading}>
+              <button className="btn btn-sm btn-success px-4 rounded-pill fw-bold" onClick={() => handleSaveSection('New Arrivals', { media_new_arrivals: newArrivals, media_new_arrivals_mobile: newArrivalsMobile })} disabled={saving || uploading}>
                 Save Section
               </button>
             </div>
             <div className="card-body">
-              <div className="p-3 bg-light rounded-3 border">
+              <div className="p-3 bg-light rounded-3 border mb-3">
                 <div className="d-flex align-items-center justify-content-between mb-2">
-                  <span className="fw-bold small text-dark">New Arrivals Main Banner (Required Size: 1400×300px)</span>
+                  <span className="fw-bold small text-dark">Desktop Banner (Recommended: 1400×300px)</span>
                 </div>
                 <div className="d-flex gap-3 align-items-center flex-wrap">
                   {newArrivals && (
@@ -377,6 +431,32 @@ export default function AdminMedia() {
                   </div>
                 </div>
               </div>
+              <div className="p-3 bg-light rounded-3 border mb-3">
+                <div className="d-flex align-items-center justify-content-between mb-2">
+                  <span className="fw-bold small text-dark">Mobile Banner (Recommended: 600×338px)</span>
+                </div>
+                <div className="d-flex gap-3 align-items-center flex-wrap">
+                  {newArrivalsMobile && (
+                    <div className="d-flex align-items-center gap-2 bg-white p-2 rounded border">
+                      <img 
+                        src={getImageUrl(newArrivalsMobile)} 
+                        alt="New Arrivals Mobile Preview" 
+                        style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '6px' }}
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                      <span className="small text-truncate" style={{ maxWidth: '180px' }}>{newArrivalsMobile.split('/').pop()}</span>
+                    </div>
+                  )}
+                  <div className="flex-grow-1" style={{ maxWidth: '300px' }}>
+                    <input 
+                      type="file" 
+                      className="form-control" 
+                      accept="image/*"
+                      onChange={(e) => handleFileUpload(e, setNewArrivalsMobile)} 
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -387,16 +467,16 @@ export default function AdminMedia() {
             <div className="card-header bg-white border-0 pt-4 pb-2 d-flex justify-content-between align-items-center">
               <div>
                 <h5 className="fw-bold text-dark mb-1">Trending Now Banner</h5>
-                <p className="text-muted small mb-0">Recommended Dimensions: <strong>1400 × 300px</strong>. Displayed inside Trending Now homepage section.</p>
+                <p className="text-muted small mb-0">Manage Desktop and Mobile banners for Trending Now section.</p>
               </div>
-              <button className="btn btn-sm btn-success px-4 rounded-pill fw-bold" onClick={() => handleSaveSection('Trending Banner', { media_trending_banner: trendingBanner })} disabled={saving || uploading}>
+              <button className="btn btn-sm btn-success px-4 rounded-pill fw-bold" onClick={() => handleSaveSection('Trending Banner', { media_trending_banner: trendingBanner, media_trending_banner_mobile: trendingBannerMobile })} disabled={saving || uploading}>
                 Save Section
               </button>
             </div>
             <div className="card-body">
-              <div className="p-3 bg-light rounded-3 border">
+              <div className="p-3 bg-light rounded-3 border mb-3">
                 <div className="d-flex align-items-center justify-content-between mb-2">
-                  <span className="fw-bold small text-dark">Trending Now Main Banner (Required Size: 1400×300px)</span>
+                  <span className="fw-bold small text-dark">Desktop Banner (Recommended: 1400×300px)</span>
                 </div>
                 <div className="d-flex gap-3 align-items-center flex-wrap">
                   {trendingBanner && (
@@ -418,6 +498,35 @@ export default function AdminMedia() {
                       onChange={(e) => handleFileUpload(e, setTrendingBanner)} 
                     />
                   </div>
+                </div>
+              </div>
+              <div className="p-3 bg-light rounded-3 border">
+                <div className="d-flex align-items-center justify-content-between mb-2">
+                  <span className="fw-bold small text-dark">Mobile Banner (Recommended: 600×338px - 16:9 widescreen)</span>
+                </div>
+                <div className="d-flex gap-3 align-items-center flex-wrap">
+                  {trendingBannerMobile && (
+                    <div className="d-flex align-items-center gap-2 bg-white p-2 rounded border">
+                      <img 
+                        src={getImageUrl(trendingBannerMobile)} 
+                        alt="Mobile Preview" 
+                        style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '6px' }}
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                      <span className="small text-truncate" style={{ maxWidth: '180px' }}>{trendingBannerMobile.split('/').pop()}</span>
+                    </div>
+                  )}
+                  <div className="flex-grow-1" style={{ maxWidth: '300px' }}>
+                    <input 
+                      type="file" 
+                      className="form-control" 
+                      accept="image/*"
+                      onChange={(e) => handleFileUpload(e, setTrendingBannerMobile)} 
+                    />
+                  </div>
+                  {trendingBannerMobile && (
+                    <button className="btn btn-outline-danger btn-sm" onClick={() => setTrendingBannerMobile('')}>Remove</button>
+                  )}
                 </div>
               </div>
             </div>
@@ -459,7 +568,7 @@ export default function AdminMedia() {
                         type="file" 
                         className="form-control" 
                         accept="image/*"
-                        onChange={(e) => handleFileUpload(e, setOffers, true, offers, idx)} 
+                        onChange={(e) => handleFileUpload(e, setOffers, true, idx)} 
                       />
                     </div>
                     <button className="btn btn-outline-danger" onClick={() => removeArrayItem(setOffers, offers, idx)}>Remove Offer</button>
@@ -610,7 +719,7 @@ export default function AdminMedia() {
                         type="file" 
                         className="form-control" 
                         accept="video/*"
-                        onChange={(e) => handleFileUpload(e, setReels, true, reels, idx)} 
+                        onChange={(e) => handleFileUpload(e, setReels, true, idx)} 
                       />
                     </div>
                     <button className="btn btn-outline-danger" onClick={() => removeArrayItem(setReels, reels, idx)}>Remove Reel</button>

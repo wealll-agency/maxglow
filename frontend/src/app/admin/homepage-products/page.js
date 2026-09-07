@@ -13,10 +13,14 @@ import api from '../../../utils/axiosConfig';
 export default function HomepageProductsPage() {
   const dispatch = useDispatch();
   const { products, productsLoading } = useSelector((state) => state.admin);
-  const { showAlert } = useNotification();
+  const { showAlert, showConfirm } = useNotification();
   
   const [topSellingSource, setTopSellingSource] = useState('automatic');
   const [settingsLoading, setSettingsLoading] = useState(false);
+  const [customSections, setCustomSections] = useState([]);
+  const [creatingSection, setCreatingSection] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newSectionTitle, setNewSectionTitle] = useState('');
   
   const [selections, setSelections] = useState({
     showOnHomepage: {},
@@ -58,9 +62,28 @@ export default function HomepageProductsPage() {
     }
   }, [products]);
 
+  const fetchCustomSections = async () => {
+    try {
+      const res = await api.get('/custom-sections');
+      if (res.data.success) {
+        setCustomSections(res.data.sections);
+        const newSelections = { ...selections };
+        res.data.sections.forEach(section => {
+          newSelections[`custom_${section._id}`] = {};
+          section.products.forEach(p => {
+            newSelections[`custom_${section._id}`][p._id || p] = true;
+          });
+        });
+        setSelections(newSelections);
+      }
+    } catch (err) {
+      console.error("Failed to load custom sections", err);
+    }
+  };
+
   useEffect(() => {
     dispatch(fetchAdminProducts({ limit: 1000 })); // Fetch a large limit to get all for assignment
-    
+    fetchCustomSections();
     // Fetch settings
     api.get('/auth/settings')
       .then(res => {
@@ -70,6 +93,42 @@ export default function HomepageProductsPage() {
       })
       .catch(err => console.error("Failed to load settings:", err));
   }, [dispatch]);
+
+  const handleCreateSection = async () => {
+    if (!newSectionTitle.trim()) {
+      showAlert("Please enter a section title", "error");
+      return;
+    }
+    setCreatingSection(true);
+    try {
+      const res = await api.post('/custom-sections', { title: newSectionTitle.trim() });
+      if (res.data.success) {
+        showAlert("Section created successfully!", "success");
+        setNewSectionTitle('');
+        setShowCreateForm(false);
+        fetchCustomSections();
+      }
+    } catch (err) {
+      showAlert(err.response?.data?.message || "Failed to create section", "error");
+    } finally {
+      setCreatingSection(false);
+    }
+  };
+
+  const handleDeleteSection = async (id) => {
+    const isConfirmed = await showConfirm("Are you sure you want to permanently delete this custom section? The products will remain in the database.");
+    if (!isConfirmed) return;
+    try {
+      const res = await api.delete(`/custom-sections/${id}`);
+      if (res.data.success) {
+        showAlert("Section deleted", "success");
+        setActiveTab('showOnHomepage');
+        fetchCustomSections();
+      }
+    } catch (err) {
+      showAlert("Failed to delete section", "error");
+    }
+  };
 
   const handleCheckboxChange = (flag, productId, checked) => {
     setSelections(prev => ({
@@ -105,15 +164,21 @@ export default function HomepageProductsPage() {
     setSaving(prev => ({ ...prev, [flag]: true }));
     try {
       // Collect IDs that are checked true
-      const productIds = Object.keys(selections[flag]).filter(id => selections[flag][id]);
+      const productIds = Object.keys(selections[flag] || {}).filter(id => selections[flag][id]);
 
-      const res = await api.put('/products/homepage/bulk-flags', { 
-        flag, 
-        productIds 
-      });
+      let res;
+      if (flag.startsWith('custom_')) {
+        const sectionId = flag.split('_')[1];
+        res = await api.put(`/custom-sections/${sectionId}`, { productIds });
+      } else {
+        res = await api.put('/products/homepage/bulk-flags', { 
+          flag, 
+          productIds 
+        });
+      }
       
       if (res.data.success) {
-        showAlert(`Successfully updated ${flag} assignments!`, "success");
+        showAlert(`Successfully updated ${flag.startsWith('custom_') ? 'custom section' : flag} assignments!`, "success");
       } else {
         showAlert(`Failed to update ${flag}: ${res.data.message}`, "error");
       }
@@ -306,6 +371,58 @@ export default function HomepageProductsPage() {
                 Top Selling (Manual)
               </button>
             </li>
+            {customSections.map(section => (
+              <li className="nav-item" key={section._id}>
+                <button 
+                  className={`nav-link fw-medium border-0 ${activeTab === `custom_${section._id}` ? 'text-brand border-bottom border-brand border-3' : 'text-muted'}`}
+                  onClick={() => setActiveTab(`custom_${section._id}`)}
+                  style={{ backgroundColor: 'transparent' }}
+                >
+                  {section.title}
+                </button>
+              </li>
+            ))}
+            <li className="nav-item ms-auto position-relative">
+              <button 
+                className="btn btn-sm btn-outline-brand mt-1"
+                onClick={() => setShowCreateForm(!showCreateForm)}
+              >
+                + Create New Section
+              </button>
+              
+              {showCreateForm && (
+                <div 
+                  className="position-absolute bg-white rounded-3 shadow-lg border p-3" 
+                  style={{ top: '100%', right: 0, width: '300px', zIndex: 10, marginTop: '8px', animation: 'fadeIn 0.2s ease-out' }}
+                >
+                  <label className="form-label fs-7 fw-bold mb-1">Section Title</label>
+                  <input 
+                    type="text" 
+                    className="form-control form-control-sm mb-3" 
+                    value={newSectionTitle}
+                    onChange={(e) => setNewSectionTitle(e.target.value)}
+                    autoFocus
+                    onKeyDown={(e) => e.key === 'Enter' && handleCreateSection()}
+                  />
+                  <div className="d-flex gap-2 justify-content-end">
+                    <button 
+                      className="btn btn-sm btn-light" 
+                      onClick={() => setShowCreateForm(false)}
+                      disabled={creatingSection}
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      className="btn btn-sm btn-brand" 
+                      onClick={handleCreateSection}
+                      disabled={creatingSection}
+                    >
+                      {creatingSection ? 'Creating...' : 'Create'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </li>
           </ul>
         </div>
         <div className="card-body p-4">
@@ -397,6 +514,29 @@ export default function HomepageProductsPage() {
                   {renderProductList('manualTopSelling')}
                 </div>
               )}
+
+              {customSections.map(section => {
+                const flag = `custom_${section._id}`;
+                return activeTab === flag && (
+                  <div className="animate-fade-in" key={section._id}>
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                      <div>
+                        <h5 className="fw-bold mb-1">{section.title}</h5>
+                        <p className="text-muted fs-7 mb-0">Select products to highlight in this custom homepage section.</p>
+                      </div>
+                      <div className="d-flex gap-2">
+                        <button className="btn btn-outline-danger btn-sm px-3" onClick={() => handleDeleteSection(section._id)}>
+                          Delete Section
+                        </button>
+                        <button className="btn btn-brand d-flex align-items-center gap-2" onClick={() => handleSaveFlag(flag)} disabled={saving[flag]}>
+                          <Save size={16} /> {saving[flag] ? 'Saving...' : 'Save Assignments'}
+                        </button>
+                      </div>
+                    </div>
+                    {renderProductList(flag)}
+                  </div>
+                );
+              })}
             </>
           )}
 

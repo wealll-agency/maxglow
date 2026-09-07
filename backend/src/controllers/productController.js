@@ -5,7 +5,25 @@ import StockNotification from '../models/StockNotification.js';
 import { logActivity } from '../middleware/logger.js';
 import { uploadFile } from '../services/storageService.js';
 import { sendEmail } from '../utils/mail.js';
+import mongoose from 'mongoose';
 
+const generateSlug = async (name, baseSlug = '', excludeId = null) => {
+  let slug = baseSlug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+  let isUnique = false;
+  let counter = 1;
+  let currentSlug = slug;
+  
+  while (!isUnique) {
+    const existing = await Product.findOne(excludeId ? { slug: currentSlug, _id: { $ne: excludeId } } : { slug: currentSlug });
+    if (!existing) {
+      isUnique = true;
+    } else {
+      currentSlug = `${slug}-${counter}`;
+      counter++;
+    }
+  }
+  return currentSlug;
+};
 // High-Performance In-Memory Query Cache
 const productsMemoryCache = new Map();
 const CACHE_TTL_MS = 30000; // 30 seconds
@@ -60,9 +78,9 @@ export const getProducts = async (req, res, next) => {
 
     // Price Range Filter
     if (minPrice || maxPrice) {
-      query.price = {};
-      if (minPrice) query.price.$gte = Number(minPrice);
-      if (maxPrice) query.price.$lte = Number(maxPrice);
+      query.sellingPrice = {};
+      if (minPrice) query.sellingPrice.$gte = Number(minPrice);
+      if (maxPrice) query.sellingPrice.$lte = Number(maxPrice);
     }
 
     // Homepage Filters
@@ -97,8 +115,8 @@ export const getProducts = async (req, res, next) => {
 
     // Default sorting overrides
     if (sort) {
-      if (sort === 'priceAsc') sortBy = { price: 1 };
-      else if (sort === 'priceDesc') sortBy = { price: -1 };
+      if (sort === 'priceAsc') sortBy = { sellingPrice: 1 };
+      else if (sort === 'priceDesc') sortBy = { sellingPrice: -1 };
       else if (sort === 'rating') sortBy = { rating: -1 };
     }
 
@@ -109,7 +127,7 @@ export const getProducts = async (req, res, next) => {
     const total = await Product.countDocuments(query);
     
     let dbQuery = Product.find(query);
-    dbQuery = dbQuery.select('name category brand price discount discountType images videos stock isFeatured isActive showOnHomepage newArrival healthyProduct searchTags unit');
+    dbQuery = dbQuery.select('name slug category brand price sellingPrice discount discountType images videos stock isFeatured isActive showOnHomepage newArrival healthyProduct searchTags unit');
 
     const products = await dbQuery
       .sort(sortBy)
@@ -141,7 +159,11 @@ export const getProducts = async (req, res, next) => {
 // @access  Public
 export const getProductById = async (req, res, next) => {
   try {
-    const product = await Product.findById(req.params.id).lean();
+    const { id } = req.params;
+    const isMongoId = mongoose.Types.ObjectId.isValid(id);
+    const query = isMongoId ? { $or: [{ _id: id }, { slug: id }] } : { slug: id };
+    
+    const product = await Product.findOne(query).lean();
     if (product) {
       res.json({ success: true, product });
     } else {
@@ -160,7 +182,8 @@ export const createProduct = async (req, res, next) => {
     name, category, subCategory, subSubCategory, brand, productType, sku, unit, unitValue, searchTags, 
     price, purchasePrice, minOrderQty, discount, discountType, taxAmount, taxCalculation, 
     shippingCost, shippingMultiplyWithQty, isFeatured, isActive, showOnHomepage, showInReels, manualTopSelling, newArrival,
-    description, ingredients, benefits, images, videos, batchNumber, expiryDate, stock, packSizes, warehouse
+    description, ingredients, benefits, images, videos, batchNumber, expiryDate, stock, packSizes, warehouse,
+    metaTitle, metaDescription, slug
   } = req.body;
 
   try {
@@ -197,8 +220,13 @@ export const createProduct = async (req, res, next) => {
       expiryDate: expiryDate ? new Date(expiryDate) : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // Default 1 year expiry
       stock: Number(stock) || 0,
       packSizes: (typeof packSizes === 'string' ? JSON.parse(packSizes) : (packSizes || [])).filter(p => p.weight !== '' && p.weight !== null && p.weight !== undefined && p.price !== '' && p.price !== null && p.price !== undefined),
-      warehouse: warehouse === '' ? null : warehouse
+      warehouse: warehouse === '' ? null : warehouse,
+      metaTitle: metaTitle || '',
+      metaDescription: metaDescription || ''
     });
+
+    const finalSlug = await generateSlug(name, slug);
+    product.slug = finalSlug;
 
     const productId = product._id.toString();
 
@@ -261,7 +289,18 @@ export const updateProduct = async (req, res, next) => {
     const product = await Product.findById(req.params.id);
 
     if (product) {
+      const oldName = product.name;
       product.name = req.body.name || product.name;
+      
+      product.metaTitle = req.body.metaTitle !== undefined ? req.body.metaTitle : product.metaTitle;
+      product.metaDescription = req.body.metaDescription !== undefined ? req.body.metaDescription : product.metaDescription;
+      
+      if (req.body.slug !== undefined) {
+        product.slug = await generateSlug(product.name, req.body.slug, product._id);
+      } else if (product.name !== oldName && !product.slug) {
+        product.slug = await generateSlug(product.name, '', product._id);
+      }
+      
       product.category = req.body.category || product.category;
       product.subCategory = req.body.subCategory !== undefined ? req.body.subCategory : product.subCategory;
       product.subSubCategory = req.body.subSubCategory !== undefined ? req.body.subSubCategory : product.subSubCategory;
