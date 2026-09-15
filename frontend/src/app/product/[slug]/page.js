@@ -1,15 +1,14 @@
 import ShopDetailsClient from './ShopDetailsClient';
 import { Suspense } from 'react';
 
-// Next.js server fetch cache behavior
-export const fetchCache = 'force-no-store';
-export const revalidate = 0;
+// Next.js server fetch cache behavior with ISR (60s revalidation)
+export const revalidate = 60;
 
 async function getProductData(id) {
   if (!id) return null;
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://www.maxglow.in/api';
   try {
-    const res = await fetch(`${baseUrl}/products/${id}`);
+    const res = await fetch(`${baseUrl}/products/${id}`, { next: { revalidate: 60 } });
     if (!res.ok) return null;
     const data = await res.json();
     return data.success ? data.product : null;

@@ -4,11 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "predev": "npx kill-port 7053 || true && node -e \"fs.rmSync('.next', { recursive: true, force: true })\"",
     "dev": "next dev -p 7053",
-    "prebuild": "npx kill-port 7053 || true && node -e \"fs.rmSync('.next', { recursive: true, force: true })\"",
     "build": "next build",
-    "prestart": "npx kill-port 7053 || true",
     "start": "next start -p 7053",
     "lint": "next lint"
   },

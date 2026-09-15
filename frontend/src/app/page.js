@@ -13,33 +13,35 @@ const ReelsSection = dynamic(() => import('../components/ReelsSection'));
 const CashewsBanner = dynamic(() => import('../components/CashewsBanner'));
 const Testimonials = dynamic(() => import('../components/Testimonials'));
 
-async function getHomepageProducts() {
+async function getHomepageData() {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://maxglow.in/api';
   try {
-    const [topRes, arrivalRes, trendingRes, customRes] = await Promise.all([
-      fetch(`${baseUrl}/products?topSelling=true&limit=8&inStock=true`, { cache: 'no-store' }),
-      fetch(`${baseUrl}/products?newArrival=true&limit=8&inStock=true`, { cache: 'no-store' }),
-      fetch(`${baseUrl}/products?featured=true&limit=8&inStock=true`, { cache: 'no-store' }),
-      fetch(`${baseUrl}/custom-sections?isActive=true`, { cache: 'no-store' }),
+    const [topRes, arrivalRes, trendingRes, customRes, settingsRes] = await Promise.all([
+      fetch(`${baseUrl}/products?topSelling=true&limit=8&inStock=true`, { next: { revalidate: 60 } }),
+      fetch(`${baseUrl}/products?newArrival=true&limit=8&inStock=true`, { next: { revalidate: 60 } }),
+      fetch(`${baseUrl}/products?featured=true&limit=8&inStock=true`, { next: { revalidate: 60 } }),
+      fetch(`${baseUrl}/custom-sections?isActive=true`, { next: { revalidate: 60 } }),
+      fetch(`${baseUrl}/auth/settings`, { next: { revalidate: 60 } }),
     ]);
     const topData = await topRes.json();
     const arrivalData = await arrivalRes.json();
     const trendingData = await trendingRes.json();
     const customData = await customRes.json();
+    const settingsData = await settingsRes.json();
     return {
       topSellingProducts: topData.success ? topData.products || [] : [],
       newArrivalProducts: arrivalData.success ? arrivalData.products || [] : [],
       trendingProducts: trendingData.success ? trendingData.products || [] : [],
-      customSections: customData.success ? customData.sections || [] : []
+      customSections: customData.success ? customData.sections || [] : [],
+      settings: settingsData.success ? settingsData.settings || {} : {}
     };
   } catch (error) {
-    console.error("Error fetching homepage products:", error);
-    return { topSellingProducts: [], newArrivalProducts: [], trendingProducts: [], customSections: [] };
+    console.error("Error fetching homepage data:", error);
+    return { topSellingProducts: [], newArrivalProducts: [], trendingProducts: [], customSections: [], settings: {} };
   }
 }
 
-export const fetchCache = 'force-no-store';
-export const revalidate = 0;
+export const revalidate = 60;
 
 export async function generateMetadata() {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
@@ -51,7 +53,9 @@ export async function generateMetadata() {
 }
 
 export default async function Home() {
-  const { topSellingProducts, newArrivalProducts, trendingProducts, customSections } = await getHomepageProducts();
+  const { topSellingProducts, newArrivalProducts, trendingProducts, customSections, settings } = await getHomepageData();
+  const heroImages = settings?.media_hero?.filter(img => img && img.trim() !== '') || [];
+  const heroMobileImages = settings?.media_hero_mobile?.filter(img => img && img.trim() !== '') || [];
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -69,10 +73,10 @@ export default async function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       {/* Hero Section */}
-      <HeroSlider />
+      <HeroSlider initialImages={heroImages} initialMobileImages={heroMobileImages} />
 
       {/* Category Icons Row */}
-      <CategoryIconRow />
+      <CategoryIconRow initialCategories={settings?.media_shop_by_products?.length > 0 ? settings.media_shop_by_products : null} />
 
       {/* Offer Banners */}
       <NuttyDelightOffers />

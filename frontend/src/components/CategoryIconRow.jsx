@@ -18,9 +18,11 @@ export const defaultShopByProducts = [
   { label: 'Offers', image: '/category-icons/offers.png', query: 'sale', color: '#FFEBEE', isOffer: true, glowColor: 'rgba(239, 68, 68, 0.35)' },
 ];
 
-const CategoryIconRow = () => {
+const CategoryIconRow = ({ initialCategories = null }) => {
   const router = useRouter();
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState(
+    Array.isArray(initialCategories) && initialCategories.length > 0 ? initialCategories : defaultShopByProducts
+  );
 
   // getImageUrl imported from utils/imageConfig.js
 
