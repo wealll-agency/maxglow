@@ -1,4 +1,5 @@
 "use client";
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 
@@ -328,7 +329,7 @@ const ReelsSection = () => {
               Watch quick herbal beauty tips &amp; product tutorials
             </p>
           </div>
-          <a href="/shop" style={{
+          <Link href="/shop" style={{
             display: 'inline-flex', alignItems: 'center', gap: '6px',
             color: '#3BAE56', fontWeight: '700', fontSize: '14px', textDecoration: 'none',
             padding: '8px 16px', border: '1.5px solid #3BAE56', borderRadius: '9999px',
@@ -338,7 +339,7 @@ const ReelsSection = () => {
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#3BAE56'; }}
           >
             View All <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-          </a>
+          </Link>
         </div>
       </div>
 

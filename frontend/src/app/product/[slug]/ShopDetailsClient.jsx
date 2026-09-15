@@ -68,16 +68,18 @@ function ShopDetailsContent({ initialProduct }) {
     return () => document.removeEventListener('mousedown', handleRatingClickOutside);
   }, []);
 
-  // 1. Fetch logic
+  // 1. Fetch logic — use server-rendered initialProduct immediately without redundant client re-fetch
   useEffect(() => {
     if (productIdParam) {
-      dispatch(clearSelectedProduct());
-      dispatch(fetchProductDetails(productIdParam));
+      if (!initialProduct) {
+        dispatch(clearSelectedProduct());
+        dispatch(fetchProductDetails(productIdParam));
+      }
       dispatch(fetchProductReviews(productIdParam));
     } else {
       dispatch(fetchProducts({ limit: 100 }));
     }
-  }, [dispatch, productIdParam]);
+  }, [dispatch, productIdParam, initialProduct]);
 
   // 2. Resolve product
   let realProduct = initialProduct || null;

@@ -5,9 +5,7 @@
   "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "prestart": "npx kill-port 7052 || true",
     "start": "node src/server.js",
-    "predev": "npx kill-port 7052 || true",
     "dev": "nodemon src/server.js",
     "seed": "node src/utils/seeder.js"
   },

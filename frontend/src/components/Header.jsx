@@ -6,6 +6,7 @@ import React, { useState, useEffect, useRef, memo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { logoutUser } from '../store/authSlice';
 import api from '../utils/axiosConfig';
+import { getImageUrl } from '../utils/imageConfig';
 import {
   FiSearch, FiX, FiUser, FiHeart, FiShoppingBag,
   FiMenu, FiLogIn, FiLogOut, FiPackage, FiSettings, FiChevronDown,
@@ -225,7 +226,14 @@ const Header = () => {
                                 onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
                                 onMouseLeave={e => e.currentTarget.style.background = 'white'}
                               >
-                                <img src={product.image || (product.images && product.images[0]) || '/placeholder.png'} alt={product.name} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '6px' }} />
+                                <Image
+                                  src={getImageUrl(product.image || (product.images && product.images[0]))}
+                                  alt={product.name}
+                                  width={40}
+                                  height={40}
+                                  sizes="40px"
+                                  style={{ objectFit: 'cover', borderRadius: '6px', width: '40px', height: '40px' }}
+                                />
                                 <div style={{ flex: 1, overflow: 'hidden' }}>
                                   <div style={{ fontSize: '13px', fontWeight: '600', color: '#1e293b', lineHeight: '1.2', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{product.name}</div>
                                   <div style={{ fontSize: '12px', color: '#3BAE56', marginTop: '2px', fontWeight: '500' }}>₹{product.price}</div>
@@ -370,7 +378,14 @@ const Header = () => {
                           onClick={() => { setIsMobileSearchOpen(false); setSuggestions([]); setSearchQuery(''); }}
                           style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 15px', textDecoration: 'none', borderBottom: '1px solid #f8fafc' }}
                         >
-                          <img src={product.image || (product.images && product.images[0]) || '/placeholder.png'} alt={product.name} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '6px' }} />
+                          <Image
+                            src={getImageUrl(product.image || (product.images && product.images[0]))}
+                            alt={product.name}
+                            width={40}
+                            height={40}
+                            sizes="40px"
+                            style={{ objectFit: 'cover', borderRadius: '6px', width: '40px', height: '40px' }}
+                          />
                           <div style={{ flex: 1, overflow: 'hidden' }}>
                             <div style={{ fontSize: '13px', fontWeight: '600', color: '#1e293b', lineHeight: '1.2', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{product.name}</div>
                             <div style={{ fontSize: '12px', color: '#3BAE56', marginTop: '2px', fontWeight: '500' }}>₹{product.price}</div>

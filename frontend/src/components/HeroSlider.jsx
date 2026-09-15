@@ -16,12 +16,19 @@ const BANNER_DESTINATION = '/shop';
 const DEFAULT_IMAGES = ['/hero_final_1.png', '/hero_final_2.png', '/hero_final_3.png'];
 const SLIDE_INTERVAL = 4000;
 
-export default function HeroSlider() {
+export default function HeroSlider({ initialImages = [], initialMobileImages = [] }) {
   const router = useRouter();
-  const [images, setImages] = useState([]);
-  const [mobileImages, setMobileImages] = useState([]);
+  const [images, setImages] = useState(
+    Array.isArray(initialImages) && initialImages.length > 0 ? initialImages : DEFAULT_IMAGES
+  );
+  const [mobileImages, setMobileImages] = useState(
+    Array.isArray(initialMobileImages) ? initialMobileImages : []
+  );
 
   useEffect(() => {
+    // If initialImages were already supplied by SSR, no need to immediately re-fetch unless empty
+    if (initialImages && initialImages.length > 0) return;
+
     const fetchHero = async () => {
       try {
         const res = await fetchSystemSettings();
@@ -42,7 +49,7 @@ export default function HeroSlider() {
       setMobileImages([]);
     };
     fetchHero();
-  }, []);
+  }, [initialImages]);
 
   const handleBannerClick = () => {
     router.push(BANNER_DESTINATION);
@@ -170,78 +177,84 @@ export default function HeroSlider() {
             speed={800}
             style={{ width: '100%', height: '100%' }}
           >
-            {images.map((img, idx) => (
-              <SwiperSlide key={idx} style={{ height: 'auto' }}>
-            <div key={idx} style={{
-              flex: '0 0 100%', 
-              width: '100%',
-              maxWidth: '100%',
-              height: '100%',
-              position: 'relative',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: '#f8fafc' 
-            }}>
-              {img && (
-                <Image
-                  src={getImageUrl(img)}
-                  alt={`MaxGlow Premium Herbal Wellness ${idx + 1}`}
-                  width={1920}
-                  height={800}
-                  priority={idx <= 1}
-                  fetchPriority={idx <= 1 ? "high" : "auto"}
-                  sizes="100vw"
-                  className="hero-desktop"
-                  style={{
+            {images.map((img, idx) => {
+              const hasCustomMobile = Boolean(mobileImages[idx] && mobileImages[idx].trim() !== '');
+              return (
+                <SwiperSlide key={idx} style={{ height: 'auto' }}>
+                  <div style={{
+                    flex: '0 0 100%', 
                     width: '100%',
+                    maxWidth: '100%',
                     height: '100%',
-                    objectFit: 'cover',
-                    display: 'block',
-                    margin: '0 auto'
-                  }}
-                />
-              )}
-              {mobileImages[idx] ? (
-                <Image
-                  src={getImageUrl(mobileImages[idx])}
-                  alt={`MaxGlow Premium Herbal Wellness Mobile ${idx + 1}`}
-                  width={1080}
-                  height={1080}
-                  priority={idx <= 1}
-                  fetchPriority={idx <= 1 ? "high" : "auto"}
-                  sizes="100vw"
-                  className={img ? "hero-mobile" : ""}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    margin: '0 auto'
-                  }}
-                />
-              ) : (
-                img && (
-                  <Image
-                    src={getImageUrl(img)}
-                    alt={`MaxGlow Premium Herbal Wellness ${idx + 1}`}
-                    width={1920}
-                    height={800}
-                    priority={idx === 0}
-                    fetchPriority={idx === 0 ? "high" : "auto"}
-                    sizes="100vw"
-                    className="hero-mobile"
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      margin: '0 auto'
-                    }}
-                  />
-                )
-              )}
-            </div>
-            </SwiperSlide>
-            ))}
+                    position: 'relative',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: '#f8fafc' 
+                  }}>
+                    {hasCustomMobile ? (
+                      <>
+                        <Image
+                          src={getImageUrl(img)}
+                          alt={`MaxGlow Premium Herbal Wellness ${idx + 1}`}
+                          width={1920}
+                          height={800}
+                          priority={idx === 0}
+                          fetchPriority={idx === 0 ? "high" : "auto"}
+                          loading={idx === 0 ? "eager" : "lazy"}
+                          sizes="100vw"
+                          className="hero-desktop"
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            display: 'block',
+                            margin: '0 auto'
+                          }}
+                        />
+                        <Image
+                          src={getImageUrl(mobileImages[idx])}
+                          alt={`MaxGlow Premium Herbal Wellness Mobile ${idx + 1}`}
+                          width={1080}
+                          height={1080}
+                          priority={idx === 0}
+                          fetchPriority={idx === 0 ? "high" : "auto"}
+                          loading={idx === 0 ? "eager" : "lazy"}
+                          sizes="100vw"
+                          className="hero-mobile"
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            margin: '0 auto'
+                          }}
+                        />
+                      </>
+                    ) : (
+                      img && (
+                        <Image
+                          src={getImageUrl(img)}
+                          alt={`MaxGlow Premium Herbal Wellness ${idx + 1}`}
+                          width={1920}
+                          height={800}
+                          priority={idx === 0}
+                          fetchPriority={idx === 0 ? "high" : "auto"}
+                          loading={idx === 0 ? "eager" : "lazy"}
+                          sizes="100vw"
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            display: 'block',
+                            margin: '0 auto'
+                          }}
+                        />
+                      )
+                    )}
+                  </div>
+                </SwiperSlide>
+              );
+            })}
           </Swiper>
         </div>
 

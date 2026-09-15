@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
 import { useDispatch } from 'react-redux';
 import { addToCart } from '../../store/cartSlice.js';
 import Link from 'next/link';
@@ -19,6 +20,7 @@ export default function BuildComboPage() {
 }
 
 function ComboListingContent() {
+  const router = useRouter();
   const [combos, setCombos] = useState([]);
   const [bannerImg, setBannerImg] = useState('');
   const [loading, setLoading] = useState(true);
@@ -338,7 +340,7 @@ function ComboListingContent() {
                             <button
                               onClick={(e) => {
                                 handleAddToCart(e, combo);
-                                window.location.href = '/checkout';
+                                router.push('/checkout');
                               }}
                               className="mg-product-action-btn"
                               style={{

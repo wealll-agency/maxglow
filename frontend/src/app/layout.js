@@ -51,6 +51,8 @@ export default function RootLayout({ children }) {
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://maxglow-assets-74641.s3.ap-south-1.amazonaws.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://maxglow-assets-74641.s3.ap-south-1.amazonaws.com" />
       </head>
       <body className={`${inter.variable} ${outfit.variable} ${inter.className}`}>
         <ReduxProvider>
