@@ -6,7 +6,7 @@ export const createOrder = createAsyncThunk(
   async (orderData, { rejectWithValue }) => {
     try {
       const response = await api.post(`/orders`, orderData);
-      return response.data; // contains local order and razorpayOrder
+      return response.data; // contains local order and iciciActionUrl
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Order creation failed');
     }
@@ -68,7 +68,6 @@ const ordersSlice = createSlice({
   initialState: {
     list: [],
     activeOrder: null,
-    ccavenuePayload: null,
     loading: false,
     orderLoading: false,
     error: null
@@ -76,12 +75,10 @@ const ordersSlice = createSlice({
   reducers: {
     clearActiveOrder: (state) => {
       state.activeOrder = null;
-      state.ccavenuePayload = null;
     }
   },
   extraReducers: (builder) => {
     builder
-      // Create Order
       .addCase(createOrder.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -89,10 +86,6 @@ const ordersSlice = createSlice({
       .addCase(createOrder.fulfilled, (state, action) => {
         state.loading = false;
         state.activeOrder = action.payload.order;
-        state.ccavenuePayload = {
-          encRequest: action.payload.encRequest,
-          accessCode: action.payload.accessCode
-        };
       })
       .addCase(createOrder.rejected, (state, action) => {
         state.loading = false;

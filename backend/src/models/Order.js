@@ -47,9 +47,8 @@ const orderSchema = new mongoose.Schema({
   packedAt: { type: Date },
   shippedAt: { type: Date },
   deliveredAt: { type: Date },
-  razorpayOrderId: { type: String, index: true },
-  razorpayPaymentId: { type: String },
-  razorpaySignature: { type: String },
+  gatewayTxnId: { type: String, index: true },
+  bankRefNo: { type: String },
   paymentMode: { type: String },
   
   // Shipping Integration Fields (Multiple shipments support)

@@ -28,7 +28,7 @@ const reels = [
     tag: 'Skin Care',
     price: 349,
     originalPrice: 499,
-    link: '/shop-details?name=Aloe%20Vera%20Gel'
+    link: '/product/aloe-vera-gel'
   },
   {
     id: 2,
@@ -38,7 +38,7 @@ const reels = [
     tag: 'Hair Care',
     price: 499,
     originalPrice: 699,
-    link: '/shop-details?name=Herbal%20Hair%20Oil'
+    link: '/product/herbal-hair-oil'
   },
   {
     id: 3,
@@ -48,7 +48,7 @@ const reels = [
     tag: 'Face Care',
     price: 299,
     originalPrice: 399,
-    link: '/shop-details?name=Neem%20Face%20Wash'
+    link: '/product/neem-face-wash'
   },
   {
     id: 4,
@@ -58,7 +58,7 @@ const reels = [
     tag: 'Body Care',
     price: 399,
     originalPrice: 549,
-    link: '/shop-details?name=Body%20Scrub'
+    link: '/product/body-scrub'
   },
   {
     id: 5,
@@ -68,7 +68,7 @@ const reels = [
     tag: 'Serum',
     price: 449,
     originalPrice: 599,
-    link: '/shop-details?name=Turmeric%20Glow%20Mask'
+    link: '/product/turmeric-glow-mask'
   },
   {
     id: 6,
@@ -78,7 +78,7 @@ const reels = [
     tag: 'Skin Care',
     price: 249,
     originalPrice: 349,
-    link: '/shop-details?name=Rose%20Water%20Mist'
+    link: '/product/rose-water-mist'
   },
   {
     id: 7,
@@ -88,7 +88,7 @@ const reels = [
     tag: 'Face Care',
     price: 329,
     originalPrice: 449,
-    link: '/shop-details?name=Tea%20Tree%20Spot%20Treatment'
+    link: '/product/tea-tree-spot-treatment'
   },
   {
     id: 8,
@@ -98,7 +98,7 @@ const reels = [
     tag: 'Serum',
     price: 399,
     originalPrice: 499,
-    link: '/shop-details?name=Lavender%20Sleep%20Spray'
+    link: '/product/lavender-sleep-spray'
   },
 ];
 
@@ -293,7 +293,7 @@ const ReelsSection = () => {
                 tag: p.category || 'Product',
                 price: finalPrice,
                 originalPrice: p.discount > 0 ? originalPrice : null,
-                link: `/shop-details?id=${p._id}`,
+                link: `/product/${p.slug || p._id}`,
                 originalProduct: { ...p, price: finalPrice }
               };
             });

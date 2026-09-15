@@ -5,7 +5,9 @@
   "main": "src/server.js",
   "type": "module",
   "scripts": {
+    "prestart": "npx kill-port 7052 || true",
     "start": "node src/server.js",
+    "predev": "npx kill-port 7052 || true",
     "dev": "nodemon src/server.js",
     "seed": "node src/utils/seeder.js"
   },
@@ -28,8 +30,7 @@
     "mongoose": "^8.3.4",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^9.0.5",
-    "pdfkit": "^0.15.0",
-    "razorpay": "^2.9.8"
+    "pdfkit": "^0.15.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.0"

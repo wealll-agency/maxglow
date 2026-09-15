@@ -31,7 +31,9 @@ const userSchema = new mongoose.Schema({
   addresses: [addressSchema],
   fcmTokens: [{ type: String }],
   cart: [{
-    product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
+    product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
+    combo: { type: mongoose.Schema.Types.ObjectId, ref: 'Combo' },
+    itemType: { type: String, enum: ['Product', 'Combo'], default: 'Product' },
     quantity: { type: Number, default: 1, min: 1 },
     selectedAttributes: { type: Object, default: {} }
   }],

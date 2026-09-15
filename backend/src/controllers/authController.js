@@ -38,7 +38,8 @@ export const registerUser = async (req, res, next) => {
     });
 
     if (user) {
-      const token = generateToken(res, user._id);
+      // Generate Tokens
+      const token = generateToken(res, user._id, true, user.role);
       await logActivity(user._id, 'REGISTER', `User successfully registered with email: ${email}`, req);
 
       let syncedData = { cart: [], wishlist: [] };
@@ -73,6 +74,7 @@ export const registerUser = async (req, res, next) => {
 // @route   POST /api/auth/login
 // @access  Public
 export const loginUser = async (req, res, next) => {
+  console.log('LOGIN ATTEMPT:', JSON.stringify(req.body));
   let { email, password, rememberMe, localCart = [], localWishlist = [] } = req.body;
   if (email) email = email.toLowerCase().trim();
 
@@ -80,7 +82,7 @@ export const loginUser = async (req, res, next) => {
     const user = await User.findOne({ email });
 
     if (user && (await user.matchPassword(password))) {
-      const token = generateToken(res, user._id, rememberMe !== false);
+      const token = generateToken(res, user._id, rememberMe !== false, user.role);
       await logActivity(user._id, 'LOGIN', `User logged in`, req);
 
       let syncedData = { cart: [], wishlist: [] };
@@ -127,7 +129,7 @@ export const logoutUser = async (req, res, next) => {
       httpOnly: true,
       secure: isProd,
       sameSite: 'lax',
-      ...(isProd && { domain: process.env.COOKIE_DOMAIN || '.maxglowon.com' }),
+      ...(isProd && { domain: process.env.COOKIE_DOMAIN || '.maxglow.in' }),
       expires: new Date(0)
     };
     res.cookie('token', '', cookieOptions);
@@ -162,19 +164,24 @@ export const refreshTokenUser = async (req, res, next) => {
       return res.status(401).json({ success: false, message: 'Not authorized, user not found' });
     }
 
+    const isAdmin = user.role !== 'Customer';
+    const tokenExpiration = isAdmin ? '7d' : '100y';
+    
     const accessToken = jwt.sign(
       { id: user._id },
       process.env.JWT_SECRET || 'super_secret_jwt_key_for_maxglow_2026_enterprise',
-      { expiresIn: '7d' }
+      { expiresIn: tokenExpiration }
     );
 
     const isProd = process.env.NODE_ENV === 'production' || process.env.COOKIE_SECURE === 'true';
+    const maxAgeMs = isAdmin ? 7 * 24 * 60 * 60 * 1000 : 100 * 365 * 24 * 60 * 60 * 1000;
+    
     res.cookie('token', accessToken, {
       httpOnly: true,
       secure: isProd,
       sameSite: 'lax',
-      ...(isProd && { domain: process.env.COOKIE_DOMAIN || '.maxglowon.com' }),
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      ...(isProd && { domain: process.env.COOKIE_DOMAIN || '.maxglow.in' }),
+      maxAge: maxAgeMs
     });
 
     res.json({ success: true, token: accessToken });
@@ -414,7 +421,7 @@ export const getSystemSettings = async (req, res, next) => {
       });
     }
 
-    const keys = ['cod', 'refund', 'topSellingSource', 'media_hero', 'media_new_arrivals', 'media_trending_banner', 'media_offers', 'media_category_banner', 'media_category_banners', 'media_reels', 'about_page_content', 'media_shop_by_products'];
+    const keys = ['cod', 'refund', 'topSellingSource', 'media_hero', 'media_hero_mobile', 'media_new_arrivals', 'media_new_arrivals_mobile', 'media_trending_banner', 'media_trending_banner_mobile', 'media_offers', 'media_category_banner', 'media_category_banners', 'media_reels', 'about_page_content', 'media_shop_by_products', 'media_combo_banner'];
     const docs = await SystemSetting.find({ key: { $in: keys } }).lean();
     const map = new Map(docs.map(d => [d.key, d.value]));
 
@@ -423,14 +430,18 @@ export const getSystemSettings = async (req, res, next) => {
       refund: map.has('refund') ? map.get('refund') : true,
       topSellingSource: map.has('topSellingSource') ? map.get('topSellingSource') : 'automatic',
       media_hero: map.has('media_hero') ? map.get('media_hero') : null,
+      media_hero_mobile: map.has('media_hero_mobile') ? map.get('media_hero_mobile') : null,
       media_new_arrivals: map.has('media_new_arrivals') ? map.get('media_new_arrivals') : null,
+      media_new_arrivals_mobile: map.has('media_new_arrivals_mobile') ? map.get('media_new_arrivals_mobile') : null,
       media_trending_banner: map.has('media_trending_banner') ? map.get('media_trending_banner') : null,
+      media_trending_banner_mobile: map.has('media_trending_banner_mobile') ? map.get('media_trending_banner_mobile') : null,
       media_offers: map.has('media_offers') ? map.get('media_offers') : null,
       media_category_banner: map.has('media_category_banner') ? map.get('media_category_banner') : null,
       media_category_banners: map.has('media_category_banners') ? map.get('media_category_banners') : {},
       media_reels: map.has('media_reels') ? map.get('media_reels') : null,
       about_page_content: map.has('about_page_content') ? map.get('about_page_content') : null,
       media_shop_by_products: map.has('media_shop_by_products') ? map.get('media_shop_by_products') : null,
+      media_combo_banner: map.has('media_combo_banner') ? map.get('media_combo_banner') : null,
     };
 
     cachedSettings = settings;
@@ -459,14 +470,18 @@ export const updateSystemSettings = async (req, res, next) => {
         { key: 'refund', type: 'boolean' },
         { key: 'topSellingSource', type: 'string' },
         { key: 'media_hero', type: 'array' },
+        { key: 'media_hero_mobile', type: 'array' },
         { key: 'media_new_arrivals', type: 'string' },
+        { key: 'media_new_arrivals_mobile', type: 'string' },
         { key: 'media_trending_banner', type: 'string' },
+        { key: 'media_trending_banner_mobile', type: 'string' },
         { key: 'media_offers', type: 'array' },
         { key: 'media_category_banner', type: 'string' },
         { key: 'media_category_banners', type: 'object' },
         { key: 'media_reels', type: 'array' },
         { key: 'about_page_content', type: 'object' },
-        { key: 'media_shop_by_products', type: 'array' }
+        { key: 'media_shop_by_products', type: 'array' },
+        { key: 'media_combo_banner', type: 'string' }
       ];
 
       for (const field of keysToUpdate) {

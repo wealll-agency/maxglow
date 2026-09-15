@@ -200,7 +200,7 @@ const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggl
         )}
 
         {/* Product image */}
-        <Link href={`/shop-details?id=${resolvedProduct._id}`} style={{ display: 'block', position: 'relative', height: '100%', width: '100%' }}>
+        <Link href={`/product/${resolvedProduct.slug || resolvedProduct._id}`} style={{ display: 'block', position: 'relative', height: '100%', width: '100%' }}>
           <Image
             src={primaryImage}
             alt={resolvedProduct.name}
@@ -220,12 +220,12 @@ const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggl
           </span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
             <FiStar size={12} style={{ color: '#f59e0b', fill: '#f59e0b' }} />
-            <span style={{ fontSize: '11px', fontWeight: '700', color: '#374151' }}>{resolvedProduct.rating || '4.8'}</span>
+            <span style={{ fontSize: '11px', fontWeight: '700', color: '#374151' }}>{Number(resolvedProduct.rating || 5).toFixed(1)}</span>
           </div>
         </div>
 
         {/* Product name */}
-        <Link href={`/shop-details?id=${resolvedProduct._id}`} style={{ textDecoration: 'none', marginBottom: '10px' }}>
+        <Link href={`/product/${resolvedProduct.slug || resolvedProduct._id}`} style={{ textDecoration: 'none', marginBottom: '10px' }}>
           <h3 style={{
             fontFamily: 'var(--font-outfit), sans-serif',
             fontSize: '14px', fontWeight: '600', color: '#1a2332',
@@ -270,7 +270,7 @@ const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggl
             </button>
           ) : resolvedProduct.stock <= 0 ? (
             <Link
-              href={`/shop-details?id=${resolvedProduct._id}`}
+              href={`/product/${resolvedProduct.slug || resolvedProduct._id}`}
               className="mg-product-action-btn"
               style={{
                 flex: 1, textAlign: 'center', padding: '10px 0',

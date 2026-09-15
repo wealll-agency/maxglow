@@ -10,6 +10,7 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 
 import { fetchSystemSettings } from '../utils/settingsCache';
+import { getImageUrl } from '../utils/imageConfig';
 
 const BANNER_DESTINATION = '/shop';
 const DEFAULT_IMAGES = ['/hero_final_1.png', '/hero_final_2.png', '/hero_final_3.png'];
@@ -18,22 +19,27 @@ const SLIDE_INTERVAL = 4000;
 export default function HeroSlider() {
   const router = useRouter();
   const [images, setImages] = useState([]);
+  const [mobileImages, setMobileImages] = useState([]);
 
   useEffect(() => {
     const fetchHero = async () => {
       try {
         const res = await fetchSystemSettings();
         if (res.success && res.settings?.media_hero?.length > 0) {
-          const validImages = res.settings.media_hero.filter(img => img.trim() !== '');
-          if (validImages.length > 0) {
+          const validImages = res.settings.media_hero.map(img => img.trim() !== '' ? img : '');
+          const validMobileImages = (res.settings.media_hero_mobile || []).map(img => img.trim() !== '' ? img : '');
+          
+          if (validImages.some(img => img !== '')) {
             setImages(validImages);
+            setMobileImages(validMobileImages);
             return;
           }
         }
       } catch (err) {
         console.error('Failed to load hero images', err);
       }
-      setImages(DEFAULT_IMAGES); // Fallback only if no dynamic images exist
+      setImages(DEFAULT_IMAGES);
+      setMobileImages([]);
     };
     fetchHero();
   }, []);
@@ -60,7 +66,7 @@ export default function HeroSlider() {
           }
           @media (max-width: 991px) {
             .hero-banner-section { margin-bottom: 0px !important; padding-bottom: 0px !important; }
-            .carousel-mask { min-height: unset; aspect-ratio: 1920/800 !important; }
+            .carousel-mask { min-height: unset; aspect-ratio: 1080/1080 !important; }
           }
         ` }} />
         <div
@@ -108,9 +114,17 @@ export default function HeroSlider() {
           .hero-banner-section {
             margin-bottom: 0px;
           }
+          .hero-desktop {
+            display: block;
+          }
+          .hero-mobile {
+            display: none;
+          }
           @media (max-width: 991px) {
             .hero-banner-section { margin-bottom: 0px !important; padding-bottom: 0px !important; }
-            .carousel-mask { min-height: unset; aspect-ratio: 1920/800 !important; }
+            .carousel-mask { min-height: unset; aspect-ratio: 1080/1080 !important; }
+            .hero-desktop { display: none !important; }
+            .hero-mobile { display: block !important; }
           }
           /* Ensure images do not bleed out or cause collapse */
           .hero-slider-track { height: 100%; }
@@ -139,12 +153,8 @@ export default function HeroSlider() {
           .slider-nav-next { right: 20px !important; }
           @media (max-width: 768px) {
             .slider-nav-btn {
-              width: 32px !important;
-              height: 32px !important;
+              display: none !important;
             }
-            .slider-nav-prev { left: 10px !important; }
-            .slider-nav-next { right: 10px !important; }
-            .slider-nav-btn span { font-size: 14px !important; }
           }
         ` }} />
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -163,7 +173,7 @@ export default function HeroSlider() {
             {images.map((img, idx) => (
               <SwiperSlide key={idx} style={{ height: 'auto' }}>
             <div key={idx} style={{
-              flex: '0 0 100%', /* Industry standard exact sizing */
+              flex: '0 0 100%', 
               width: '100%',
               maxWidth: '100%',
               height: '100%',
@@ -173,23 +183,62 @@ export default function HeroSlider() {
               justifyContent: 'center',
               backgroundColor: '#f8fafc' 
             }}>
-              <Image
-                src={img}
-                alt={`MaxGlow Premium Herbal Wellness ${idx + 1}`}
-                width={1920}
-                height={800}
-                priority={idx === 0}
-                fetchPriority={idx === 0 ? "high" : "auto"}
-                sizes="100vw"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  display: 'block',
-                  margin: '0 auto'
-                }}
-              />
-              {/* Removed Animated Shop Now Button as per request */}
+              {img && (
+                <Image
+                  src={getImageUrl(img)}
+                  alt={`MaxGlow Premium Herbal Wellness ${idx + 1}`}
+                  width={1920}
+                  height={800}
+                  priority={idx <= 1}
+                  fetchPriority={idx <= 1 ? "high" : "auto"}
+                  sizes="100vw"
+                  className="hero-desktop"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    display: 'block',
+                    margin: '0 auto'
+                  }}
+                />
+              )}
+              {mobileImages[idx] ? (
+                <Image
+                  src={getImageUrl(mobileImages[idx])}
+                  alt={`MaxGlow Premium Herbal Wellness Mobile ${idx + 1}`}
+                  width={1080}
+                  height={1080}
+                  priority={idx <= 1}
+                  fetchPriority={idx <= 1 ? "high" : "auto"}
+                  sizes="100vw"
+                  className={img ? "hero-mobile" : ""}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    margin: '0 auto'
+                  }}
+                />
+              ) : (
+                img && (
+                  <Image
+                    src={getImageUrl(img)}
+                    alt={`MaxGlow Premium Herbal Wellness ${idx + 1}`}
+                    width={1920}
+                    height={800}
+                    priority={idx === 0}
+                    fetchPriority={idx === 0 ? "high" : "auto"}
+                    sizes="100vw"
+                    className="hero-mobile"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      margin: '0 auto'
+                    }}
+                  />
+                )
+              )}
             </div>
             </SwiperSlide>
             ))}

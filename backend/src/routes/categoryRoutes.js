@@ -10,12 +10,13 @@ import { protect, authorizeRoles } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Apply auth middleware to all routes
+// Public route to get all categories for the shop page
+router.get('/', getCategories);
+
+// Apply auth middleware to all other routes
 router.use(protect, authorizeRoles('Admin', 'Super Admin'));
 
-router.route('/')
-  .get(getCategories)
-  .post(createCategory);
+router.post('/', createCategory);
 
 router.route('/:id')
   .delete(deleteCategory);
@@ -27,3 +28,4 @@ router.route('/:id/subcategories/:subCategoryName')
   .delete(deleteSubCategory);
 
 export default router;
+

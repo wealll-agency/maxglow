@@ -81,6 +81,11 @@ export default function AdminProductsPage() {
   const [videoFile, setVideoFile] = useState(null);
   const [videoPreviewUrl, setVideoPreviewUrl] = useState('');
   const [showInReels, setShowInReels] = useState(false);
+  
+  // SEO fields
+  const [metaTitle, setMetaTitle] = useState('');
+  const [metaDescription, setMetaDescription] = useState('');
+  const [slug, setSlug] = useState('');
 
   useEffect(() => {
     const mrp = parseFloat(price) || 0;
@@ -189,6 +194,9 @@ export default function AdminProductsPage() {
     setVideoFile(null);
     setVideoPreviewUrl('');
     setShowInReels(false);
+    setMetaTitle('');
+    setMetaDescription('');
+    setSlug('');
     setEditMode(false);
     setEditId('');
     setShowForm(false);
@@ -249,6 +257,9 @@ export default function AdminProductsPage() {
     setVideoPreviewUrl(product.videos && product.videos.length > 0 ? product.videos[0] : '');
     setVideoFile(null);
     setShowInReels(product.showInReels || false);
+    setMetaTitle(product.metaTitle || '');
+    setMetaDescription(product.metaDescription || '');
+    setSlug(product.slug || '');
     
     setEditMode(true);
     setShowForm(true);
@@ -360,6 +371,9 @@ export default function AdminProductsPage() {
     payload.append('expiryDate', expiryDate);
     payload.append('stock', stock);
     payload.append('packSizes', JSON.stringify(packSizes));
+    payload.append('metaTitle', metaTitle);
+    payload.append('metaDescription', metaDescription);
+    payload.append('slug', slug);
 
     let imageLayout = [];
     if (imageFile) {
@@ -919,6 +933,40 @@ export default function AdminProductsPage() {
                     <div className="form-check form-switch d-flex align-items-center">
                       <label className="form-check-label fs-7 fw-medium mb-0 me-3">Shipping Cost Multiply With Qty</label>
                       <input className="form-check-input" type="checkbox" checked={shippingMultiplyWithQty} onChange={(e) => setShippingMultiplyWithQty(e.target.checked)} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Search Engine Optimization (SEO) Card */}
+            <div className="card shadow-sm border-0 rounded-4 bg-white mb-4">
+              <div className="card-header bg-white border-bottom-0 pt-4 pb-0">
+                <h6 className="fw-bold m-0 text-dark d-flex align-items-center gap-2">
+                  <i className="fas fa-search text-muted"></i> Search Engine Optimization (SEO)
+                </h6>
+              </div>
+              <div className="card-body">
+                <div className="row g-4">
+                  <div className="col-md-12">
+                    <div className="d-flex justify-content-between align-items-end mb-1">
+                      <label className="fw-medium fs-7">Meta Title</label>
+                      <span className={`fs-8 ${metaTitle.length > 60 ? 'text-danger fw-bold' : 'text-muted'}`}>{metaTitle.length}/60</span>
+                    </div>
+                    <input type="text" className="form-control" value={metaTitle} onChange={(e) => setMetaTitle(e.target.value)} />
+                  </div>
+                  <div className="col-md-12">
+                    <div className="d-flex justify-content-between align-items-end mb-1">
+                      <label className="fw-medium fs-7">Meta Description</label>
+                      <span className={`fs-8 ${metaDescription.length > 160 ? 'text-danger fw-bold' : 'text-muted'}`}>{metaDescription.length}/160</span>
+                    </div>
+                    <textarea rows="2" className="form-control" value={metaDescription} onChange={(e) => setMetaDescription(e.target.value)}></textarea>
+                  </div>
+                  <div className="col-md-12">
+                    <label className="fw-medium mb-1 fs-7">URL Slug (Leave empty to auto-generate)</label>
+                    <div className="input-group">
+                      <span className="input-group-text bg-light text-muted fs-7">maxglow.in/product/</span>
+                      <input type="text" className="form-control" value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, '-'))} />
                     </div>
                   </div>
                 </div>

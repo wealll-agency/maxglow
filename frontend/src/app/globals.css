@@ -372,13 +372,104 @@ main {
   color: #3BAE56;
 }
 
+/* Centered Icon + Label Navigation */
+.mg-center-nav {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background: transparent;
+  z-index: 5;
+}
+
+.mg-nav-icon-link {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  text-decoration: none;
+  color: #374151;
+  padding: 2px 6px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.mg-nav-icon-link svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 1.8;
+  color: #374151;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.mg-nav-icon-link .mg-nav-text {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #374151;
+  transition: color 0.2s ease;
+  line-height: 1.1;
+}
+
+.mg-nav-icon-link:hover,
+.mg-nav-icon-link.active {
+  color: #3BAE56;
+}
+
+.mg-nav-icon-link:hover svg,
+.mg-nav-icon-link.active svg {
+  color: #3BAE56;
+  transform: translateY(-1px);
+}
+
+.mg-nav-icon-link:hover .mg-nav-text,
+.mg-nav-icon-link.active .mg-nav-text {
+  color: #3BAE56;
+}
+
+.mg-action-btn.active {
+  background: #DDF7E3 !important;
+  color: #3BAE56 !important;
+}
+
+/* Checkout Mobile Fixed Sticky Button */
+.mobile-sticky-checkout-btn-wrapper {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+  padding: 12px 16px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  z-index: 1020;
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  will-change: transform;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .mobile-sticky-checkout-btn-wrapper {
+    display: block !important;
+  }
+}
+
 /* Header action button */
 .mg-action-btn {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  width: 40px !important;
-  height: 40px !important;
+  width: 36px !important;
+  height: 36px !important;
   border-radius: 50% !important;
   color: #374151 !important;
   background: transparent !important;
@@ -552,8 +643,8 @@ main {
   top: 0;
   right: 0;
   height: 100vh;
-  width: 400px;
-  max-width: 95vw;
+  width: 360px;
+  max-width: 92vw;
   background: white;
   z-index: 9999;
   display: flex;
@@ -1180,5 +1271,17 @@ main {
   .shop-grid .mg-product-action-btn svg {
     width: 11px !important;
     height: 11px !important;
+  }
+}
+
+.nav-logo {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
+}
+
+@media (max-width: 768px) {
+  .nav-logo {
+    height: 26px;
   }
 }

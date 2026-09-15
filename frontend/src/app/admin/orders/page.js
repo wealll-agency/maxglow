@@ -158,13 +158,13 @@ function AdminOrdersContent() {
   };
 
   const handleRefund = async (id) => {
-    const confirmed = await showConfirm('Are you sure you want to cancel this order and record it as refunded? (You must initiate the actual refund in your Razorpay Dashboard)');
+    const confirmed = await showConfirm('Are you sure you want to cancel this order and record it as refunded? (You must initiate the actual refund in your ICICI Dashboard if auto-refund fails)');
     if (confirmed) {
       setActionSuccess('');
       dispatch(refundOrder(id))
         .unwrap()
         .then((updatedOrder) => {
-          setActionSuccess('Order cancelled and refund recorded. Please process actual refund via Razorpay.');
+          setActionSuccess('Order cancelled and refund recorded. Please check if refund processed via ICICI.');
           setSelectedOrder(updatedOrder);
           dispatch(fetchAdminOrders({ limit: 1000 }));
         })
@@ -813,20 +813,20 @@ function AdminOrdersContent() {
                   <div className="mb-2">
                     Payment Method: <strong className="text-dark">{selectedOrder.paymentMode === 'COD' ? 'Cash on Delivery (COD)' : 'Online Transaction (' + (selectedOrder.paymentMode || 'Prepaid') + ')'}</strong> | Current Status: <strong className="text-dark">{selectedOrder.orderStatus}</strong> | Payment Status: <strong className="text-dark">{selectedOrder.paymentStatus}</strong>
                   </div>
-                  {(selectedOrder.razorpayOrderId || selectedOrder.razorpayPaymentId) && (
+                  {(selectedOrder.gatewayTxnId) && (
                     <div className="bg-light p-3 rounded border mt-3">
                       <h6 className="fw-bold text-dark fs-8 mb-2 text-uppercase">Transaction Details</h6>
                       <div className="d-flex flex-column gap-1">
-                        {selectedOrder.razorpayOrderId && (
+                        {(selectedOrder.gatewayTxnId) && (
                           <div className="d-flex justify-content-between">
-                            <span>Razorpay Order ID:</span>
-                            <span className="text-dark fw-medium font-monospace">{selectedOrder.razorpayOrderId}</span>
+                            <span>Gateway Txn ID:</span>
+                            <span className="text-dark fw-medium font-monospace">{selectedOrder.gatewayTxnId}</span>
                           </div>
                         )}
-                        {selectedOrder.razorpayPaymentId && (
+                        {selectedOrder.bankRefNo && (
                           <div className="d-flex justify-content-between">
-                            <span>Razorpay Payment ID:</span>
-                            <span className="text-dark fw-medium font-monospace">{selectedOrder.razorpayPaymentId}</span>
+                            <span>Bank Ref No:</span>
+                            <span className="text-dark fw-medium font-monospace">{selectedOrder.bankRefNo}</span>
                           </div>
                         )}
                         {selectedOrder.paymentStatus === 'Paid' && (

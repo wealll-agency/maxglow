@@ -5,16 +5,18 @@ import Image from 'next/image';
 import React, { useState, useEffect, memo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { getImageUrl } from '../../utils/imageConfig';
-import { removeFromCart, updateCartQuantity, applyCouponCode, recalculateCart } from '../../store/cartSlice';
+import { removeFromCart, updateCartQuantity, applyCouponCode, recalculateCart, clearRemovedCouponNotice } from '../../store/cartSlice';
 import api from '../../utils/axiosConfig';
+import { useNotification } from '../../context/NotificationContext';
 import { FiTrash2, FiShoppingBag, FiPlus, FiMinus, FiArrowRight, FiPercent } from 'react-icons/fi';
 
 
 function CartPage() {
   const dispatch = useDispatch();
   const router = useRouter();
+  const { showAlert } = useNotification();
 
-  const { items, couponCode, subtotal, discount, tax, shippingFee, total, discountPercentage, isCombo, applicableProducts } = useSelector(
+  const { items, couponCode, subtotal, discount, tax, shippingFee, total, discountPercentage, isCombo, applicableProducts, removedCouponNotice } = useSelector(
     (state) => state.cart
   );
   const { user } = useSelector((state) => state.auth);
@@ -27,13 +29,30 @@ function CartPage() {
     dispatch(recalculateCart());
   }, [dispatch, items]);
 
-  const handleQuantityChange = (product, size, qty, maxStock) => {
+  useEffect(() => {
+    if (removedCouponNotice) {
+      setCouponError(removedCouponNotice);
+      dispatch(clearRemovedCouponNotice());
+    }
+  }, [removedCouponNotice, dispatch]);
+
+  const handleQuantityChange = (item, qty) => {
+    const maxStock = item.maxStock || 100;
     const parsedQty = Math.max(1, Math.min(maxStock, qty));
-    dispatch(updateCartQuantity({ product, size, quantity: parsedQty }));
+    dispatch(updateCartQuantity({ 
+      product: item.product || item.combo, 
+      size: item.size, 
+      quantity: parsedQty,
+      itemType: item.itemType || (item.combo ? 'Combo' : 'Product')
+    }));
   };
 
-  const handleRemove = (product, size) => {
-    dispatch(removeFromCart({ product, size }));
+  const handleRemove = (item) => {
+    dispatch(removeFromCart({ 
+      product: item.product || item.combo, 
+      size: item.size,
+      itemType: item.itemType || (item.combo ? 'Combo' : 'Product')
+    }));
   };
 
   const handleApplyCoupon = async (e) => {
@@ -51,25 +70,29 @@ function CartPage() {
       const applicableProductsList = response.data.applicableProducts || [];
 
       if (applicableProductsList.length > 0) {
-        const hasEligibleItem = items.some(item => applicableProductsList.includes(item.product));
+        const hasEligibleItem = items.some(item => applicableProductsList.includes(typeof item.product === 'object' ? item.product._id : item.product));
         if (!hasEligibleItem && !response.data.isCombo) {
           setCouponError('This coupon is not valid for any items in your cart.');
-          dispatch(applyCouponCode({ code: '', discountPercentage: 0, applicableProducts: [], isCombo: false }));
+          dispatch(applyCouponCode({ code: '', discountType: 'percentage', discountPercentage: 0, flatDiscountAmount: 0, applicableProducts: [], isCombo: false, minOrderValue: 0 }));
           return;
         }
       }
 
       dispatch(applyCouponCode({
         code: response.data.code,
+        discountType: response.data.discountType,
         discountPercentage: response.data.discountPercentage,
+        flatDiscountAmount: response.data.flatDiscountAmount,
         applicableProducts: applicableProductsList,
-        isCombo: response.data.isCombo
+        isCombo: response.data.isCombo,
+        minOrderValue: response.data.minOrderValue || 0
       }));
 
-      setCouponSuccess(`Coupon "${response.data.code}" applied! ${response.data.discountPercentage}% Discount.`);
+      const discText = response.data.discountType === 'flat' ? `₹${response.data.flatDiscountAmount}` : `${response.data.discountPercentage}%`;
+      setCouponSuccess(`Coupon "${response.data.code}" applied! ${discText} Discount.`);
     } catch (error) {
       setCouponError(error.response?.data?.message || 'Failed to apply coupon');
-      dispatch(applyCouponCode({ code: '', discountPercentage: 0, applicableProducts: [], isCombo: false }));
+      dispatch(applyCouponCode({ code: '', discountType: 'percentage', discountPercentage: 0, flatDiscountAmount: 0, applicableProducts: [], isCombo: false, minOrderValue: 0 }));
     }
   };
 
@@ -123,7 +146,7 @@ function CartPage() {
                     {/* Name */}
                     <div style={{ flex: 2, minWidth: '180px' }}>
                       <div style={{ fontSize: '10px', fontWeight: '700', color: '#3BAE56', letterSpacing: '0.08em', marginBottom: '2px' }}>MAXGLOW</div>
-                      <Link href={`/shop-details?id=${item.product}`} style={{ textDecoration: 'none', fontFamily: 'var(--font-outfit)', fontSize: '15px', fontWeight: '700', color: '#1a2332', lineHeight: '1.4' }}>
+                      <Link href={`/product/${item.product}`} style={{ textDecoration: 'none', fontFamily: 'var(--font-outfit)', fontSize: '15px', fontWeight: '700', color: '#1a2332', lineHeight: '1.4' }}>
                         {item.name}
                       </Link>
                       <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>Size: {item.size}</div>
@@ -138,13 +161,13 @@ function CartPage() {
                     {/* Quantity controls */}
                     <div style={{ flex: 1, minWidth: '110px', display: 'flex', justifyContent: 'center' }}>
                       <div style={{ display: 'flex', alignItems: 'center', border: '1.5px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden', height: '36px' }}>
-                        <button onClick={() => handleQuantityChange(item.product, item.size, item.quantity - 1, item.maxStock)}
+                        <button onClick={() => handleQuantityChange(item, item.quantity - 1)}
                           style={{ padding: '0 10px', height: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: '#374151', display: 'flex', alignItems: 'center' }}>
                           <FiMinus size={12} />
                         </button>
                         <span style={{ padding: '0 8px', fontWeight: '700', fontSize: '13px', color: '#1a2332', minWidth: '24px', textAlign: 'center' }}>{item.quantity}</span>
-                        <button onClick={() => handleQuantityChange(item.product, item.size, item.quantity + 1, item.maxStock)}
-                          disabled={item.quantity >= item.maxStock}
+                        <button onClick={() => handleQuantityChange(item, item.quantity + 1)}
+                          disabled={item.quantity >= (item.maxStock || 100)}
                           style={{ padding: '0 10px', height: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: '#374151', display: 'flex', alignItems: 'center' }}>
                           <FiPlus size={12} />
                         </button>
@@ -158,7 +181,7 @@ function CartPage() {
                     </div>
 
                     {/* Trash */}
-                    <button onClick={() => handleRemove(item.product, item.size)}
+                    <button onClick={() => handleRemove(item)}
                       style={{ background: '#fff0f0', border: 'none', borderRadius: '8px', padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <FiTrash2 size={16} color="#ef4444" />
                     </button>

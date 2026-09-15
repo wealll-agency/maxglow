@@ -41,7 +41,7 @@ async function seed() {
       shippingFee: 0,
       tax: 21,
       totalAmount: 432,
-      paymentMode: 'Razorpay',
+      paymentMode: 'ICICI',
       paymentStatus: 'Paid',
       orderStatus: 'Delivered',
       createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
@@ -89,7 +89,7 @@ async function seed() {
       shippingFee: 0,
       tax: 39,
       totalAmount: 810,
-      paymentMode: 'Razorpay',
+      paymentMode: 'ICICI',
       paymentStatus: 'Paid',
       orderStatus: 'Confirmed',
       createdAt: new Date()
@@ -113,7 +113,7 @@ async function seed() {
       shippingFee: 0,
       tax: 28,
       totalAmount: 594,
-      paymentMode: 'Razorpay',
+      paymentMode: 'ICICI',
       paymentStatus: 'Paid',
       orderStatus: 'Delivered',
       createdAt: new Date()

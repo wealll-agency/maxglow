@@ -16,33 +16,60 @@ const Testimonials = dynamic(() => import('../components/Testimonials'));
 async function getHomepageProducts() {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://maxglow.in/api';
   try {
-    const [topRes, arrivalRes, trendingRes] = await Promise.all([
+    const [topRes, arrivalRes, trendingRes, customRes] = await Promise.all([
       fetch(`${baseUrl}/products?topSelling=true&limit=8&inStock=true`, { cache: 'no-store' }),
       fetch(`${baseUrl}/products?newArrival=true&limit=8&inStock=true`, { cache: 'no-store' }),
       fetch(`${baseUrl}/products?featured=true&limit=8&inStock=true`, { cache: 'no-store' }),
+      fetch(`${baseUrl}/custom-sections?isActive=true`, { cache: 'no-store' }),
     ]);
     const topData = await topRes.json();
     const arrivalData = await arrivalRes.json();
     const trendingData = await trendingRes.json();
+    const customData = await customRes.json();
     return {
       topSellingProducts: topData.success ? topData.products || [] : [],
       newArrivalProducts: arrivalData.success ? arrivalData.products || [] : [],
-      trendingProducts: trendingData.success ? trendingData.products || [] : []
+      trendingProducts: trendingData.success ? trendingData.products || [] : [],
+      customSections: customData.success ? customData.sections || [] : []
     };
   } catch (error) {
     console.error("Error fetching homepage products:", error);
-    return { topSellingProducts: [], newArrivalProducts: [], trendingProducts: [] };
+    return { topSellingProducts: [], newArrivalProducts: [], trendingProducts: [], customSections: [] };
   }
 }
 
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
+
+export async function generateMetadata() {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  return {
+    alternates: {
+      canonical: `${appUrl}/`,
+    },
+  };
+}
+
 export default async function Home() {
-  const { topSellingProducts, newArrivalProducts, trendingProducts } = await getHomepageProducts();
+  const { topSellingProducts, newArrivalProducts, trendingProducts, customSections } = await getHomepageProducts();
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'MaxGlow',
+    url: process.env.NEXT_PUBLIC_APP_URL,
+    logo: `${process.env.NEXT_PUBLIC_APP_URL}/icon.png`,
+    description: 'Premium herbal products for Healthy Skin, Hair & Life.',
+  };
 
   return (
     <main style={{ display: 'flex', flexDirection: 'column' }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Hero Section */}
       <HeroSlider />
-
 
       {/* Category Icons Row */}
       <CategoryIconRow />
@@ -81,6 +108,13 @@ export default async function Home() {
       {trendingProducts.length > 0 && (
         <ProductCarouselSection title="Trending Products" products={trendingProducts} />
       )}
+
+      {/* Custom Dynamic Sections */}
+      {customSections && customSections.map((section, idx) => (
+        section.products && section.products.length > 0 && (
+          <ProductCarouselSection key={section._id || idx} title={section.title} products={section.products} />
+        )
+      ))}
 
       {/* Faqs */}
       <Faqs />

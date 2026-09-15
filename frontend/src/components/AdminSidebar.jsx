@@ -11,7 +11,7 @@ import {
   LayoutDashboard, ShoppingBag, ClipboardList, ShoppingCart, 
   Users, Receipt, LogOut, Tag, ChevronLeft, ChevronRight, 
   RotateCcw, ChevronDown, ChevronUp, MessageSquare, MapPin, 
-  Package, Shield, Image as ImageIcon 
+  Package, Shield, Image as ImageIcon, Layers, Palette
 } from 'lucide-react';
 import api from '../utils/axiosConfig';
 
@@ -20,6 +20,7 @@ export default function AdminSidebar() {
   const [isRefundOpen, setIsRefundOpen] = useState(false);
   const [counts, setCounts] = useState({ orders: 0, refunds: 0, enquiries: 0 });
   const [badges, setBadges] = useState({ orders: 0, refunds: 0, enquiries: 0 });
+  const [refundDetails, setRefundDetails] = useState({ pending: 0, approved: 0, refunded: 0, rejected: 0 });
   const [isMounted, setIsMounted] = useState(false);
 
   const pathname = usePathname();
@@ -39,8 +40,9 @@ export default function AdminSidebar() {
       try {
         const res = await api.get('/notifications/badge-counts');
         if (res.data.success) {
-          const { orders, refunds, enquiries } = res.data.counts;
+          const { orders, refunds, enquiries, refundDetails: rDetails } = res.data.counts;
           setCounts({ orders, refunds, enquiries });
+          if (rDetails) setRefundDetails(rDetails);
 
           let lastSeenOrders = parseInt(localStorage.getItem('admin_seen_orders') || '0');
           let lastSeenRefunds = parseInt(localStorage.getItem('admin_seen_refunds') || '0');
@@ -101,8 +103,9 @@ export default function AdminSidebar() {
     { label: 'Enquiries', path: '/admin/enquiries', icon: <MessageSquare size={20} />, id: 'enquiries', badge: badges.enquiries },
     { label: 'Product Manager', path: '/admin/products', icon: <ShoppingBag size={20} /> },
     { label: 'Orders Queue', path: '/admin/orders', icon: <ShoppingCart size={20} />, id: 'orders', badge: badges.orders },
+    { label: 'Combo Manager', path: '/admin/combos', icon: <Layers size={20} /> },
     { label: 'Inventory Manager', path: '/admin/inventory', icon: <ClipboardList size={20} /> },
-    { label: 'Media Manager', path: '/admin/media', icon: <ImageIcon size={20} /> },
+    { label: 'Theme Manager', path: '/admin/theme-manager', icon: <Palette size={20} /> },
     { label: 'Coupon Manager', path: '/admin/coupons', icon: <Tag size={20} /> },
     { label: 'Homepage Products', path: '/admin/homepage-products', icon: <LayoutDashboard size={20} /> },
     { label: 'Warehouses', path: '/admin/warehouses', icon: <MapPin size={20} /> },
@@ -113,10 +116,10 @@ export default function AdminSidebar() {
       badge: badges.refunds,
       id: 'refunds',
       subItems: [
-        { label: 'Pending', path: '/admin/refunds/pending' },
-        { label: 'Approved', path: '/admin/refunds/approved' },
-        { label: 'Refunded', path: '/admin/refunds/refunded' },
-        { label: 'Rejected', path: '/admin/refunds/rejected' }
+        { label: 'Pending', path: '/admin/refunds/pending', badge: refundDetails.pending },
+        { label: 'Approved', path: '/admin/refunds/approved', badge: refundDetails.approved },
+        { label: 'Refunded', path: '/admin/refunds/refunded', badge: refundDetails.refunded },
+        { label: 'Rejected', path: '/admin/refunds/rejected', badge: refundDetails.rejected }
       ]
     },
     { label: 'Shipments', path: '/admin/shipments', icon: <Package size={20} /> },
@@ -260,6 +263,7 @@ export default function AdminSidebar() {
                               style={{
                                 display: 'flex',
                                 alignItems: 'center',
+                                justifyContent: 'space-between',
                                 color: isActive ? '#FFFFFF' : 'rgba(250, 249, 246, 0.65)',
                                 backgroundColor: isActive ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
                                 textDecoration: 'none',
@@ -269,8 +273,25 @@ export default function AdminSidebar() {
                                 whiteSpace: 'nowrap'
                               }}
                             >
-                              <span className="me-2" style={{ fontSize: '10px' }}>•</span>
-                              {subItem.label}
+                              <div className="d-flex align-items-center">
+                                <span className="me-2" style={{ fontSize: '10px' }}>•</span>
+                                {subItem.label}
+                              </div>
+                              {subItem.badge > 0 && (
+                                <span 
+                                  className="badge rounded-pill fw-bold" 
+                                  style={{ 
+                                    fontSize: '0.7rem', 
+                                    padding: '0.25em 0.6em',
+                                    backgroundColor: subItem.label === 'Pending' ? '#f59e0b' : 
+                                                     subItem.label === 'Approved' ? '#3b82f6' : 
+                                                     subItem.label === 'Refunded' ? '#10b981' : '#ef4444',
+                                    color: '#fff'
+                                  }}
+                                >
+                                  {subItem.badge}
+                                </span>
+                              )}
                             </Link>
                           );
                         })}

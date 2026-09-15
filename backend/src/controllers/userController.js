@@ -1,43 +1,73 @@
 import mongoose from 'mongoose';
 import User from '../models/User.js';
 import Product from '../models/Product.js';
+import Combo from '../models/Combo.js';
 import { invalidateUserCache } from '../middleware/auth.js';
 
 // Helper to populate and calculate cart details
 const populateCartItems = async (cartItems) => {
-  const productIds = cartItems.map(item => item.product);
-  const products = await Product.find({ _id: { $in: productIds }, isActive: true }).select('name price stock images discount discountType slug category').lean();
+  if (!cartItems || cartItems.length === 0) return [];
+
+  const productIds = [];
+  const comboIds = [];
+  cartItems.forEach(item => {
+    const type = item.itemType || (item.combo ? 'Combo' : 'Product');
+    const id = item.combo || item.product;
+    if (id) {
+      if (type === 'Combo') comboIds.push(id);
+      else productIds.push(id);
+    }
+  });
+
+  const [products, combos] = await Promise.all([
+    productIds.length > 0 ? Product.find({ _id: { $in: productIds }, isActive: true }).select('name price stock images discount discountType slug category packSizes unit unitValue').lean() : [],
+    comboIds.length > 0 ? Combo.find({ _id: { $in: comboIds }, isActive: true }).select('name price stock images discount discountType slug').lean() : []
+  ]);
+
   const productMap = new Map(products.map(p => [p._id.toString(), p]));
+  const comboMap = new Map(combos.map(c => [c._id.toString(), c]));
 
   const populatedCart = [];
   
   for (const item of cartItems) {
-    const product = productMap.get(item.product.toString());
+    const type = item.itemType || (item.combo ? 'Combo' : 'Product');
+    const idStr = (item.combo || item.product) ? (item.combo || item.product).toString() : '';
     
-    // Only include active products with stock
-    if (product && product.stock > 0) {
-      // Adjust quantity if it exceeds available stock
-      const finalQuantity = Math.min(item.quantity, product.stock);
+    const itemData = type === 'Combo' ? comboMap.get(idStr) : productMap.get(idStr);
+    
+    // Only include active items with stock
+    if (itemData && itemData.stock > 0) {
+      const finalQuantity = Math.min(item.quantity, itemData.stock);
+      const itemSize = item.selectedAttributes && item.selectedAttributes.size ? item.selectedAttributes.size : (item.size || 'Default');
       
-      let finalPrice = product.price;
-      if (product.discount > 0) {
-        if (product.discountType === 'Percent') {
-          finalPrice = product.price - (product.price * (product.discount / 100));
-        } else {
-          finalPrice = product.price - product.discount;
+      let basePrice = itemData.price;
+      if (type === 'Product' && itemData.packSizes && itemData.packSizes.length > 0) {
+        const pack = itemData.packSizes.find(p => `${p.weight} ${p.unit}` === itemSize);
+        if (pack && pack.price) {
+          basePrice = pack.price;
         }
       }
-      finalPrice = Math.max(0, finalPrice);
+
+      let finalPrice = basePrice;
+      if (itemData.discount > 0) {
+        if (itemData.discountType === 'Percent') {
+          finalPrice = basePrice - (basePrice * (itemData.discount / 100));
+        } else {
+          finalPrice = basePrice - itemData.discount;
+        }
+      }
+      finalPrice = Math.max(0, Math.round(finalPrice));
 
       populatedCart.push({
-        product: item.product.toString(),
-        name: product.name,
+        ...(type === 'Combo' ? { combo: idStr } : { product: idStr }),
+        name: itemData.name,
         price: finalPrice,
-        image: product.image || (product.images && product.images.length > 0 ? product.images[0] : '/placeholder.png'),
+        image: itemData.image || (itemData.images && itemData.images.length > 0 ? itemData.images[0] : '/placeholder.png'),
         quantity: finalQuantity,
-        size: item.selectedAttributes && item.selectedAttributes.size ? item.selectedAttributes.size : 'Default',
-        maxStock: product.stock,
-        _id: item.product // keep for backwards compatibility just in case
+        size: itemSize,
+        maxStock: itemData.stock,
+        itemType: type,
+        _id: idStr
       });
     }
   }
@@ -56,29 +86,47 @@ export const performSync = async (userId, localCart, localWishlist) => {
     }
 
     // 1. Merge Wishlist (Idempotent)
-    const existingWishlistStrs = new Set(user.wishlist.map(id => id.toString()));
+    const existingWishlistStrs = new Set((user.wishlist || []).filter(id => id).map(id => id.toString()));
     for (const pid of localWishlist || []) {
-      if (mongoose.Types.ObjectId.isValid(pid)) {
-        existingWishlistStrs.add(pid);
+      if (!pid) continue;
+      const pStr = typeof pid === 'object' ? pid._id : pid;
+      if (pStr && mongoose.Types.ObjectId.isValid(pStr)) {
+        existingWishlistStrs.add(pStr.toString());
       }
     }
     user.wishlist = Array.from(existingWishlistStrs);
 
-    // 2. Merge Cart (Idempotent)
-    const cartMap = new Map(user.cart.map(item => [item.product.toString(), item]));
+    // 2. Merge Cart by Product ID/Combo ID + Size
+    const cartMap = new Map();
+    (user.cart || []).forEach(item => {
+      const type = item.itemType || (item.combo ? 'Combo' : 'Product');
+      const id = item.combo || item.product;
+      if (id) {
+        const size = item.selectedAttributes?.size || item.size || 'Default';
+        const key = `${type}_${id.toString()}_${size}`;
+        cartMap.set(key, item);
+      }
+    });
     
     for (const localItem of localCart || []) {
-      const pidStr = localItem._id || localItem.product;
-      if (!mongoose.Types.ObjectId.isValid(pidStr)) continue;
+      if (!localItem) continue;
+      const type = localItem.itemType || (localItem.combo ? 'Combo' : 'Product');
+      const idSource = localItem.combo || localItem.product || localItem._id;
+      const pidStr = idSource ? (typeof idSource === 'object' ? idSource._id : idSource) : null;
+      if (!pidStr || !mongoose.Types.ObjectId.isValid(pidStr)) continue;
 
-      if (cartMap.has(pidStr)) {
-        const existingItem = cartMap.get(pidStr);
-        existingItem.quantity = Math.max(existingItem.quantity, localItem.quantity);
+      const size = localItem.selectedAttributes?.size || localItem.size || 'Default';
+      const key = `${type}_${pidStr.toString()}_${size}`;
+
+      if (cartMap.has(key)) {
+        const existingItem = cartMap.get(key);
+        existingItem.quantity = Math.max(existingItem.quantity, localItem.quantity || 1);
       } else {
-        cartMap.set(pidStr, {
-          product: pidStr,
-          quantity: localItem.quantity,
-          selectedAttributes: localItem.selectedAttributes || {}
+        cartMap.set(key, {
+          ...(type === 'Combo' ? { combo: pidStr } : { product: pidStr }),
+          itemType: type,
+          quantity: localItem.quantity || 1,
+          selectedAttributes: { size }
         });
       }
     }
@@ -148,15 +196,28 @@ export const getUserData = async (req, res, next) => {
 // @route   POST /api/user/cart
 // @access  Private
 export const addToCart = async (req, res, next) => {
-  const { product, quantity, selectedAttributes } = req.body;
+  const { product, combo, itemType = 'Product', quantity, selectedAttributes, size } = req.body;
   try {
     const user = await User.findById(req.user._id);
-    const itemIndex = user.cart.findIndex(i => i.product.toString() === product);
+    const itemSize = selectedAttributes?.size || size || 'Default';
+    const idSource = combo || product;
+    const idStr = idSource ? idSource.toString() : '';
+
+    const itemIndex = user.cart.findIndex(i => {
+      const iType = i.itemType || (i.combo ? 'Combo' : 'Product');
+      const iId = i.combo || i.product;
+      return iType === itemType && iId && iId.toString() === idStr && (i.selectedAttributes?.size || i.size || 'Default') === itemSize;
+    });
 
     if (itemIndex > -1) {
       user.cart[itemIndex].quantity = quantity; // Update quantity directly
     } else {
-      user.cart.push({ product, quantity, selectedAttributes });
+      user.cart.push({ 
+        ...(itemType === 'Combo' ? { combo: idStr } : { product: idStr }),
+        itemType,
+        quantity, 
+        selectedAttributes: { size: itemSize } 
+      });
     }
     await user.save();
     invalidateUserCache(req.user._id);
@@ -174,7 +235,23 @@ export const addToCart = async (req, res, next) => {
 export const removeFromCart = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id);
-    user.cart = user.cart.filter(i => i.product.toString() !== req.params.productId);
+    const prodId = req.params.productId;
+    const reqSize = req.query.size || req.body?.size;
+    const reqType = req.query.itemType || req.body?.itemType || 'Product';
+
+    user.cart = user.cart.filter(i => {
+      const iType = i.itemType || (i.combo ? 'Combo' : 'Product');
+      const iId = i.combo || i.product;
+      if (!iId) return false;
+      const isSameProd = iId.toString() === prodId && iType === reqType;
+      if (!isSameProd) return true;
+      if (reqSize) {
+        const itemSize = i.selectedAttributes?.size || i.size || 'Default';
+        return itemSize !== reqSize;
+      }
+      return false;
+    });
+
     await user.save();
     invalidateUserCache(req.user._id);
 

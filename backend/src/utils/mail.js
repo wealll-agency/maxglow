@@ -23,7 +23,7 @@ const getTransporter = () => {
 
 export const sendEmail = async (to, subject, text, html) => {
   const transporter = getTransporter();
-  const from = process.env.EMAIL_FROM || 'no-reply@maxglowon.com';
+  const from = process.env.EMAIL_FROM || 'no-reply@maxglow.in';
 
   if (!transporter) {
     console.log(`[EMAIL LOG] SMTP not configured. Simulating Email Dispatch:

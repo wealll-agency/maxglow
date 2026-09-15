@@ -6,20 +6,23 @@ import api from '../utils/axiosConfig';
 import { getImageUrl } from '../utils/imageConfig';
 
 const CashewsBanner = () => {
-  const [bannerImg, setBannerImg] = useState(''); // Initialize empty to prevent cache flashing
+  const [bannerImg, setBannerImg] = useState('');
+  const [bannerImgMobile, setBannerImgMobile] = useState('');
 
   useEffect(() => {
     const fetchBanner = async () => {
       try {
         const res = await api.get('/auth/settings');
-        if (res.data.success && res.data.settings?.media_trending_banner) {
-          setBannerImg(res.data.settings.media_trending_banner);
+        if (res.data.success && res.data.settings) {
+          setBannerImg(res.data.settings.media_trending_banner && res.data.settings.media_trending_banner.trim() !== '' ? res.data.settings.media_trending_banner : '/trending_banner.png');
+          setBannerImgMobile(res.data.settings.media_trending_banner_mobile && res.data.settings.media_trending_banner_mobile.trim() !== '' ? res.data.settings.media_trending_banner_mobile : (res.data.settings.media_trending_banner || '/trending_banner.png'));
           return;
         }
       } catch (err) {
         console.error('Failed to load settings:', err);
       }
-      setBannerImg('/trending_banner.png'); // Fallback only if no dynamic images exist
+      setBannerImg('/trending_banner.png');
+      setBannerImgMobile('/trending_banner.png');
     };
     fetchBanner();
   }, []);
@@ -41,27 +44,53 @@ const CashewsBanner = () => {
               cursor: pointer;
               text-decoration: none;
               width: 100%;
-              aspect-ratio: 1400 / 300;
             }
             .trending-banner-img {
               width: 100%;
               height: 100%;
               object-fit: cover;
               display: block;
+            }
+            .t-banner-desktop {
+              display: block;
+              aspect-ratio: 1400 / 300;
+            }
+            .t-banner-mobile {
+              display: none;
+              aspect-ratio: 16 / 9;
+            }
+            @media (max-width: 768px) {
+              .t-banner-desktop {
+                display: none;
+              }
+              .t-banner-mobile {
+                display: block;
+              }
+            }
           ` }} />
           {bannerImg ? (
-            <Image
-              src={getImageUrl(bannerImg)}
-              alt="Trending Now Banner"
-              width={1400}
-              height={300}
-              sizes="100vw"
-              className="trending-banner-img"
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              loading="lazy"
-            />
+            <>
+              <Image
+                src={getImageUrl(bannerImg)}
+                alt="Trending Now Banner Desktop"
+                width={1400}
+                height={300}
+                sizes="100vw"
+                className="trending-banner-img t-banner-desktop"
+                loading="lazy"
+              />
+              <Image
+                src={getImageUrl(bannerImgMobile)}
+                alt="Trending Now Banner Mobile"
+                width={600}
+                height={338}
+                sizes="100vw"
+                className="trending-banner-img t-banner-mobile"
+                loading="lazy"
+              />
+            </>
           ) : (
-            <div className="trending-banner-img" style={{ backgroundColor: '#f1f5f9' }} />
+            <div className="trending-banner-img" style={{ backgroundColor: '#f1f5f9', aspectRatio: '1400/300' }} />
           )}
         </Link>
 

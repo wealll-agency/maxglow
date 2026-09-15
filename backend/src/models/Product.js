@@ -12,7 +12,12 @@ const productSchema = new mongoose.Schema({
   unitValue: { type: Number, default: 1 },
   searchTags: [{ type: String }],
   
+  metaTitle: { type: String, maxlength: 60, default: '' },
+  metaDescription: { type: String, maxlength: 160, default: '' },
+  slug: { type: String, unique: true, sparse: true, index: true },
+  
   price: { type: Number, required: true, min: 0 }, // This represents Unit Price
+  sellingPrice: { type: Number, default: 0, index: true }, // For efficient querying and sorting
   purchasePrice: { type: Number, default: 0, min: 0 },
   minOrderQty: { type: Number, default: 1, min: 1 },
   discount: { type: Number, default: 0, min: 0 }, // Represents Discount Amount
@@ -45,21 +50,30 @@ const productSchema = new mongoose.Schema({
   batchNumber: { type: String, required: true },
   expiryDate: { type: Date, required: true },
   stock: { type: Number, required: true, default: 0, min: 0 },
-  warehouse: { type: mongoose.Schema.Types.ObjectId, ref: 'Warehouse' }
+  warehouse: { type: mongoose.Schema.Types.ObjectId, ref: 'Warehouse' },
+  rating: { type: Number, default: 0 },
+  numReviews: { type: Number, default: 0 }
 }, {
   timestamps: true
 });
 
-// Virtual for discounted price
+// Virtual for discounted price (kept for backward compatibility)
 productSchema.virtual('discountedPrice').get(function () {
+  return this.sellingPrice || this.price;
+});
+
+// Pre-save hook to calculate and store the selling price for fast filtering/sorting
+productSchema.pre('save', function(next) {
   if (this.discount > 0) {
     if (this.discountType === 'Percent') {
-      return Math.round(this.price * (1 - this.discount / 100));
+      this.sellingPrice = Math.round(this.price * (1 - this.discount / 100));
     } else {
-      return Math.max(0, this.price - this.discount);
+      this.sellingPrice = Math.max(0, this.price - this.discount);
     }
+  } else {
+    this.sellingPrice = this.price;
   }
-  return this.price;
+  next();
 });
 
 // Ensure virtuals are serialized

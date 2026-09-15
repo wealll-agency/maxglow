@@ -1,5 +1,5 @@
 export const getImageUrl = (url) => {
-  if (!url) return '/placeholder.png';
+  if (!url || url === 'null' || url === 'undefined') return '/placeholder.png';
   let cleanedUrl = url;
   if (typeof cleanedUrl === 'string' && cleanedUrl.includes('/uploads/')) {
     cleanedUrl = cleanedUrl.substring(cleanedUrl.indexOf('/uploads/'));

@@ -38,6 +38,8 @@ import warehouseRoutes from './routes/warehouse.routes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
+import comboRoutes from './routes/comboRoutes.js';
+import customSectionRoutes from './routes/customSectionRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -56,17 +58,19 @@ if (missingGlobalKeys.length > 0) {
 }
 
 // Validate critical payment environment variables
-if (process.env.NODE_ENV === 'production') {
-  const requiredKeys = ['RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET', 'CLIENT_URL'];
+if (process.env.NODE_ENV) {
+  const requiredKeys = ['ICICI_MERCHANT_ID', 'ICICI_SECURE_HASH_KEY', 'CLIENT_URL'];
   const missingKeys = requiredKeys.filter(key => !process.env[key]);
   if (missingKeys.length > 0) {
-    console.error(`\n[FATAL ERROR] Missing Production Environment Variables: ${missingKeys.join(', ')}`);
-    console.error('Shutting down server to prevent silent checkout failures. Please provide these in your environment variables.\n');
-    process.exit(1);
+    console.error(`[ERROR] Missing critical environment variables: ${missingKeys.join(', ')}`);
+    if (process.env.NODE_ENV === 'production') {
+      process.exit(1);
+    }
   }
-  
-  if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_ID.startsWith('rzp_test_')) {
-    console.warn('\n[WARNING] Running in production mode but using Razorpay Sandbox/Test keys.');
+
+  // Warn if using sandbox keys in production (if applicable for ICICI)
+  if (process.env.ICICI_INITIATE_SALE_URL && process.env.ICICI_INITIATE_SALE_URL.includes('uat')) {
+    console.warn('\n[WARNING] Running in production mode but using ICICI UAT/Test Gateway.');
   }
   if (process.env.DELHIVERY_API_TOKEN === 'YOUR_MAXGLOW_DELHIVERY_TOKEN') {
     console.warn('\n[WARNING] Running in production mode but using placeholder Delhivery token.');
@@ -101,8 +105,8 @@ const allowedOrigins = [
   'http://127.0.0.1:7053',
   'https://maxglow.in',
   'https://www.maxglow.in',
-  'https://maxglowon.com',
-  'https://www.maxglowon.com'
+  'https://maxglow.in',
+  'https://www.maxglow.in'
 ];
 if (process.env.FRONTEND_URL) {
   allowedOrigins.push(...process.env.FRONTEND_URL.split(',').map(url => url.trim()));
@@ -159,6 +163,8 @@ app.use('/api/warehouses', warehouseRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/combos', comboRoutes);
+app.use('/api/custom-sections', customSectionRoutes);
 // Health check route
 app.get('/api/health', (req, res) => {
   const dbStatus = mongoose.connection.readyState === 1 ? 'healthy' : 'unhealthy';
@@ -209,41 +215,63 @@ if (process.env.SSL_KEY_PATH && process.env.SSL_CERT_PATH) {
 
 
 // Graceful Shutdown Handler
-const gracefulShutdown = () => {
-  console.log('Initiating graceful shutdown...');
-  server.close(async () => {
-    console.log('HTTP/HTTPS server closed.');
-    try {
-      await mongoose.connection.close(false);
-      console.log('MongoDB connection closed.');
-      process.exit(0);
-    } catch (err) {
-      console.error('Error closing MongoDB connection:', err);
-      process.exit(1);
-    }
-  });
-  
+let isShuttingDown = false;
+
+const gracefulShutdown = (exitCode = 0, source = 'Signal') => {
+  if (isShuttingDown) {
+    console.warn(`[${source}] Shutdown already in progress. Ignoring duplicate signal.`);
+    return;
+  }
+  isShuttingDown = true;
+  console.log(`[${source}] Initiating graceful shutdown...`);
+
   // Force shutdown if it takes too long (10s)
-  setTimeout(() => {
-    console.error('Could not close connections in time, forcefully shutting down');
-    process.exit(1);
+  const timeoutId = setTimeout(() => {
+    console.error(`[${source}] Shutdown timeout reached (10s). Forcefully exiting.`);
+    process.exit(exitCode);
   }, 10000);
+
+  // Unref timeout so it doesn't block exit if graceful shutdown finishes faster
+  timeoutId.unref();
+
+  const shutdownTasks = async () => {
+    try {
+      if (server) {
+        await new Promise((resolve, reject) => {
+          server.close((err) => {
+            if (err) return reject(err);
+            resolve();
+          });
+        });
+        console.log(`[${source}] HTTP/HTTPS server closed.`);
+      }
+      
+      if (mongoose.connection.readyState === 1) {
+        await mongoose.connection.close(false);
+        console.log(`[${source}] MongoDB connection closed.`);
+      }
+      
+      process.exit(exitCode);
+    } catch (err) {
+      console.error(`[${source}] Error during graceful shutdown:`, err);
+      process.exit(exitCode);
+    }
+  };
+
+  shutdownTasks();
 };
 
-// Listen for termination signals (e.g., from Docker, PM2, or Ctrl+C)
-process.on('SIGTERM', gracefulShutdown);
-process.on('SIGINT', gracefulShutdown);
+process.on('SIGTERM', () => gracefulShutdown(0, 'SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown(0, 'SIGINT'));
 
 process.on('unhandledRejection', (err) => {
-  console.error(`[ERROR] Unhandled Promise Rejection: ${err.message}`, err);
-  // Do NOT gracefully shutdown for generic unhandled rejections as it causes 502 loops.
-  // PM2 will only restart if the process crashes via uncaughtException or OOM.
+  console.error(`[CRITICAL] Unhandled Promise Rejection: ${err?.message}`, err);
+  gracefulShutdown(1, 'unhandledRejection');
 });
 
 process.on('uncaughtException', (err) => {
-  console.error(`[CRITICAL] Uncaught Exception: ${err.message}`, err);
-  // Immediately shut down on synchronous fatal errors so PM2 can revive
-  process.exit(1);
+  console.error(`[CRITICAL] Uncaught Exception: ${err?.message}`, err);
+  gracefulShutdown(1, 'uncaughtException');
 });
 
 // Trigger reload for nodemon configuration updates.

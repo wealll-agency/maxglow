@@ -114,11 +114,11 @@ export default function PaymentHistoryPage() {
                       </td>
                       <td className="py-3 px-4 border-bottom">
                         <span className={`fw-semibold fs-7 ${payment.paymentMode === 'COD' ? 'text-secondary' : 'text-primary'}`}>
-                          {payment.paymentMode === 'COD' ? 'Cash on Delivery' : 'Online (Razorpay)'}
+                          {payment.paymentMode === 'COD' ? 'Cash on Delivery' : 'Online (ICICI)'}
                         </span>
-                        {payment.paymentMode !== 'COD' && payment.razorpayPaymentId && (
-                          <div className="text-muted fs-8 mt-1 text-truncate" style={{ maxWidth: '150px' }} title={payment.razorpayPaymentId}>
-                            Txn: {payment.razorpayPaymentId}
+                        {payment.paymentMode !== 'COD' && (payment.gatewayTxnId) && (
+                          <div className="text-muted fs-8 mt-1 text-truncate" style={{ maxWidth: '150px' }} title={payment.gatewayTxnId}>
+                            Txn: {payment.gatewayTxnId}
                           </div>
                         )}
                       </td>

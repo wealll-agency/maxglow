@@ -4,8 +4,9 @@ import { Provider, useDispatch } from 'react-redux';
 import { store } from '../store/index.js';
 import { useEffect, useRef } from 'react';
 import { setCredentials } from '../store/authSlice.js';
-import { hydrateCart } from '../store/cartSlice.js';
+import { hydrateCart, setCartSyncing } from '../store/cartSlice.js';
 import { hydrateWishlist } from '../store/wishlistSlice.js';
+import { hydrateProducts } from '../store/productsSlice.js';
 
 import axios from 'axios';
 import api from '../utils/axiosConfig.js';
@@ -18,23 +19,45 @@ function StateHydrator() {
   useEffect(() => {
     if (hasInitialized.current) return;
     hasInitialized.current = true;
+
+    // Delay hydration to ensure it happens strictly AFTER React's initial hydration phase
+    const timer = setTimeout(() => {
+      // Products Hydration (Instant Shop Catalog rendering from Cache)
+    const cachedProducts = localStorage.getItem('maxglow_cached_products');
+    if (cachedProducts) {
+      try {
+        const parsed = JSON.parse(cachedProducts);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          dispatch(hydrateProducts(parsed));
+        }
+      } catch (e) {
+        console.error("Failed to parse cached products", e);
+      }
+    }
     
     // Cart Hydration
     const cart = localStorage.getItem('maxglow_cart');
+    let validCart = [];
     if (cart) {
       try {
         const parsedCart = JSON.parse(cart);
-        // Only keep items that have a valid 24-character hex ID for the product
-        const validCart = parsedCart.filter(item => typeof item.product === 'string' && /^[0-9a-fA-F]{24}$/.test(item.product));
-        
-        if (validCart.length !== parsedCart.length) {
-          localStorage.setItem('maxglow_cart', JSON.stringify(validCart));
+        if (Array.isArray(parsedCart)) {
+          validCart = parsedCart.filter(item => {
+            const prodId = typeof item.product === 'object' ? item.product?._id : item.product;
+            const comboId = typeof item.combo === 'object' ? item.combo?._id : item.combo;
+            const targetId = prodId || comboId;
+            return typeof targetId === 'string' && /^[0-9a-fA-F]{24}$/.test(targetId);
+          });
+          
+          if (validCart.length !== parsedCart.length) {
+            localStorage.setItem('maxglow_cart', JSON.stringify(validCart));
+          }
         }
-        dispatch(hydrateCart(validCart));
       } catch (e) {
         console.error("Failed to parse cart", e);
       }
     }
+    dispatch(hydrateCart(validCart));
     
     // Wishlist Hydration
     const wishlist = localStorage.getItem('maxglow_wishlist');
@@ -58,6 +81,7 @@ function StateHydrator() {
         
         if (!parsedUser) {
           dispatch(setCredentials(null));
+          dispatch(setCartSyncing(false));
           return;
         }
 
@@ -81,9 +105,15 @@ function StateHydrator() {
             localStorage.removeItem('maxglow_user');
             dispatch(setCredentials(null));
           }
+        } finally {
+          // Tell the rest of the app (like checkout) that sync is complete
+          dispatch(setCartSyncing(false));
         }
       };
       initAuth();
+    }, 10);
+
+    return () => clearTimeout(timer);
   }, [dispatch]);
 
   // Global Axios 401 Interceptor
@@ -103,8 +133,6 @@ function StateHydrator() {
              await axios.post(`${api.defaults.baseURL}/auth/refresh`, {}, { withCredentials: true });
              return api(originalRequest);
           } catch(err) {
-             // Only log out if the server explicitly says the refresh token is invalid/expired (401)
-             // DO NOT log out on 403 Forbidden!
              if (err.response && err.response.status === 401) {
                 dispatch(setCredentials(null));
                 if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
