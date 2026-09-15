@@ -21,7 +21,7 @@ const generateToken = (res, userId, rememberMe = true, role = 'Customer') => {
     httpOnly: true,
     secure: isProd,
     sameSite: 'lax',
-    ...(isProd && { domain: process.env.COOKIE_DOMAIN || '.maxglowon.com' })
+    ...(isProd && { domain: process.env.COOKIE_DOMAIN || '.maxglow.in' })
   };
 
   const maxAgeMs = isAdmin ? 7 * 24 * 60 * 60 * 1000 : 100 * 365 * 24 * 60 * 60 * 1000;

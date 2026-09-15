@@ -86,8 +86,9 @@ export const performSync = async (userId, localCart, localWishlist) => {
     }
 
     // 1. Merge Wishlist (Idempotent)
-    const existingWishlistStrs = new Set((user.wishlist || []).map(id => id.toString()));
+    const existingWishlistStrs = new Set((user.wishlist || []).filter(id => id).map(id => id.toString()));
     for (const pid of localWishlist || []) {
+      if (!pid) continue;
       const pStr = typeof pid === 'object' ? pid._id : pid;
       if (pStr && mongoose.Types.ObjectId.isValid(pStr)) {
         existingWishlistStrs.add(pStr.toString());
@@ -108,6 +109,7 @@ export const performSync = async (userId, localCart, localWishlist) => {
     });
     
     for (const localItem of localCart || []) {
+      if (!localItem) continue;
       const type = localItem.itemType || (localItem.combo ? 'Combo' : 'Product');
       const idSource = localItem.combo || localItem.product || localItem._id;
       const pidStr = idSource ? (typeof idSource === 'object' ? idSource._id : idSource) : null;
@@ -204,7 +206,7 @@ export const addToCart = async (req, res, next) => {
     const itemIndex = user.cart.findIndex(i => {
       const iType = i.itemType || (i.combo ? 'Combo' : 'Product');
       const iId = i.combo || i.product;
-      return iType === itemType && iId && iId.toString() === idStr && (i.selectedAttributes?.size || 'Default') === itemSize;
+      return iType === itemType && iId && iId.toString() === idStr && (i.selectedAttributes?.size || i.size || 'Default') === itemSize;
     });
 
     if (itemIndex > -1) {
@@ -244,7 +246,7 @@ export const removeFromCart = async (req, res, next) => {
       const isSameProd = iId.toString() === prodId && iType === reqType;
       if (!isSameProd) return true;
       if (reqSize) {
-        const itemSize = i.selectedAttributes?.size || 'Default';
+        const itemSize = i.selectedAttributes?.size || i.size || 'Default';
         return itemSize !== reqSize;
       }
       return false;

@@ -35,6 +35,7 @@ async function getProducts(searchParams) {
   if (searchParams.minPrice) queryParams.set('minPrice', searchParams.minPrice);
   if (searchParams.maxPrice) queryParams.set('maxPrice', searchParams.maxPrice);
   if (searchParams.brand) queryParams.set('brand', searchParams.brand);
+  if (searchParams.inStock !== undefined) queryParams.set('inStock', searchParams.inStock);
   
   // Pagination
   const page = searchParams.page || '1';

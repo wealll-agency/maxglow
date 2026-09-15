@@ -52,7 +52,7 @@ export default function TermsConditionsPage() {
               <h2 className="h4 fw-bold text-dark mb-3">5. Pricing & Payment</h2>
               <p>
                 All prices are listed in Indian Rupees (INR) and are inclusive of applicable taxes unless stated otherwise. We reserve the right to change prices at any time. 
-                We accept secure payments through authorized payment gateways (such as Razorpay and CCAvenue). By submitting payment, you authorize us to charge the applicable payment method.
+                We accept secure payments through authorized payment gateways (such as ICICI). By submitting payment, you authorize us to charge the applicable payment method.
               </p>
             </section>
 

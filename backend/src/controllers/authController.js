@@ -74,6 +74,7 @@ export const registerUser = async (req, res, next) => {
 // @route   POST /api/auth/login
 // @access  Public
 export const loginUser = async (req, res, next) => {
+  console.log('LOGIN ATTEMPT:', JSON.stringify(req.body));
   let { email, password, rememberMe, localCart = [], localWishlist = [] } = req.body;
   if (email) email = email.toLowerCase().trim();
 
@@ -128,7 +129,7 @@ export const logoutUser = async (req, res, next) => {
       httpOnly: true,
       secure: isProd,
       sameSite: 'lax',
-      ...(isProd && { domain: process.env.COOKIE_DOMAIN || '.maxglowon.com' }),
+      ...(isProd && { domain: process.env.COOKIE_DOMAIN || '.maxglow.in' }),
       expires: new Date(0)
     };
     res.cookie('token', '', cookieOptions);
@@ -179,7 +180,7 @@ export const refreshTokenUser = async (req, res, next) => {
       httpOnly: true,
       secure: isProd,
       sameSite: 'lax',
-      ...(isProd && { domain: process.env.COOKIE_DOMAIN || '.maxglowon.com' }),
+      ...(isProd && { domain: process.env.COOKIE_DOMAIN || '.maxglow.in' }),
       maxAge: maxAgeMs
     });
 
@@ -420,7 +421,7 @@ export const getSystemSettings = async (req, res, next) => {
       });
     }
 
-    const keys = ['cod', 'refund', 'topSellingSource', 'media_hero', 'media_hero_mobile', 'media_new_arrivals', 'media_new_arrivals_mobile', 'media_trending_banner', 'media_trending_banner_mobile', 'media_offers', 'media_category_banner', 'media_category_banners', 'media_reels', 'about_page_content', 'media_shop_by_products'];
+    const keys = ['cod', 'refund', 'topSellingSource', 'media_hero', 'media_hero_mobile', 'media_new_arrivals', 'media_new_arrivals_mobile', 'media_trending_banner', 'media_trending_banner_mobile', 'media_offers', 'media_category_banner', 'media_category_banners', 'media_reels', 'about_page_content', 'media_shop_by_products', 'media_combo_banner'];
     const docs = await SystemSetting.find({ key: { $in: keys } }).lean();
     const map = new Map(docs.map(d => [d.key, d.value]));
 
@@ -440,6 +441,7 @@ export const getSystemSettings = async (req, res, next) => {
       media_reels: map.has('media_reels') ? map.get('media_reels') : null,
       about_page_content: map.has('about_page_content') ? map.get('about_page_content') : null,
       media_shop_by_products: map.has('media_shop_by_products') ? map.get('media_shop_by_products') : null,
+      media_combo_banner: map.has('media_combo_banner') ? map.get('media_combo_banner') : null,
     };
 
     cachedSettings = settings;
@@ -478,7 +480,8 @@ export const updateSystemSettings = async (req, res, next) => {
         { key: 'media_category_banners', type: 'object' },
         { key: 'media_reels', type: 'array' },
         { key: 'about_page_content', type: 'object' },
-        { key: 'media_shop_by_products', type: 'array' }
+        { key: 'media_shop_by_products', type: 'array' },
+        { key: 'media_combo_banner', type: 'string' }
       ];
 
       for (const field of keysToUpdate) {

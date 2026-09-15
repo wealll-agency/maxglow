@@ -1,6 +1,6 @@
 export default async function sitemap() {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.maxglowon.com';
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://www.maxglowon.com/api';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.maxglow.in';
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://www.maxglow.in/api';
   
   let products = [];
   try {

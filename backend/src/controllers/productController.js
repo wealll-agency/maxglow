@@ -49,11 +49,17 @@ export const getProducts = async (req, res, next) => {
 
     if (inStock === 'true') {
       query.stock = { $gt: 0 };
+    } else if (inStock === 'false') {
+      query.stock = { $lte: 0 };
     }
 
     // Keyword Search
     if (keyword) {
-      query.$text = { $search: keyword };
+      query.$or = [
+        { name: { $regex: keyword, $options: 'i' } },
+        { category: { $regex: keyword, $options: 'i' } },
+        { searchTags: { $regex: keyword, $options: 'i' } }
+      ];
     }
 
     // Category Filter

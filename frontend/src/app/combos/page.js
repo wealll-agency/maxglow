@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { Star, ShoppingCart } from 'lucide-react';
 import { useNotification } from '../../context/NotificationContext';
 import api from '../../utils/axiosConfig';
+import { getImageUrl } from '../../utils/imageConfig';
 
 export default function BuildComboPage() {
   return (
@@ -19,6 +20,7 @@ export default function BuildComboPage() {
 
 function ComboListingContent() {
   const [combos, setCombos] = useState([]);
+  const [bannerImg, setBannerImg] = useState('');
   const [loading, setLoading] = useState(true);
   const [viewType, setViewType] = useState('grid');
   const [sortBy, setSortBy] = useState('Best Selling');
@@ -26,19 +28,25 @@ function ComboListingContent() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const fetchCombos = async () => {
+    const fetchData = async () => {
       try {
-        const res = await api.get('/combos');
-        if (res.data.success) {
-          setCombos(res.data.combos);
+        const [comboRes, settingsRes] = await Promise.all([
+          api.get('/combos').catch(() => ({ data: { success: false } })),
+          api.get('/auth/settings').catch(() => ({ data: { success: false } }))
+        ]);
+        if (comboRes.data.success) {
+          setCombos(comboRes.data.combos);
+        }
+        if (settingsRes.data.success && settingsRes.data.settings?.media_combo_banner) {
+          setBannerImg(settingsRes.data.settings.media_combo_banner);
         }
       } catch (err) {
-        console.error('Failed to load combos');
+        console.error('Failed to load data');
       } finally {
         setLoading(false);
       }
     };
-    fetchCombos();
+    fetchData();
   }, []);
 
   const handleAddToCart = (e, combo) => {
@@ -91,21 +99,37 @@ function ComboListingContent() {
             margin-bottom: 24px;
           }
         }
+        .shop-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+          gap: 20px;
+        }
+        @media (max-width: 576px) {
+          .shop-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+          }
+        }
       `}</style>
-      <div className="shop-banner-section">
-        <Image
-          src="/trending_banner.png"
-          alt="MaxGlow Premium Combos"
-          fill
-          priority
-          sizes="(max-width: 768px) 100vw, 1400px"
-          style={{ objectFit: 'cover' }}
-        />
-      </div>
+      
+      {loading ? (
+        <div className="shop-banner-section placeholder-glow" style={{ backgroundColor: '#f8fafc' }}></div>
+      ) : bannerImg ? (
+        <div className="shop-banner-section">
+          <Image
+            src={getImageUrl(bannerImg)}
+            alt="MaxGlow Premium Combos"
+            fill
+            priority
+            sizes="(max-width: 768px) 100vw, 1400px"
+            style={{ objectFit: 'cover' }}
+          />
+        </div>
+      ) : null}
 
       <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 20px', marginBottom: '24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', background: 'white', padding: '16px 24px', borderRadius: '16px', boxShadow: '0 2px 12px rgba(0,0,0,0.03)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', background: 'white', padding: '12px 16px', borderRadius: '16px', boxShadow: '0 2px 12px rgba(0,0,0,0.03)', width: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px', width: '100%' }}>
             <span style={{ fontSize: '14px', color: '#64748b', fontWeight: '500' }}>Sort by</span>
             <select 
               value={sortBy}
@@ -140,7 +164,7 @@ function ComboListingContent() {
           <p>Please check back later.</p>
         </div>
       ) : (
-        <div className={viewType === 'grid' ? "row g-4" : "row g-3"} id="shopProductGrid">
+        <div className={viewType === 'grid' ? "shop-grid" : "row g-3"} id="shopProductGrid">
           {(() => {
             const sortedCombos = [...combos].sort((a, b) => {
               if (sortBy === 'Price: Low to High') {
@@ -178,7 +202,7 @@ function ComboListingContent() {
               const isOutOfStock = maxStock <= 0;
 
               return viewType === 'grid' ? (
-                <div key={combo._id} className="col-12 col-sm-6 col-md-4 col-lg-3 px-2 py-3">
+                <div key={combo._id}>
                   <div className="mg-product-card" style={{ height: '100%', position: 'relative', border: '2px solid transparent', borderRadius: '16px' }}>
                     <div className="mg-product-image-wrap" style={{ position: 'relative', aspectRatio: '1 / 1', width: '100%', overflow: 'hidden' }}>
                       

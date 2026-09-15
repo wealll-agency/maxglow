@@ -1,10 +1,17 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import React, { memo } from 'react';
+import { usePathname } from 'next/navigation';
 import { FiInstagram, FiFacebook, FiTwitter, FiYoutube, FiMail, FiPhone, FiMapPin, FiArrowRight } from 'react-icons/fi';
 import { Leaf } from 'lucide-react';
 
 const Footer = () => {
+  const pathname = usePathname();
+  const hideBottomNav = pathname?.startsWith('/product/') || 
+                        pathname?.startsWith('/checkout') || 
+                        pathname?.startsWith('/login') || 
+                        pathname?.startsWith('/register');
+
   return (
     <footer>
       <style dangerouslySetInnerHTML={{
@@ -18,6 +25,11 @@ const Footer = () => {
             grid-template-columns: 1fr 1fr !important;
             gap: 20px !important;
             grid-column: span 1 !important;
+          }
+        }
+        @media (max-width: 991px) {
+          .mg-footer.has-bottom-nav {
+            padding-bottom: 75px !important;
           }
         }
       ` }} />
@@ -52,7 +64,7 @@ const Footer = () => {
       </div>
 
       {/* Main Footer */}
-      <div className="mg-footer" style={{ padding: '60px 0 0' }}>
+      <div className={`mg-footer ${!hideBottomNav ? 'has-bottom-nav' : ''}`} style={{ padding: '60px 0 0' }}>
         <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '40px', marginBottom: '48px' }}>
 

@@ -16,19 +16,6 @@ import MgCard from '../../components/ui/MgCard';
 import { useNotification } from '../../context/NotificationContext';
 import { getImageUrl } from '../../utils/imageConfig';
 
-const loadRazorpayScript = () => {
-  return new Promise((resolve) => {
-    if (window.Razorpay) {
-      resolve(true);
-      return;
-    }
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-};
 
 export default function CheckoutPage() {
   const dispatch = useDispatch();
@@ -70,13 +57,13 @@ export default function CheckoutPage() {
   const [landmark, setLandmark] = useState('');
   const [altPhone, setAltPhone] = useState('');
   const [addressType, setAddressType] = useState('Home');
-    const [paymentMode, setPaymentMode] = useState('Razorpay');
+    const [paymentMode, setPaymentMode] = useState('ICICI');
   const [hasCodPermission, setHasCodPermission] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (!hasCodPermission && paymentMode === 'COD') {
-      setPaymentMode('Razorpay');
+      setPaymentMode('ICICI');
     }
   }, [hasCodPermission, paymentMode]);
 
@@ -142,7 +129,7 @@ export default function CheckoutPage() {
             setLandmark(state.landmark || '');
             setAltPhone(state.altPhone || '');
             setAddressType(state.addressType || 'Home');
-            setPaymentMode(state.paymentMode || 'Razorpay');
+            setPaymentMode(state.paymentMode || 'ICICI');
 
             // Automatically save this address to their profile
             dispatch(addAddress({ 
@@ -249,82 +236,25 @@ export default function CheckoutPage() {
 
     setIsSubmitting(true);
     try {
-      // 1. Create order on backend (returns local order and Razorpay payload)
+      // 1. Create order on backend
       const orderResult = await dispatch(createOrder(orderData)).unwrap();
       
-      // If COD, skip Razorpay redirection and go to user profile
-      if (paymentMode === 'COD' || !orderResult.razorpayOrderId) {
-        // Clear cart for COD immediately
+      if (paymentMode === 'ICICI' && !orderResult.iciciActionUrl) {
+        showAlert(orderResult.gatewayError || 'Failed to initiate ICICI payment.', 'error');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // If COD, skip redirection and go to user profile
+      if (paymentMode === 'COD') {
         dispatch(clearCart());
         showAlert('Order placed successfully via Cash on Delivery!', 'success');
         router.push('/user/profile');
         return;
       }
 
-      // 2. Load Razorpay SDK
-      const res = await loadRazorpayScript();
-      if (!res) {
-        showAlert('Razorpay SDK failed to load. Check your connection.', 'error');
-        setIsSubmitting(false);
-        return;
-      }
-
-      // 3. Open Razorpay Modal
-      const options = {
-        key: orderResult.key,
-        amount: orderResult.amount,
-        currency: orderResult.currency,
-        name: 'MaxGlow',
-        description: 'Premium Herbal Wellness',
-        order_id: orderResult.razorpayOrderId,
-        handler: async function (response) {
-          try {
-            // Send verification request to backend
-            const verifyRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/verify-payment`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${user.token}`
-              },
-              body: JSON.stringify({
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_signature: response.razorpay_signature,
-                order_id: orderResult.order._id
-              })
-            });
-            const verifyData = await verifyRes.json();
-            if (verifyData.success) {
-              dispatch(clearCart());
-              showAlert('Payment successful! Order confirmed.', 'success');
-              router.push(`/user/orders/${orderResult.order._id}?success=true`);
-            } else {
-              showAlert(verifyData.message || 'Payment verification failed', 'error');
-              setIsSubmitting(false);
-            }
-          } catch (error) {
-            showAlert('Payment verification error', 'error');
-            setIsSubmitting(false);
-          }
-        },
-        prefill: {
-          name: addressObj.name || user.name || '',
-          email: user.email || '',
-          contact: addressObj.phone || user.phone || ''
-        },
-        theme: {
-          color: '#1c72b9'
-        },
-        modal: {
-          ondismiss: function() {
-            showAlert('Payment cancelled', 'warning');
-            setIsSubmitting(false);
-          }
-        }
-      };
-
-      const paymentObject = new window.Razorpay(options);
-      paymentObject.open();
+      // 2. Redirect to ICICI Gateway
+      window.location.href = orderResult.iciciActionUrl;
     } catch (err) {
       showAlert(err || 'Failed to place order', 'error');
       setIsSubmitting(false);
@@ -786,13 +716,13 @@ export default function CheckoutPage() {
             </h5>
             <div className="d-flex flex-column gap-3 position-relative" style={{ zIndex: 1 }}>
               <div 
-                className={`p-4 rounded-4 cursor-pointer d-flex align-items-center gap-3 ${paymentMode === 'Razorpay' ? 'bg-white shadow-sm' : 'bg-light'}`}
-                onClick={() => setPaymentMode('Razorpay')}
-                style={{ border: paymentMode === 'Razorpay' ? '2px solid #3BAE56' : '1px solid #e2e8f0', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                className={`p-4 rounded-4 cursor-pointer d-flex align-items-center gap-3 ${paymentMode === 'ICICI' ? 'bg-white shadow-sm' : 'bg-light'}`}
+                onClick={() => setPaymentMode('ICICI')}
+                style={{ border: paymentMode === 'ICICI' ? '2px solid #3BAE56' : '1px solid #e2e8f0', cursor: 'pointer', transition: 'all 0.2s ease' }}
               >
-                <input type="radio" checked={paymentMode === 'Razorpay'} readOnly className="form-check-input mt-0" />
+                <input type="radio" checked={paymentMode === 'ICICI'} readOnly className="form-check-input mt-0" />
                 <div>
-                  <h6 className="fw-bold m-0 text-dark">Razorpay Secure Payment</h6>
+                  <h6 className="fw-bold m-0 text-dark">ICICI Secure Payment</h6>
                   <small className="text-muted">Pay securely using Cards, Net Banking, UPI, or Wallets.</small>
                 </div>
               </div>
@@ -909,7 +839,7 @@ export default function CheckoutPage() {
             <div className="d-none d-md-block">
               <button
                 onClick={handlePlaceOrder}
-                disabled={loading || isSubmitting || (user && user.addresses?.length === 0) || (!user && (!address || !city))}
+                disabled={loading || isSubmitting}
                 className="btn-mg-green w-100 py-3 mt-4 fw-bold fs-6 d-flex align-items-center justify-content-center gap-2"
                 style={{ borderRadius: '14px', boxShadow: '0 8px 25px rgba(59, 174, 86, 0.3)', transition: 'all 0.3s ease', letterSpacing: '0.5px' }}
               >
@@ -937,7 +867,7 @@ export default function CheckoutPage() {
           <button
             type="button"
             onClick={handlePlaceOrder}
-            disabled={loading || isSubmitting || (user && user.addresses?.length === 0) || (!user && (!address || !city))}
+            disabled={loading || isSubmitting}
             className="btn-mg-green fw-bold fs-6 d-flex align-items-center justify-content-center gap-2"
             style={{
               flex: 1,

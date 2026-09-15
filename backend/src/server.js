@@ -58,17 +58,19 @@ if (missingGlobalKeys.length > 0) {
 }
 
 // Validate critical payment environment variables
-if (process.env.NODE_ENV === 'production') {
-  const requiredKeys = ['RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET', 'CLIENT_URL'];
+if (process.env.NODE_ENV) {
+  const requiredKeys = ['ICICI_MERCHANT_ID', 'ICICI_SECURE_HASH_KEY', 'CLIENT_URL'];
   const missingKeys = requiredKeys.filter(key => !process.env[key]);
   if (missingKeys.length > 0) {
-    console.error(`\n[FATAL ERROR] Missing Production Environment Variables: ${missingKeys.join(', ')}`);
-    console.error('Shutting down server to prevent silent checkout failures. Please provide these in your environment variables.\n');
-    process.exit(1);
+    console.error(`[ERROR] Missing critical environment variables: ${missingKeys.join(', ')}`);
+    if (process.env.NODE_ENV === 'production') {
+      process.exit(1);
+    }
   }
-  
-  if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_ID.startsWith('rzp_test_')) {
-    console.warn('\n[WARNING] Running in production mode but using Razorpay Sandbox/Test keys.');
+
+  // Warn if using sandbox keys in production (if applicable for ICICI)
+  if (process.env.ICICI_INITIATE_SALE_URL && process.env.ICICI_INITIATE_SALE_URL.includes('uat')) {
+    console.warn('\n[WARNING] Running in production mode but using ICICI UAT/Test Gateway.');
   }
   if (process.env.DELHIVERY_API_TOKEN === 'YOUR_MAXGLOW_DELHIVERY_TOKEN') {
     console.warn('\n[WARNING] Running in production mode but using placeholder Delhivery token.');
@@ -103,8 +105,8 @@ const allowedOrigins = [
   'http://127.0.0.1:7053',
   'https://maxglow.in',
   'https://www.maxglow.in',
-  'https://maxglowon.com',
-  'https://www.maxglowon.com'
+  'https://maxglow.in',
+  'https://www.maxglow.in'
 ];
 if (process.env.FRONTEND_URL) {
   allowedOrigins.push(...process.env.FRONTEND_URL.split(',').map(url => url.trim()));

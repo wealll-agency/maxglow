@@ -7,7 +7,7 @@ export const revalidate = 0;
 
 async function getProductData(id) {
   if (!id) return null;
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://www.maxglowon.com/api';
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://www.maxglow.in/api';
   try {
     const res = await fetch(`${baseUrl}/products/${id}`);
     if (!res.ok) return null;

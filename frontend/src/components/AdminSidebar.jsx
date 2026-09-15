@@ -11,7 +11,7 @@ import {
   LayoutDashboard, ShoppingBag, ClipboardList, ShoppingCart, 
   Users, Receipt, LogOut, Tag, ChevronLeft, ChevronRight, 
   RotateCcw, ChevronDown, ChevronUp, MessageSquare, MapPin, 
-  Package, Shield, Image as ImageIcon, Layers 
+  Package, Shield, Image as ImageIcon, Layers, Palette
 } from 'lucide-react';
 import api from '../utils/axiosConfig';
 
@@ -105,7 +105,7 @@ export default function AdminSidebar() {
     { label: 'Orders Queue', path: '/admin/orders', icon: <ShoppingCart size={20} />, id: 'orders', badge: badges.orders },
     { label: 'Combo Manager', path: '/admin/combos', icon: <Layers size={20} /> },
     { label: 'Inventory Manager', path: '/admin/inventory', icon: <ClipboardList size={20} /> },
-    { label: 'Media Manager', path: '/admin/media', icon: <ImageIcon size={20} /> },
+    { label: 'Theme Manager', path: '/admin/theme-manager', icon: <Palette size={20} /> },
     { label: 'Coupon Manager', path: '/admin/coupons', icon: <Tag size={20} /> },
     { label: 'Homepage Products', path: '/admin/homepage-products', icon: <LayoutDashboard size={20} /> },
     { label: 'Warehouses', path: '/admin/warehouses', icon: <MapPin size={20} /> },

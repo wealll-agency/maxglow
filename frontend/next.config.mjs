@@ -48,8 +48,8 @@ const nextConfig = {
       { protocol: 'https', hostname: '*.amazonaws.com' },
       { protocol: 'https', hostname: 'maxglow.in' },
       { protocol: 'https', hostname: 'www.maxglow.in' },
-      { protocol: 'https', hostname: 'www.maxglowon.com' },
-      { protocol: 'https', hostname: 'maxglowon.com' },
+      { protocol: 'https', hostname: 'www.maxglow.in' },
+      { protocol: 'https', hostname: 'maxglow.in' },
     ],
   },
   async rewrites() {

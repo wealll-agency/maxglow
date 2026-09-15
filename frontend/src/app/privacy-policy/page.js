@@ -67,7 +67,7 @@ export default function PrivacyPolicyPage() {
               <p>We may have to share your personal data with the parties set out below for the purposes set out in this policy:</p>
               
               <h3 className="h6 fw-bold text-dark mt-4 mb-2">5.1 Payment Service Providers</h3>
-              <p>Secure gateways to process your transactions (e.g., Razorpay, CCAvenue).</p>
+              <p>Secure gateways to process your transactions (e.g., ICICI).</p>
               
               <h3 className="h6 fw-bold text-dark mt-4 mb-2">5.2 Shipping / Delivery Partners</h3>
               <p>Couriers and logistics partners to deliver your ordered items (e.g., Delhivery).</p>
