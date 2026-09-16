@@ -8,7 +8,7 @@ import 'swiper/css/navigation';
 import ProductCard from './ProductCard';
 import { FiArrowRight, FiArrowLeft } from 'react-icons/fi';
 
-const ProductCarouselSection = ({ title, products = [] }) => {
+const ProductCarouselSection = ({ title, products = [], priority = false }) => {
   if (!products || products.length === 0) return null;
 
   return (
@@ -67,7 +67,7 @@ const ProductCarouselSection = ({ title, products = [] }) => {
           >
             {products.map((product, idx) => (
               <SwiperSlide key={product._id || idx} style={{ height: 'auto' }}>
-                <ProductCard product={product} />
+                <ProductCard product={product} priority={priority && idx < 4} />
               </SwiperSlide>
             ))}
           </Swiper>

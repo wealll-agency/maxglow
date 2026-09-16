@@ -412,8 +412,9 @@ const Header = () => {
       {/* Cart Offcanvas */}
       <CartOffcanvas isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
 
-      {/* Mobile Bottom Navigation Bar - Hidden on Product, Checkout, Login, and Register pages */}
+      {/* Mobile Bottom Navigation Bar - Hidden on Product, Combo Details, Checkout, Login, and Register pages */}
       {!pathname?.startsWith('/product/') && 
+       !(pathname?.startsWith('/combos/') && pathname !== '/combos') &&
        !pathname?.startsWith('/checkout') && 
        !pathname?.startsWith('/login') && 
        !pathname?.startsWith('/register') && (

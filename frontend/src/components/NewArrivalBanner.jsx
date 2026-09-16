@@ -14,8 +14,11 @@ const NewArrivalBanner = () => {
       try {
         const res = await api.get('/auth/settings');
         if (res.data.success && res.data.settings) {
-          setBgImage(res.data.settings.media_new_arrivals && res.data.settings.media_new_arrivals.trim() !== '' ? res.data.settings.media_new_arrivals : '/new_arrival_banner.png');
-          setBgImageMobile(res.data.settings.media_new_arrivals_mobile && res.data.settings.media_new_arrivals_mobile.trim() !== '' ? res.data.settings.media_new_arrivals_mobile : (res.data.settings.media_new_arrivals || '/new_arrival_banner.png'));
+          const { media_new_arrivals, media_new_arrivals_mobile } = res.data.settings;
+          const isValid = (img) => typeof img === 'string' && img.trim() !== '' && img.trim().toLowerCase() !== 'null';
+          
+          setBgImage(isValid(media_new_arrivals) ? media_new_arrivals : '/new_arrival_banner.png');
+          setBgImageMobile(isValid(media_new_arrivals_mobile) ? media_new_arrivals_mobile : (isValid(media_new_arrivals) ? media_new_arrivals : '/new_arrival_banner.png'));
           return;
         }
       } catch (err) {

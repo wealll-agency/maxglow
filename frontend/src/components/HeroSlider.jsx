@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+import Image, { getImageProps } from 'next/image';
 import api from '../utils/axiosConfig';
 
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -121,17 +121,9 @@ export default function HeroSlider({ initialImages = [], initialMobileImages = [
           .hero-banner-section {
             margin-bottom: 0px;
           }
-          .hero-desktop {
-            display: block;
-          }
-          .hero-mobile {
-            display: none;
-          }
           @media (max-width: 991px) {
             .hero-banner-section { margin-bottom: 0px !important; padding-bottom: 0px !important; }
             .carousel-mask { min-height: unset; aspect-ratio: 1080/1080 !important; }
-            .hero-desktop { display: none !important; }
-            .hero-mobile { display: block !important; }
           }
           /* Ensure images do not bleed out or cause collapse */
           .hero-slider-track { height: 100%; }
@@ -193,43 +185,48 @@ export default function HeroSlider({ initialImages = [], initialMobileImages = [
                     backgroundColor: '#f8fafc' 
                   }}>
                     {hasCustomMobile ? (
-                      <>
-                        <Image
-                          src={getImageUrl(img)}
-                          alt={`MaxGlow Premium Herbal Wellness ${idx + 1}`}
-                          width={1920}
-                          height={800}
-                          priority={idx === 0}
-                          fetchPriority={idx === 0 ? "high" : "auto"}
-                          loading={idx === 0 ? "eager" : "lazy"}
-                          sizes="100vw"
-                          className="hero-desktop"
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                            display: 'block',
-                            margin: '0 auto'
-                          }}
-                        />
-                        <Image
-                          src={getImageUrl(mobileImages[idx])}
-                          alt={`MaxGlow Premium Herbal Wellness Mobile ${idx + 1}`}
-                          width={1080}
-                          height={1080}
-                          priority={idx === 0}
-                          fetchPriority={idx === 0 ? "high" : "auto"}
-                          loading={idx === 0 ? "eager" : "lazy"}
-                          sizes="100vw"
-                          className="hero-mobile"
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                            margin: '0 auto'
-                          }}
-                        />
-                      </>
+                      (() => {
+                        const common = { alt: `MaxGlow Premium Herbal Wellness ${idx + 1}`, sizes: '100vw' };
+                        const {
+                          props: { srcSet: desktopSrcSet, ...desktopRest },
+                        } = getImageProps({
+                          ...common,
+                          src: getImageUrl(img),
+                          width: 1920,
+                          height: 800,
+                          priority: idx === 0,
+                          fetchPriority: idx === 0 ? "high" : "auto",
+                          loading: idx === 0 ? "eager" : "lazy",
+                        });
+                        const {
+                          props: { srcSet: mobileSrcSet, ...mobileRest },
+                        } = getImageProps({
+                          ...common,
+                          src: getImageUrl(mobileImages[idx]),
+                          width: 1080,
+                          height: 1080,
+                          priority: idx === 0,
+                          fetchPriority: idx === 0 ? "high" : "auto",
+                          loading: idx === 0 ? "eager" : "lazy",
+                        });
+
+                        return (
+                          <picture style={{ width: '100%', height: '100%', display: 'block' }}>
+                            <source media="(max-width: 991px)" srcSet={mobileSrcSet} />
+                            <source media="(min-width: 992px)" srcSet={desktopSrcSet} />
+                            <img
+                              {...desktopRest}
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                display: 'block',
+                                margin: '0 auto',
+                              }}
+                            />
+                          </picture>
+                        );
+                      })()
                     ) : (
                       img && (
                         <Image

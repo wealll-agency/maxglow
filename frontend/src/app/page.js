@@ -83,7 +83,7 @@ export default async function Home() {
 
       {/* Top Selling Products */}
       {topSellingProducts.length > 0 && (
-        <ProductCarouselSection title="Top Selling Products" products={topSellingProducts} />
+        <ProductCarouselSection title="Top Selling Products" products={topSellingProducts} priority={true} />
       )}
 
       {/* Shop By Categories — card grid matching reference */}

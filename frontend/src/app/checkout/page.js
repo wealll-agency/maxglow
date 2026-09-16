@@ -420,6 +420,10 @@ export default function CheckoutPage() {
             padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
             z-index: 9999 !important;
             box-sizing: border-box;
+            transform: translate3d(0, 0, 0) !important;
+            -webkit-transform: translate3d(0, 0, 0) !important;
+            backface-visibility: hidden;
+            will-change: transform;
           }
 
           @media (max-width: 768px) {

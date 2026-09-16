@@ -31,10 +31,14 @@ else
 fi
 
 echo "📦 Installing backend dependencies..."
-npm ci --prefix backend
+npm install --omit=dev --prefix backend
+echo "🔍 Validating backend dependencies..."
+npm ls --depth=0 --prefix backend || echo "Warning: Dependency tree issues detected in backend"
 
 echo "📦 Installing frontend dependencies..."
-npm ci --prefix frontend
+npm install --prefix frontend
+echo "🔍 Validating frontend dependencies..."
+npm ls --depth=0 --prefix frontend || echo "Warning: Dependency tree issues detected in frontend"
 
 echo "🔨 Building frontend..."
 if ! npm run build --prefix frontend; then

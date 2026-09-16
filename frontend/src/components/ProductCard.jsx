@@ -10,7 +10,7 @@ import { fetchProducts } from '../store/productsSlice';
 import { getImageUrl } from '../utils/imageConfig';
 import { FiHeart, FiShoppingCart, FiZap, FiStar } from 'react-icons/fi';
 
-const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggleSelect = null }) => {
+const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggleSelect = null, priority = false }) => {
   const router = useRouter();
   const dispatch = useDispatch();
   const wishlistItems = useSelector((state) => state.wishlist?.items || []);
@@ -206,6 +206,7 @@ const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggl
             alt={resolvedProduct.name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            priority={priority}
             style={{ objectFit: 'cover' }}
           />
         </Link>

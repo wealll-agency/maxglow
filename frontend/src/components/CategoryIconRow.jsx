@@ -80,7 +80,7 @@ const CategoryIconRow = ({ initialCategories = null }) => {
                   alt={cat.label || 'Category'}
                   width={70}
                   height={70}
-                  loading="lazy"
+                  priority={true}
                   style={{ width: '70px', height: '70px', objectFit: cat.image === '/logo.png' ? 'contain' : 'cover', padding: cat.image === '/logo.png' ? '8px' : '0', borderRadius: '50%' }}
                 />
               </div>
