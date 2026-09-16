@@ -9,7 +9,8 @@ import Inventory from '../models/Inventory.js';
 import Payment from '../models/Payment.js';
 import Coupon from '../models/Coupon.js';
 import User from '../models/User.js';
-import admin from '../config/firebaseAdmin.js';
+import Combo from '../models/Combo.js';
+
 import { logActivity } from '../middleware/logger.js';
 
 // CCAvenue/Razorpay configuration removed. Using ICICI configuration.
@@ -18,51 +19,80 @@ import { logActivity } from '../middleware/logger.js';
 const calculateOrderTotals = async (items, couponCode) => {
   let subtotal = 0;
   
-  const productIds = items.map(item => item.product);
+  const productIds = items.filter(i => i.itemType !== 'Combo').map(item => item.product);
+  const comboIds = items.filter(i => i.itemType === 'Combo').map(item => item.combo);
+  
   const products = await Product.find({ _id: { $in: productIds } }).select('name price stock images discount discountType attributes packSizes').lean();
   const productMap = products.reduce((acc, product) => {
     acc[product._id.toString()] = product;
     return acc;
   }, {});
 
+  const combos = await Combo.find({ _id: { $in: comboIds } }).select('name comboPrice status components').lean();
+  const comboMap = combos.reduce((acc, combo) => {
+    acc[combo._id.toString()] = combo;
+    return acc;
+  }, {});
+
   for (const item of items) {
-    if (!mongoose.isValidObjectId(item.product)) {
-      const err = new Error(`Invalid product ID format for: ${item.name}`);
-      err.statusCode = 400;
-      throw err;
-    }
-    const product = productMap[item.product.toString()];
-    if (!product) {
-      throw new Error(`Product not found: ${item.name}`);
-    }
-    
-    // Check stock
-    if (product.stock < item.quantity) {
-      throw new Error(`Insufficient stock for ${product.name}. Available: ${product.stock}`);
-    }
-    
-    let basePrice = product.price;
-    // Check if a specific pack size was selected
-    if (item.size && product.packSizes && product.packSizes.length > 0) {
-      const selectedPack = product.packSizes.find(
-        p => `${p.weight} ${p.unit}` === item.size
-      );
-      if (selectedPack) {
-        basePrice = selectedPack.price;
+    if (item.itemType === 'Combo') {
+      if (!mongoose.isValidObjectId(item.combo)) {
+        const err = new Error(`Invalid combo ID format for: ${item.name}`);
+        err.statusCode = 400;
+        throw err;
       }
-    }
-    
-    let activePrice = basePrice;
-    if (item.price && typeof item.price === 'number' && item.price > 0 && Math.abs(item.price - basePrice) <= (product.discount || 0) + 10) {
-      activePrice = item.price;
-    } else if (product.discount > 0) {
-      activePrice = product.discountType === 'Percent' 
-        ? Math.round(basePrice * (1 - product.discount / 100)) 
-        : Math.max(0, basePrice - product.discount);
-    }
+      const combo = comboMap[item.combo.toString()];
+      if (!combo) {
+        throw new Error(`Combo not found: ${item.name}`);
+      }
+      if (combo.status !== 'Active') {
+        throw new Error(`Combo ${combo.name} is currently inactive.`);
+      }
+      let activePrice = combo.comboPrice;
+      if (item.price && typeof item.price === 'number' && item.price > 0 && Math.abs(item.price - activePrice) <= 10) {
+        activePrice = item.price;
+      }
+      subtotal += activePrice * item.quantity;
+      item.price = activePrice;
+    } else {
+      if (!mongoose.isValidObjectId(item.product)) {
+        const err = new Error(`Invalid product ID format for: ${item.name}`);
+        err.statusCode = 400;
+        throw err;
+      }
+      const product = productMap[item.product.toString()];
+      if (!product) {
+        throw new Error(`Product not found: ${item.name}`);
+      }
       
-    subtotal += activePrice * item.quantity;
-    item.price = activePrice; // Bind exact price paid
+      // Check stock
+      if (product.stock < item.quantity) {
+        throw new Error(`Insufficient stock for ${product.name}. Available: ${product.stock}`);
+      }
+      
+      let basePrice = product.price;
+      // Check if a specific pack size was selected
+      if (item.size && product.packSizes && product.packSizes.length > 0) {
+        const selectedPack = product.packSizes.find(
+          p => `${p.weight} ${p.unit}` === item.size
+        );
+        if (selectedPack) {
+          basePrice = selectedPack.price;
+        }
+      }
+      
+      let activePrice = basePrice;
+      if (item.price && typeof item.price === 'number' && item.price > 0 && Math.abs(item.price - basePrice) <= (product.discount || 0) + 10) {
+        activePrice = item.price;
+      } else if (product.discount > 0) {
+        activePrice = product.discountType === 'Percent' 
+          ? Math.round(basePrice * (1 - product.discount / 100)) 
+          : Math.max(0, basePrice - product.discount);
+      }
+        
+      subtotal += activePrice * item.quantity;
+      item.price = activePrice; // Bind exact price paid
+    }
   }
 
   let discountableSubtotal = 0;
@@ -171,58 +201,93 @@ export const createOrder = async (req, res, next) => {
 
       // 2. Reduce Stock in Inventory & Product Collections (with FEFO sequential batches)
       for (const item of validatedItems) {
-        await Product.findByIdAndUpdate(
-          item.product,
-          { $inc: { stock: -item.quantity, totalSold: item.quantity } },
-          { runValidators: true, session }
-        );
+        if (item.itemType === 'Combo') {
+           const combo = await Combo.findById(item.combo).lean();
+           if (combo && combo.components) {
+             for (const comp of combo.components) {
+               const deductQty = comp.quantity * item.quantity;
+               await Product.findByIdAndUpdate(
+                 comp.product,
+                 { $inc: { stock: -deductQty, totalSold: deductQty } },
+                 { runValidators: true, session }
+               );
 
-        let remainingToDeduct = item.quantity;
-        const batches = await Inventory.find({
-          product: item.product,
-          stockQuantity: { $gt: 0 },
-          expiryDate: { $gt: new Date() }
-        }).sort({ expiryDate: 1 }).session(session);
+               let remainingToDeduct = deductQty;
+               const batches = await Inventory.find({
+                 product: comp.product,
+                 stockQuantity: { $gt: 0 },
+                 expiryDate: { $gt: new Date() }
+               }).sort({ expiryDate: 1 }).session(session);
 
-        if (batches.length === 0) {
-          // Fallback if no active batches are found, just to avoid breaking
-          const firstBatch = await Inventory.findOne({ product: item.product }).session(session);
-          if (firstBatch) {
-            firstBatch.stockQuantity = Math.max(0, firstBatch.stockQuantity - remainingToDeduct);
-            firstBatch.adjustments.push({
-              quantityChanged: -remainingToDeduct,
-              type: 'Sale',
-              reason: `Order Placement - Fallback (Local ID: ${savedOrder._id})`,
-              adjustedBy: req.user._id
-            });
-            await firstBatch.save({ session });
-          }
+               for (const batch of batches) {
+                 if (remainingToDeduct <= 0) break;
+                 const dQty = Math.min(batch.stockQuantity, remainingToDeduct);
+                 batch.stockQuantity -= dQty;
+                 remainingToDeduct -= dQty;
+                 batch.adjustments.push({
+                   quantityChanged: -dQty,
+                   type: 'Sale',
+                   reason: `Combo Order Placement (Local ID: ${savedOrder._id})`,
+                   adjustedBy: req.user._id
+                 });
+                 await batch.save({ session });
+               }
+             }
+           }
         } else {
-          for (const batch of batches) {
-            if (remainingToDeduct <= 0) break;
-            const deductQty = Math.min(batch.stockQuantity, remainingToDeduct);
-            batch.stockQuantity -= deductQty;
-            remainingToDeduct -= deductQty;
+          await Product.findByIdAndUpdate(
+            item.product,
+            { $inc: { stock: -item.quantity, totalSold: item.quantity } },
+            { runValidators: true, session }
+          );
 
-            batch.adjustments.push({
-              quantityChanged: -deductQty,
-              type: 'Sale',
-              reason: `Order Placement (Local ID: ${savedOrder._id})`,
-              adjustedBy: req.user._id
-            });
-            await batch.save({ session });
-          }
+          let remainingToDeduct = item.quantity;
+          const batches = await Inventory.find({
+            product: item.product,
+            stockQuantity: { $gt: 0 },
+            expiryDate: { $gt: new Date() }
+          }).sort({ expiryDate: 1 }).session(session);
 
-          if (remainingToDeduct > 0 && batches.length > 0) {
-            const lastBatch = batches[batches.length - 1];
-            lastBatch.stockQuantity = Math.max(0, lastBatch.stockQuantity - remainingToDeduct);
-            lastBatch.adjustments.push({
-              quantityChanged: -remainingToDeduct,
-              type: 'Sale',
-              reason: `Order Placement - Sync adjustment (Local ID: ${savedOrder._id})`,
-              adjustedBy: req.user._id
-            });
-            await lastBatch.save({ session });
+          if (batches.length === 0) {
+            // Fallback if no active batches are found, just to avoid breaking
+            const firstBatch = await Inventory.findOne({ product: item.product }).session(session);
+            if (firstBatch) {
+              firstBatch.stockQuantity = Math.max(0, firstBatch.stockQuantity - remainingToDeduct);
+              firstBatch.adjustments.push({
+                quantityChanged: -remainingToDeduct,
+                type: 'Sale',
+                reason: `Order Placement - Fallback (Local ID: ${savedOrder._id})`,
+                adjustedBy: req.user._id
+              });
+              await firstBatch.save({ session });
+            }
+          } else {
+            for (const batch of batches) {
+              if (remainingToDeduct <= 0) break;
+              const deductQty = Math.min(batch.stockQuantity, remainingToDeduct);
+              batch.stockQuantity -= deductQty;
+              remainingToDeduct -= deductQty;
+
+              batch.adjustments.push({
+                quantityChanged: -deductQty,
+                type: 'Sale',
+                reason: `Order Placement (Local ID: ${savedOrder._id})`,
+                adjustedBy: req.user._id
+              });
+              await batch.save({ session });
+            }
+
+            if (remainingToDeduct > 0 && batches.length > 0) {
+              const lastBatch = batches[batches.length - 1];
+              lastBatch.stockQuantity = Math.max(0, lastBatch.stockQuantity - remainingToDeduct);
+              lastBatch.adjustments.push({
+                quantityChanged: -remainingToDeduct,
+                type: 'Sale',
+                reason: `Order Placement - Sync adjustment (Local ID: ${savedOrder._id})`,
+                adjustedBy: req.user._id
+              });
+              await lastBatch.save({ session });
+            }
           }
         }
       }
@@ -653,33 +718,7 @@ export const updateOrderStatus = async (req, res, next) => {
     const updatedOrder = await Order.findByIdAndUpdate(req.params.id, updateQuery, { new: true });
     await logActivity(req.user._id, 'UPDATE_ORDER_STATUS', `Updated order ID ${order._id} status to: ${status}`, req);
 
-    // --- Firebase Push Notification ---
-    try {
-      if (admin && admin.messaging) {
-        const orderUser = await User.findById(updatedOrder.user);
-        if (orderUser && orderUser.fcmTokens && orderUser.fcmTokens.length > 0) {
-          let emoji = "📦";
-          if (status === 'Shipped') emoji = "🚚";
-          if (status === 'Delivered') emoji = "🎉";
-          if (status === 'Cancelled') emoji = "❌";
 
-          const payload = {
-            notification: {
-              title: `Order ${status} ${emoji}`,
-              body: `Your MaxGlow order #${updatedOrder._id.toString().slice(-6).toUpperCase()} is now ${status}.`
-            }
-          };
-
-          await admin.messaging().sendEachForMulticast({
-            tokens: orderUser.fcmTokens,
-            notification: payload.notification
-          });
-        }
-      }
-    } catch (fcmError) {
-      console.error('FCM Notification failed:', fcmError);
-    }
-    // -----------------------------------
 
     res.json({ success: true, order: updatedOrder });
   } catch (error) {

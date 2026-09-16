@@ -1,7 +1,9 @@
 import mongoose from 'mongoose';
 
 const orderItemSchema = new mongoose.Schema({
-  product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
+  itemType: { type: String, enum: ['Product', 'Combo'], default: 'Product' },
+  product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
+  combo: { type: mongoose.Schema.Types.ObjectId, ref: 'Combo' },
   name: { type: String, required: true },
   quantity: { type: Number, required: true, min: 1 },
   price: { type: Number, required: true, min: 0 } // Price at the time of purchase

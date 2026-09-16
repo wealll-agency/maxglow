@@ -217,7 +217,7 @@ export default function CheckoutPage() {
     }
 
     const orderData = {
-      items: items.map(i => ({ product: i.product, name: i.name, quantity: i.quantity, price: i.price })),
+      items: items.map(i => ({ itemType: i.itemType || 'Product', product: i.product || undefined, combo: i.combo || undefined, name: i.name, quantity: i.quantity, price: i.price })),
       deliveryAddress: {
         name: addressObj.name || user.name || 'Guest Customer',
         phone: addressObj.phone || user.phone || '9999999999',

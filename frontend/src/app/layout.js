@@ -11,7 +11,7 @@ import { NotificationProvider } from '../context/NotificationContext';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
-import FCMProvider from '../components/FCMProvider';
+
 
 const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-inter' });
 const outfit = Outfit({ subsets: ['latin'], display: 'swap', variable: '--font-outfit' });
@@ -57,7 +57,7 @@ export default function RootLayout({ children }) {
       <body className={`${inter.variable} ${outfit.variable} ${inter.className}`}>
         <ReduxProvider>
           <NotificationProvider>
-            <FCMProvider>
+
               <Suspense fallback={null}>
                 <ScrollToTop />
               </Suspense>
@@ -66,7 +66,7 @@ export default function RootLayout({ children }) {
               {children}
             </main>
             <ConditionalFooter />
-            </FCMProvider>
+
           </NotificationProvider>
         </ReduxProvider>
         <Script 
