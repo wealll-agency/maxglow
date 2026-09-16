@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 import React, { useState, useEffect, Suspense, memo } from 'react';
 import { useParams, useRouter } from 'next/navigation';

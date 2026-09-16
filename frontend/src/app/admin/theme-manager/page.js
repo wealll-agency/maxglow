@@ -128,6 +128,7 @@ export default function ThemeManagerPage() {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getImageUrl = (url) => {

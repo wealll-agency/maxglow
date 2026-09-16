@@ -44,6 +44,7 @@ export default function AdminComboCreatePage() {
     if (isModalOpen) {
       handleSearch();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isModalOpen]);
 
   const handleSearch = async (query = searchQuery) => {

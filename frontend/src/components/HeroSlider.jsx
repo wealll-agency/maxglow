@@ -216,6 +216,7 @@ export default function HeroSlider({ initialImages = [], initialMobileImages = [
                             <source media="(min-width: 992px)" srcSet={desktopSrcSet} />
                             <img
                               {...desktopRest}
+                              alt="Hero Banner"
                               style={{
                                 width: '100%',
                                 height: '100%',

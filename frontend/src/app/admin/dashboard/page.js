@@ -138,6 +138,7 @@ export default function DashboardPage() {
                       width={40}
                       height={40}
                       className="rounded object-fit-cover"
+                      style={{ width: '40px', height: 'auto' }}
                       unoptimized={true}
                     />
                     <div>

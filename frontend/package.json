@@ -4,8 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev -p 7053",
-    "build": "next build",
+    "clean": "node -e \"fs.rmSync('.next', {recursive:true, force:true})\"",
+    "dev": "npm run clean && next dev -p 7053",
+    "build": "npm run clean && next build",
     "start": "next start -p 7053",
     "lint": "next lint"
   },
@@ -29,7 +30,7 @@
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
-    "eslint": "^9.39.5",
-    "eslint-config-next": "^16.3.0"
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^14.2.35"
   }
 }

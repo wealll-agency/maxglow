@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, Save, Plus, Trash2, Search, UploadCloud, X, Star, Check, Package } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, Search, UploadCloud, X, Star, Check, Package, Gift } from 'lucide-react';
 import api from '../../../../utils/axiosConfig';
 import { useNotification } from '../../../../context/NotificationContext';
 import { createPortal } from 'react-dom';
@@ -43,6 +43,7 @@ export default function AdminComboEditPage() {
 
   useEffect(() => {
     fetchCombo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const fetchCombo = async () => {
@@ -78,6 +79,7 @@ export default function AdminComboEditPage() {
 
   useEffect(() => {
     if (isModalOpen) handleSearch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isModalOpen]);
 
   const handleSearch = async (query = searchQuery) => {

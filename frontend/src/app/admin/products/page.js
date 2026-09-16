@@ -1014,7 +1014,7 @@ export default function AdminProductsPage() {
                               className="rounded object-fit-cover"
                               width={36}
                               height={36}
-                              style={{ width: '36px', height: '36px' }}
+                              style={{ width: '36px', height: 'auto' }}
                             />
                             <span className="fw-bold text-dark">{prod.name}</span>
                           </div>

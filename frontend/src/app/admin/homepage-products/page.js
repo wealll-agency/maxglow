@@ -92,6 +92,7 @@ export default function HomepageProductsPage() {
         }
       })
       .catch(err => console.error("Failed to load settings:", err));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
 
   const handleCreateSection = async () => {
