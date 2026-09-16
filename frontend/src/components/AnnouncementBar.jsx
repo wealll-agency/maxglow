@@ -35,7 +35,6 @@ const AnnouncementBar = () => {
           {/* Right links */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0', borderLeft: '1px solid rgba(93,174,255,0.3)', flexShrink: 0 }}>
             {[
-              { icon: <FiGift size={12} />, label: 'Gift Card', href: '#' },
               { icon: <FiHelpCircle size={12} />, label: 'Help', href: '/contact' },
             ].map((item, i) => (
               <Link

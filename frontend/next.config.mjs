@@ -39,6 +39,8 @@ const nextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 2592000, // 30 days — safe because S3 URLs include timestamp (unique per upload)
     remotePatterns: [
+      { protocol: 'http', hostname: 'localhost', port: '7052' },
+      { protocol: 'http', hostname: '127.0.0.1', port: '7052' },
       { protocol: 'https', hostname: 'images.unsplash.com' },
       { protocol: 'https', hostname: 'via.placeholder.com' },
       { protocol: 'https', hostname: 'placehold.co' },

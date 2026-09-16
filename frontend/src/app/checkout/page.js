@@ -396,32 +396,32 @@ export default function CheckoutPage() {
               padding-top: 1.5rem !important;
               padding-bottom: 95px !important;
             }
-          h4.fw-bold, h5.fw-bold {
-            font-size: 15px !important;
-            margin-bottom: 12px !important;
-            gap: 8px !important;
+            h4.fw-bold, h5.fw-bold {
+              font-size: 15px !important;
+              margin-bottom: 12px !important;
+              gap: 8px !important;
+            }
+            h4.fw-bold div, h5.fw-bold div {
+              padding: 6px !important;
+              border-radius: 8px !important;
+            }
           }
-          h4.fw-bold div, h5.fw-bold div {
-            padding: 6px !important;
-            border-radius: 8px !important;
-          }
+
           .mobile-sticky-checkout-btn-wrapper {
             display: none;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
             background: #ffffff;
             border-top: 1px solid #e2e8f0;
             box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
             padding: 12px 16px;
             padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-            z-index: 1020;
-            transform: translate3d(0, 0, 0);
-            -webkit-transform: translate3d(0, 0, 0);
-            will-change: transform;
+            z-index: 9999 !important;
             box-sizing: border-box;
           }
+
           @media (max-width: 768px) {
             .mobile-sticky-checkout-btn-wrapper {
               display: block !important;
