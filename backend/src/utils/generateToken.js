@@ -16,12 +16,12 @@ const generateToken = (res, userId, rememberMe = true, role = 'Customer') => {
     { expiresIn: tokenExpiration }
   );
 
-  const isProd = process.env.NODE_ENV === 'production' || process.env.COOKIE_SECURE === 'true';
+  const isProd = process.env.NODE_ENV === 'production' || process.env.COOKIE_SECURE === 'true' || !!process.env.COOKIE_DOMAIN;
   const cookieOptions = {
     httpOnly: true,
     secure: isProd,
     sameSite: 'lax',
-    ...(isProd && { domain: process.env.COOKIE_DOMAIN || '.maxglow.in' })
+    ...(process.env.COOKIE_DOMAIN ? { domain: process.env.COOKIE_DOMAIN } : {})
   };
 
   const maxAgeMs = isAdmin ? 7 * 24 * 60 * 60 * 1000 : 100 * 365 * 24 * 60 * 60 * 1000;

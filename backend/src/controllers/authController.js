@@ -124,12 +124,12 @@ export const logoutUser = async (req, res, next) => {
     if (req.user) {
       await logActivity(req.user._id, 'LOGOUT', `User logged out`, req);
     }
-    const isProd = process.env.NODE_ENV === 'production' || process.env.COOKIE_SECURE === 'true';
+    const isProd = process.env.NODE_ENV === 'production' || process.env.COOKIE_SECURE === 'true' || !!process.env.COOKIE_DOMAIN;
     const cookieOptions = {
       httpOnly: true,
       secure: isProd,
       sameSite: 'lax',
-      ...(isProd && { domain: process.env.COOKIE_DOMAIN || '.maxglow.in' }),
+      ...(process.env.COOKIE_DOMAIN ? { domain: process.env.COOKIE_DOMAIN } : {}),
       expires: new Date(0)
     };
     res.cookie('token', '', cookieOptions);
@@ -173,14 +173,14 @@ export const refreshTokenUser = async (req, res, next) => {
       { expiresIn: tokenExpiration }
     );
 
-    const isProd = process.env.NODE_ENV === 'production' || process.env.COOKIE_SECURE === 'true';
+    const isProd = process.env.NODE_ENV === 'production' || process.env.COOKIE_SECURE === 'true' || !!process.env.COOKIE_DOMAIN;
     const maxAgeMs = isAdmin ? 7 * 24 * 60 * 60 * 1000 : 100 * 365 * 24 * 60 * 60 * 1000;
     
     res.cookie('token', accessToken, {
       httpOnly: true,
       secure: isProd,
       sameSite: 'lax',
-      ...(isProd && { domain: process.env.COOKIE_DOMAIN || '.maxglow.in' }),
+      ...(process.env.COOKIE_DOMAIN ? { domain: process.env.COOKIE_DOMAIN } : {}),
       maxAge: maxAgeMs
     });
 
