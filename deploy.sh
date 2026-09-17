@@ -1,6 +1,14 @@
 #!/bin/bash
 set -euo pipefail
 
+# Production environment safety guard
+if [ "${MAXGLOW_PRODUCTION:-}" != "true" ]; then
+    echo "❌ FATAL: deploy.sh MUST be executed ONLY on the production Linux VPS."
+    echo "To run this script on the VPS, ensure MAXGLOW_PRODUCTION=true is set in your VPS environment."
+    echo "Aborting deployment to prevent accidental local execution."
+    exit 1
+fi
+
 echo "========================================="
 echo "🚀 Starting MaxGlow Atomic Deployment"
 echo "========================================="

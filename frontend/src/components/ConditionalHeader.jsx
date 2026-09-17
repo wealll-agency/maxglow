@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import Header from './Header';
 import AnnouncementBar from './AnnouncementBar';
 
-export default function ConditionalHeader() {
+export default function ConditionalHeader({ initialNotificationSettings }) {
   const pathname = usePathname();
 
   if (pathname && pathname.startsWith('/admin')) {
@@ -13,7 +13,7 @@ export default function ConditionalHeader() {
 
   return (
     <>
-      <AnnouncementBar />
+      <AnnouncementBar initialSettings={initialNotificationSettings} />
       <Header />
     </>
   );

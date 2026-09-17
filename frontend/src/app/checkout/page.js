@@ -153,17 +153,20 @@ export default function CheckoutPage() {
     if (!isMounted || !isHydrated || isCartSyncing) return;
     // Redirect if cart is empty after hydration and API sync completes
     if (items.length === 0) {
-      router.push('/shop');
+      window.location.href = '/shop';
     }
-  }, [items, router, isMounted, isHydrated, isCartSyncing]);
+  }, [items, isMounted, isHydrated, isCartSyncing]);
 
   if (!isMounted || !isHydrated || isCartSyncing || items.length === 0) {
+    const isEmptyRedirect = isMounted && isHydrated && !isCartSyncing && items.length === 0;
     return (
       <div className="container py-5 text-center d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '60vh' }}>
         <div className="spinner-border text-success mb-3" role="status">
-          <span className="visually-hidden">Loading checkout...</span>
+          <span className="visually-hidden">{isEmptyRedirect ? 'Redirecting...' : 'Loading checkout...'}</span>
         </div>
-        <p className="text-muted">Loading checkout details...</p>
+        <p className="text-muted fw-semibold">
+          {isEmptyRedirect ? 'Your cart is empty. Redirecting to shop...' : 'Loading checkout details...'}
+        </p>
       </div>
     );
   }
@@ -496,7 +499,7 @@ export default function CheckoutPage() {
         }
       `}</style>
 
-      <div className="row g-5">
+      <div className="row g-5 align-items-start">
         
         {/* Left Side: Delivery Address + Payment method */}
         <div className="col-lg-7">
@@ -754,9 +757,9 @@ export default function CheckoutPage() {
         </div>
 
         {/* Right Side: Order summary review */}
-        <div className="col-lg-5 mt-4 mt-lg-0">
-          <div className="glass-box p-4 sticky-lg-top" style={{ top: '24px', zIndex: 1 }}>
-            <h4 className="fw-bold mb-4 display-font text-dark d-flex align-items-center gap-2">
+        <div className="col-lg-5 mt-4 mt-lg-0 pt-0">
+          <div className="glass-box p-4 sticky-lg-top m-0" style={{ top: '24px', zIndex: 1 }}>
+            <h4 className="fw-bold mb-4 display-font text-dark d-flex align-items-center gap-2" style={{ margin: 0 }}>
               <ShoppingBag size={22} color="#4A90E2" /> Review Order
             </h4>
 
