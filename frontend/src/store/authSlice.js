@@ -165,6 +165,7 @@ const authSlice = createSlice({
           localStorage.removeItem('maxglow_user');
           localStorage.removeItem('maxglow_token');
           localStorage.removeItem('admin_token');
+          window.location.href = '/login';
         }
       })
       // Update Profile

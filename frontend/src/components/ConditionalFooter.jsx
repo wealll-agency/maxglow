@@ -8,16 +8,8 @@ import Footer from './Footer';
 export default function ConditionalFooter() {
   const pathname = usePathname();
   
-  if (pathname && (pathname.startsWith('/admin') || pathname.startsWith('/checkout'))) {
+  if (pathname && (pathname.startsWith('/admin') || pathname.startsWith('/checkout') || pathname === '/login' || pathname === '/register')) {
     return null;
-  }
-  
-  if (pathname === '/login' || pathname === '/register') {
-    return (
-      <div className="d-none d-md-block">
-        <Footer />
-      </div>
-    );
   }
   
   return <Footer />;
