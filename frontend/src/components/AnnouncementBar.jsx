@@ -1,34 +1,73 @@
 "use client";
-import React, { memo } from 'react';
+import React, { memo, useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { FiSmartphone, FiMapPin, FiGift, FiHelpCircle } from 'react-icons/fi';
-
+import { fetchSystemSettings } from '../utils/settingsCache';
 
 const AnnouncementBar = () => {
-  const messages = [
-    '🌿 MaxGlow Grand Sale — Up to 60% OFF on Premium Herbal Products! Shop Now!',
-    '🎁 Free Gift on orders above ₹999',
-    '💧 Monsoon Wellness Sale — Extra 15% OFF Sitewide!',
-    '✅ 100% Herbal | Toxin Free | Safe & Natural',
-    '🌿 MaxGlow Grand Sale — Up to 60% OFF on Premium Herbal Products! Shop Now!',
-    '🎁 Free Gift on orders above ₹999',
-    '💧 Monsoon Wellness Sale — Extra 15% OFF Sitewide!',
-    '✅ 100% Herbal | Toxin Free | Safe & Natural',
-  ];
+  const pathname = usePathname();
+  const [settings, setSettings] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    const getSettings = async () => {
+      try {
+        const res = await fetchSystemSettings();
+        if (mounted && res && res.settings && res.settings.notification_settings) {
+          setSettings(res.settings.notification_settings);
+        } else if (mounted) {
+          setSettings({
+            text: '🌿 MaxGlow Grand Sale — Up to 60% OFF on Premium Herbal Products! Shop Now!',
+            bgColor: '#DDF4FF',
+            textColor: '#2d6a4f',
+            speed: 30
+          });
+        }
+      } catch (error) {
+        console.error("Failed to load notification settings", error);
+        if (mounted) {
+          setSettings({
+            text: '🌿 MaxGlow Grand Sale — Up to 60% OFF on Premium Herbal Products! Shop Now!',
+            bgColor: '#DDF4FF',
+            textColor: '#2d6a4f',
+            speed: 30
+          });
+        }
+      }
+    };
+    getSettings();
+    return () => { mounted = false; };
+  }, [pathname]);
+
+  if (!settings) {
+    return <div style={{ height: '37px', width: '100%' }}></div>;
+  }
 
   return (
     <>
       {/* Top Announcement Bar */}
-      <div className="bg-mg-announcement" style={{ borderBottom: '1px solid rgba(93,174,255,0.2)' }}>
+      <div style={{ backgroundColor: settings.bgColor, borderBottom: '1px solid rgba(93,174,255,0.2)' }}>
         <div style={{ display: 'flex', alignItems: 'center', height: '36px', overflow: 'hidden' }}>
           {/* Scrolling messages - left side */}
           <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
-            <div className="announcement-scroll">
-              {messages.map((msg, i) => (
-                <span key={i} style={{ fontSize: '12px', fontWeight: '500', color: '#2d6a4f', whiteSpace: 'nowrap', paddingRight: '3rem' }}>
-                  {msg}
-                </span>
-              ))}
+            <div style={{ display: 'inline-flex', animation: `scroll-left ${settings.speed}s linear infinite` }}>
+              {/* First Half */}
+              <div style={{ display: 'inline-flex', gap: '3rem', paddingRight: '3rem' }}>
+                {[...Array(15)].map((_, i) => (
+                  <span key={`a-${i}`} style={{ fontSize: '12px', fontWeight: '500', color: settings.textColor, whiteSpace: 'nowrap' }}>
+                    {settings.text}
+                  </span>
+                ))}
+              </div>
+              {/* Second Half (Duplicate) */}
+              <div style={{ display: 'inline-flex', gap: '3rem', paddingRight: '3rem' }}>
+                {[...Array(15)].map((_, i) => (
+                  <span key={`b-${i}`} style={{ fontSize: '12px', fontWeight: '500', color: settings.textColor, whiteSpace: 'nowrap' }}>
+                    {settings.text}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
 

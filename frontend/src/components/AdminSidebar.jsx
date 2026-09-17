@@ -18,6 +18,7 @@ import api from '../utils/axiosConfig';
 export default function AdminSidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isRefundOpen, setIsRefundOpen] = useState(false);
+  const [isPromoOpen, setIsPromoOpen] = useState(false);
   const [counts, setCounts] = useState({ orders: 0, refunds: 0, enquiries: 0 });
   const [badges, setBadges] = useState({ orders: 0, refunds: 0, enquiries: 0 });
   const [refundDetails, setRefundDetails] = useState({ pending: 0, approved: 0, refunded: 0, rejected: 0 });
@@ -103,10 +104,9 @@ export default function AdminSidebar() {
     { label: 'Enquiries', path: '/admin/enquiries', icon: <MessageSquare size={20} />, id: 'enquiries', badge: badges.enquiries },
     { label: 'Product Manager', path: '/admin/products', icon: <ShoppingBag size={20} /> },
     { label: 'Orders Queue', path: '/admin/orders', icon: <ShoppingCart size={20} />, id: 'orders', badge: badges.orders },
-    { label: 'Combo Manager', path: '/admin/combos', icon: <Layers size={20} /> },
     { label: 'Inventory Manager', path: '/admin/inventory', icon: <ClipboardList size={20} /> },
     { label: 'Theme Manager', path: '/admin/theme-manager', icon: <Palette size={20} /> },
-    { label: 'Coupon Manager', path: '/admin/coupons', icon: <Tag size={20} /> },
+    { label: 'Promotional Manager', path: '/admin/promotional-manager', icon: <Tag size={20} /> },
     { label: 'Homepage Products', path: '/admin/homepage-products', icon: <LayoutDashboard size={20} /> },
     { label: 'Warehouses', path: '/admin/warehouses', icon: <MapPin size={20} /> },
     { 
@@ -202,7 +202,10 @@ export default function AdminSidebar() {
                   <div key={item.label} className="w-100">
                     <button
                       onClick={() => {
-                        !isCollapsed && setIsRefundOpen(!isRefundOpen);
+                        if (!isCollapsed) {
+                          if (item.label === 'Refund Requests') setIsRefundOpen(!isRefundOpen);
+                          if (item.label === 'Promotional Manager') setIsPromoOpen(!isPromoOpen);
+                        }
                         handleNavClick(item.id);
                       }}
                       className={`sidebar-nav-link w-100 border-0 ${isSubmenuActive ? 'active' : ''}`}
@@ -233,7 +236,8 @@ export default function AdminSidebar() {
                               {item.badge}
                             </span>
                           )}
-                          {isRefundOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                          {item.label === 'Refund Requests' ? (isRefundOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />) : 
+                           item.label === 'Promotional Manager' ? (isPromoOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />) : null}
                         </div>
                       )}
                     </button>
@@ -243,12 +247,12 @@ export default function AdminSidebar() {
                       <div 
                         className="d-flex flex-column gap-1 ms-4 ps-2 border-start border-white border-opacity-25"
                         style={{
-                          maxHeight: isRefundOpen ? '300px' : '0px',
+                          maxHeight: (item.label === 'Refund Requests' && isRefundOpen) || (item.label === 'Promotional Manager' && isPromoOpen) ? '300px' : '0px',
                           overflow: 'hidden',
                           transition: 'all 0.3s ease-in-out',
-                          opacity: isRefundOpen ? 1 : 0,
-                          marginTop: isRefundOpen ? '4px' : '0px',
-                          visibility: isRefundOpen ? 'visible' : 'hidden'
+                          opacity: (item.label === 'Refund Requests' && isRefundOpen) || (item.label === 'Promotional Manager' && isPromoOpen) ? 1 : 0,
+                          marginTop: (item.label === 'Refund Requests' && isRefundOpen) || (item.label === 'Promotional Manager' && isPromoOpen) ? '4px' : '0px',
+                          visibility: (item.label === 'Refund Requests' && isRefundOpen) || (item.label === 'Promotional Manager' && isPromoOpen) ? 'visible' : 'hidden'
                         }}
                       >
                         {item.subItems.map(subItem => {

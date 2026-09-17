@@ -22,7 +22,13 @@ function ShopDetailsContent({ initialProduct }) {
   const { items: products, selectedProduct, reviews, reviewsLoading, loading, detailsLoading } = useSelector((state) => state.products);
   const wishlistItems = useSelector((state) => state.wishlist?.items || []);
   const { user } = useSelector((state) => state.auth);
-  const isAdmin = user && (user.role === 'Super Admin' || user.role === 'Admin' || user.role === 'Manager' || user.role === 'Staff');
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isAdmin = mounted && user && (user.role === 'Super Admin' || user.role === 'Admin' || user.role === 'Manager' || user.role === 'Staff');
 
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
@@ -82,7 +88,7 @@ function ShopDetailsContent({ initialProduct }) {
 
   // 2. Resolve product
   let realProduct = initialProduct || null;
-  if (!realProduct) {
+  if (!realProduct && mounted) {
     if (productIdParam) {
       if (selectedProduct && (String(selectedProduct._id) === String(productIdParam) || selectedProduct.slug === productIdParam)) {
         realProduct = selectedProduct;
@@ -286,7 +292,7 @@ function ShopDetailsContent({ initialProduct }) {
       }
     };
 
-    const isInWishlist = wishlistItems.some(item => item._id === realProduct._id);
+    const isInWishlist = mounted && wishlistItems.some(item => item._id === realProduct._id);
     const images = realProduct.images && realProduct.images.length > 0 ? realProduct.images : ['/top_product1.png'];
     const mediaItems = [...images, ...(realProduct.videos || [])];
     const isVideo = (url) => url && (url.toLowerCase().endsWith('.mp4') || url.toLowerCase().endsWith('.webm') || (realProduct.videos && realProduct.videos.includes(url)));
@@ -859,7 +865,7 @@ function ShopDetailsContent({ initialProduct }) {
             </div>
 
             {/* Recommended Products Section */}
-            {recommendedList.length > 0 && (
+            {mounted && recommendedList.length > 0 && (
               <div style={{ marginTop: '40px', marginBottom: '40px' }}>
                 <div style={{ borderBottom: '1px solid #e2e8f0', marginBottom: '24px', paddingBottom: '12px' }}>
                   <h2 style={{ fontFamily: 'var(--font-outfit)', fontSize: '20px', fontWeight: '800', color: '#1a2332', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>

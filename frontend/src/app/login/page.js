@@ -55,7 +55,7 @@ function LoginContent() {
 
   return (
     <div style={{
-      minHeight: 'calc(100vh - 120px)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      minHeight: 'calc(100dvh - 101px)', display: 'flex', alignItems: 'center', justifyContent: 'center',
       background: 'linear-gradient(135deg, #EAF8FF 0%, #F7FBFD 40%, #DDF7E3 100%)',
       padding: '20px',
       position: 'relative', overflow: 'hidden',
@@ -64,7 +64,7 @@ function LoginContent() {
       <div style={{ position: 'absolute', top: '-100px', right: '-100px', width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(93,174,255,0.15) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', bottom: '-80px', left: '-80px', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(97,196,84,0.12) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
 
-      <div style={{ width: '100%', maxWidth: '440px', position: 'relative', zIndex: 1, marginTop: '-50px' }}>
+      <div style={{ width: '100%', maxWidth: '440px', position: 'relative', zIndex: 1, marginTop: '-120px' }}>
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '20px' }}>
           <Link href="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', height: '40px' }}>

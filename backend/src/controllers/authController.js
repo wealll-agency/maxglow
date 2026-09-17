@@ -421,7 +421,7 @@ export const getSystemSettings = async (req, res, next) => {
       });
     }
 
-    const keys = ['cod', 'refund', 'topSellingSource', 'media_hero', 'media_hero_mobile', 'media_new_arrivals', 'media_new_arrivals_mobile', 'media_trending_banner', 'media_trending_banner_mobile', 'media_offers', 'media_category_banner', 'media_category_banners', 'media_reels', 'about_page_content', 'media_shop_by_products', 'media_combo_banner'];
+    const keys = ['cod', 'refund', 'topSellingSource', 'media_hero', 'media_hero_mobile', 'media_new_arrivals', 'media_new_arrivals_mobile', 'media_trending_banner', 'media_trending_banner_mobile', 'media_offers', 'media_category_banner', 'media_category_banners', 'media_reels', 'about_page_content', 'media_shop_by_products', 'media_combo_banner', 'notification_settings'];
     const docs = await SystemSetting.find({ key: { $in: keys } }).lean();
     const map = new Map(docs.map(d => [d.key, d.value]));
 
@@ -442,6 +442,7 @@ export const getSystemSettings = async (req, res, next) => {
       about_page_content: map.has('about_page_content') ? map.get('about_page_content') : null,
       media_shop_by_products: map.has('media_shop_by_products') ? map.get('media_shop_by_products') : null,
       media_combo_banner: map.has('media_combo_banner') ? map.get('media_combo_banner') : null,
+      notification_settings: map.has('notification_settings') ? map.get('notification_settings') : null,
     };
 
     cachedSettings = settings;
@@ -481,7 +482,8 @@ export const updateSystemSettings = async (req, res, next) => {
         { key: 'media_reels', type: 'array' },
         { key: 'about_page_content', type: 'object' },
         { key: 'media_shop_by_products', type: 'array' },
-        { key: 'media_combo_banner', type: 'string' }
+        { key: 'media_combo_banner', type: 'string' },
+        { key: 'notification_settings', type: 'object' }
       ];
 
       for (const field of keysToUpdate) {
