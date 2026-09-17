@@ -10,7 +10,7 @@
   },
   "overrides": {
     "exceljs": {
-      "uuid": "latest"
+      "uuid": "^11.1.1"
     }
   },
   "scripts": {
