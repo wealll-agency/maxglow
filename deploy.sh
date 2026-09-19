@@ -53,7 +53,6 @@ npm ls --depth=0 --prefix frontend || echo "Warning: Dependency tree issues dete
 
 echo "🧹 Purging stale Next.js cache..."
 rm -rf frontend/.next
-
 echo "🔍 Loading frontend environment variables..."
 if [ -f "$RELEASE_DIR/.env" ]; then
     export NEXT_PUBLIC_APP_URL=$(grep "^NEXT_PUBLIC_APP_URL=" "$RELEASE_DIR/.env" | cut -d '=' -f2- | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")
@@ -65,7 +64,6 @@ if [ -z "${NEXT_PUBLIC_APP_URL:-}" ]; then
     echo "SEO features require a valid domain. Aborting deployment."
     exit 1
 fi
-
 echo "🔨 Building frontend..."
 if ! npm run build --prefix frontend; then
     echo "❌ FATAL: Frontend build failed. Aborting deployment to protect live state."

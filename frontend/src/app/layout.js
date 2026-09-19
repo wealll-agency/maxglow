@@ -45,7 +45,22 @@ export const viewport = {
   themeColor: '#4A90E2',
 };
 
-export default function RootLayout({ children }) {
+async function getNotificationSettings() {
+  try {
+    const url = `${process.env.NEXT_PUBLIC_API_URL}/auth/settings`;
+    const res = await fetch(url, { next: { revalidate: 60 } });
+    if (res.ok) {
+      const data = await res.json();
+      return data?.settings?.notification_settings || null;
+    }
+  } catch (err) {
+    console.error("Layout fetch failed:", err.message);
+  }
+  return null;
+}
+
+export default async function RootLayout({ children }) {
+  const initialNotificationSettings = await getNotificationSettings();
   return (
     <html lang="en" data-scroll-behavior="smooth">
       <head>
@@ -61,7 +76,7 @@ export default function RootLayout({ children }) {
               <Suspense fallback={null}>
                 <ScrollToTop />
               </Suspense>
-            <ConditionalHeader />
+            <ConditionalHeader initialNotificationSettings={initialNotificationSettings} />
             <main>
               {children}
             </main>

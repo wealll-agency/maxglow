@@ -31,7 +31,7 @@ const NewArrivalBanner = () => {
   }, []);
 
   return (
-    <section className="mg-section-spacing" style={{ background: 'white', paddingBottom: '10px' }}>
+    <section className="mg-section-spacing" style={{ background: 'white' }}>
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
         
         {/* Banner Card */}

@@ -5,9 +5,20 @@ import { usePathname } from 'next/navigation';
 import { FiSmartphone, FiMapPin, FiGift, FiHelpCircle } from 'react-icons/fi';
 import { fetchSystemSettings } from '../utils/settingsCache';
 
-const AnnouncementBar = () => {
+const AnnouncementBar = ({ initialSettings }) => {
   const pathname = usePathname();
-  const [settings, setSettings] = useState(null);
+  const [settings, setSettings] = useState(initialSettings || {
+    text: '🌿 MaxGlow Grand Sale — Up to 60% OFF on Premium Herbal Products! Shop Now!',
+    bgColor: '#DDF4FF',
+    textColor: '#2d6a4f',
+    speed: 30
+  });
+
+  useEffect(() => {
+    if (initialSettings) {
+      setSettings(initialSettings);
+    }
+  }, [initialSettings]);
 
   useEffect(() => {
     let mounted = true;
@@ -16,24 +27,9 @@ const AnnouncementBar = () => {
         const res = await fetchSystemSettings();
         if (mounted && res && res.settings && res.settings.notification_settings) {
           setSettings(res.settings.notification_settings);
-        } else if (mounted) {
-          setSettings({
-            text: '🌿 MaxGlow Grand Sale — Up to 60% OFF on Premium Herbal Products! Shop Now!',
-            bgColor: '#DDF4FF',
-            textColor: '#2d6a4f',
-            speed: 30
-          });
         }
       } catch (error) {
         console.error("Failed to load notification settings", error);
-        if (mounted) {
-          setSettings({
-            text: '🌿 MaxGlow Grand Sale — Up to 60% OFF on Premium Herbal Products! Shop Now!',
-            bgColor: '#DDF4FF',
-            textColor: '#2d6a4f',
-            speed: 30
-          });
-        }
       }
     };
     getSettings();

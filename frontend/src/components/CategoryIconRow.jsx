@@ -9,12 +9,12 @@ import { getImageUrl } from '../utils/imageConfig';
 import { fetchSystemSettings } from '../utils/settingsCache';
 
 export const defaultShopByProducts = [
-  { label: 'Skin Care', image: '/category-icons/skin-care.png', query: 'Skin Care', color: '#DDF4FF', glowColor: 'rgba(74, 144, 226, 0.35)' },
-  { label: 'Hair Care', image: '/category-icons/hair-care.png', query: 'Hair Care', color: '#DDF7E3', glowColor: 'rgba(59, 174, 86, 0.35)' },
+  { label: 'Skin Care', image: '/category-icons/skin-care.png', query: 'Face|Skin', color: '#DDF4FF', glowColor: 'rgba(74, 144, 226, 0.35)' },
+  { label: 'Hair Care', image: '/category-icons/hair-care.png', query: 'Hair|Shampoo|Tonic', color: '#DDF7E3', glowColor: 'rgba(59, 174, 86, 0.35)' },
   { label: 'Serum', image: '/category-icons/wellness.png', query: 'Serum', color: '#F0E6FF', glowColor: 'rgba(155, 81, 224, 0.35)' },
-  { label: 'Sheet Mask', image: '/category-icons/baby-care.png', query: 'Sheet Mask', color: '#FFF0F5', glowColor: 'rgba(255, 105, 180, 0.35)' },
-  { label: 'Combos', image: '/category-icons/combos.png', query: 'Combo', color: '#E8F5E9', glowColor: 'rgba(46, 125, 50, 0.35)' },
-  { label: 'Gifting', image: '/category-icons/gifting.png', query: 'Gifting', color: '#FFF8E1', glowColor: 'rgba(255, 160, 0, 0.35)' },
+  { label: 'Sheet Mask', image: '/category-icons/baby-care.png', query: 'Mask', color: '#FFF0F5', glowColor: 'rgba(255, 105, 180, 0.35)' },
+  { label: 'Combos', image: '/category-icons/combos.png', query: 'Kit|Combo', color: '#E8F5E9', glowColor: 'rgba(46, 125, 50, 0.35)' },
+  { label: 'Gifting', image: '/category-icons/gifting.png', query: 'Kit|Gift', color: '#FFF8E1', glowColor: 'rgba(255, 160, 0, 0.35)' },
   { label: 'Offers', image: '/category-icons/offers.png', query: 'sale', color: '#FFEBEE', isOffer: true, glowColor: 'rgba(239, 68, 68, 0.35)' },
 ];
 
@@ -63,7 +63,7 @@ const CategoryIconRow = ({ initialCategories = null }) => {
         </div>
         <div className="category-icon-row-container">
           {categories.map((cat, idx) => {
-            const targetHref = cat.isOffer || String(cat.query).toLowerCase() === 'sale' ? '/shop' : `/shop?category=${encodeURIComponent(cat.query || cat.label)}`;
+            const targetHref = cat.isOffer || String(cat.query).toLowerCase() === 'sale' ? '/shop' : `/shop?keyword=${encodeURIComponent(cat.query || cat.label)}`;
             return (
               <Link
                 key={idx}
