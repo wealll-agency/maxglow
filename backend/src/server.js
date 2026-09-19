@@ -1,5 +1,4 @@
-import express from 'express';
-// UI Sync // Trigger restart
+import express from 'express'; // Trigger restart
 import 'express-async-errors'; // Catch async route errors
 import dotenv from 'dotenv';
 import dns from 'dns';
