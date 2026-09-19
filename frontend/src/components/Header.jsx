@@ -124,14 +124,18 @@ const Header = () => {
   };
 
   const navLinks = [
-    { href: '/shop', label: 'SHOP', icon: <FiShoppingBag size={16} /> },
-    { href: '/shop?sort=bestselling', label: 'BESTSELLERS', icon: <Award size={16} /> },
-    { href: '/combos', label: 'COMBO BOX', icon: <FiGift size={16} /> },
-    { href: '/about', label: 'ABOUT', icon: <Leaf size={16} /> },
+    { href: '/shop', label: 'SHOP', icon: <FiShoppingBag size={14} /> },
+    { href: '/shop?sort=bestselling', label: 'BESTSELLERS', icon: <Award size={14} /> },
+    { href: '/combos', label: 'COMBO', icon: <FiGift size={14} /> },
+    { href: '/about', label: 'ABOUT', icon: <Leaf size={14} /> },
   ];
 
   return (
     <>
+      <style dangerouslySetInnerHTML={{ __html: `
+        .nav-logo { height: 40px; width: auto; object-fit: contain; }
+        @media (max-width: 768px) { .nav-logo { height: 32px !important; } }
+      `}} />
       <header
         style={{
           position: 'sticky',
@@ -169,10 +173,10 @@ const Header = () => {
                     href={link.href}
                     prefetch={true}
                     onMouseEnter={() => router.prefetch(link.href)}
-                    className={`mg-nav-icon-link ${isActive ? 'active' : ''}`}
+                    className={`mg-nav-link ${isActive ? 'active' : ''}`}
                     title={link.label}
                   >
-                    {link.icon}
+                    <span className="mg-nav-icon-wrap">{link.icon}</span>
                     <span className="mg-nav-text">{link.label}</span>
                   </Link>
                 );

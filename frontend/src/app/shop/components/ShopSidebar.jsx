@@ -25,6 +25,10 @@ export default function ShopSidebar({ serverCategories, isMobile = false, initia
     const params = new URLSearchParams(searchParams.toString());
     if (value) {
       params.set(key, value);
+      // Clear keyword if a strict category is selected to prevent conflicts
+      if (key === 'category') {
+        params.delete('keyword');
+      }
     } else {
       params.delete(key);
     }

@@ -9,7 +9,7 @@ const purposes = [
     icon: <Sparkles size={28} />,
     title: 'Skin Glow & Brightening',
     desc: 'Vitamin C, Aloe Vera, Neem — herbal actives for radiant skin',
-    link: '/shop?category=Skin+Care',
+    link: '/shop?keyword=Face|Skin|Glow',
     color: '#DDF4FF',
     accent: '#4A90E2',
   },
@@ -17,7 +17,7 @@ const purposes = [
     icon: <Leaf size={28} />,
     title: 'Hair Growth & Strength',
     desc: 'Biotin, Onion, Bhringraj — nourish your scalp naturally',
-    link: '/shop?category=Hair+Care',
+    link: '/shop?keyword=Hair|Shampoo|Tonic',
     color: '#DDF7E3',
     accent: '#3BAE56',
   },
@@ -25,7 +25,7 @@ const purposes = [
     icon: <Shield size={28} />,
     title: 'Face Serums & Actives',
     desc: 'Vitamin C, Niacinamide, Hyaluronic — target your skin concerns',
-    link: '/shop?category=Serum',
+    link: '/shop?keyword=Serum',
     color: '#F0E6FF',
     accent: '#8b5cf6',
   },
@@ -33,7 +33,7 @@ const purposes = [
     icon: <Heart size={28} />,
     title: 'Body Care & Moisture',
     desc: 'Shea Butter, Argan, Coconut — deeply hydrate your skin',
-    link: '/shop?category=Body+Care',
+    link: '/shop?keyword=Lotion|Soap|Body',
     color: '#FEF9E7',
     accent: '#f59e0b',
   },
@@ -42,9 +42,52 @@ const purposes = [
 const ShopByPurpose = () => {
   return (
     <section className="mg-section-spacing" style={{ background: 'linear-gradient(180deg, #F7FBFD 0%, white 100%)' }}>
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        .purpose-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+          gap: 24px;
+        }
+        @media (max-width: 768px) {
+          .purpose-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+          }
+          .purpose-card-inner {
+            padding: 16px 12px !important;
+            border-radius: 16px !important;
+          }
+          .purpose-icon-wrapper {
+            width: 40px !important;
+            height: 40px !important;
+            border-radius: 10px !important;
+            margin-bottom: 12px !important;
+          }
+          .purpose-icon-wrapper svg {
+            width: 20px;
+            height: 20px;
+          }
+          .purpose-card-title {
+            font-size: 13px !important;
+            margin-bottom: 6px !important;
+            line-height: 1.3 !important;
+          }
+          .purpose-card-desc {
+            font-size: 11px !important;
+            margin-bottom: 12px !important;
+            line-height: 1.4 !important;
+          }
+          .purpose-card-explore {
+            font-size: 11px !important;
+          }
+        }
+        `
+      }} />
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
         {/* Title */}
-        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
           <span className="mg-badge mg-badge-green" style={{ marginBottom: '12px', display: 'inline-block' }}>
             CURATED FOR YOU
           </span>

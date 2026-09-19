@@ -11,6 +11,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { FaMapMarkerAlt, FaCreditCard, FaMoneyBillWave, FaShieldAlt } from 'react-icons/fa';
 import { MapPin, CreditCard, ShoppingBag, Plus } from 'lucide-react';
+import { FiTag, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import MgButton from '../../components/ui/MgButton';
 import MgCard from '../../components/ui/MgCard';
 import { useNotification } from '../../context/NotificationContext';
@@ -38,6 +39,10 @@ export default function CheckoutPage() {
   const [couponInput, setCouponInput] = useState('');
   const [couponError, setCouponError] = useState('');
   const [couponSuccess, setCouponSuccess] = useState('');
+
+  const [publicCoupons, setPublicCoupons] = useState([]);
+  const [loadingCoupons, setLoadingCoupons] = useState(false);
+  const [showCouponsList, setShowCouponsList] = useState(false);
 
   useEffect(() => {
     if (removedCouponNotice) {
@@ -81,6 +86,21 @@ export default function CheckoutPage() {
       }
     };
     fetchGlobalSettings();
+
+    const fetchPublicCoupons = async () => {
+      setLoadingCoupons(true);
+      try {
+        const res = await api.get('/coupons/public');
+        if (res.data.success) {
+          setPublicCoupons(res.data.coupons);
+        }
+      } catch (err) {
+        console.error('Error fetching coupons', err);
+      } finally {
+        setLoadingCoupons(false);
+      }
+    };
+    fetchPublicCoupons();
     
     // Parse error from URL if redirected from CCAvenue failure
     if (typeof window !== 'undefined') {
@@ -264,18 +284,19 @@ export default function CheckoutPage() {
     }
   };
 
-  const handleApplyCoupon = async (e) => {
+  const handleApplyCoupon = async (e, codeOverride) => {
     if (e && e.preventDefault) e.preventDefault();
     setCouponError('');
     setCouponSuccess('');
     
-    if (!couponInput.trim()) {
+    const code = codeOverride || couponInput.trim();
+    if (!code) {
       setCouponError('Please enter a coupon code.');
       return;
     }
 
     try {
-      const response = await api.post(`/coupons/apply`, { code: couponInput.trim(), cartTotal: subtotal });
+      const response = await api.post(`/coupons/apply`, { code, cartTotal: subtotal });
       
       const applicableProductsList = response.data.applicableProducts || [];
 
@@ -757,8 +778,8 @@ export default function CheckoutPage() {
         </div>
 
         {/* Right Side: Order summary review */}
-        <div className="col-lg-5 mt-4 mt-lg-0 pt-0">
-          <div className="glass-box p-4 sticky-lg-top m-0" style={{ top: '24px', zIndex: 1 }}>
+        <div className="col-lg-5">
+          <div className="glass-box p-4 m-0">
             <h4 className="fw-bold mb-4 display-font text-dark d-flex align-items-center gap-2" style={{ margin: 0 }}>
               <ShoppingBag size={22} color="#4A90E2" /> Review Order
             </h4>
@@ -781,20 +802,76 @@ export default function CheckoutPage() {
               ))}
             </div>
 
-            {/* Coupon Entry */}
             <div className="mt-3 mb-4 border-top pt-3">
               <h6 className="fw-bold fs-7 mb-2 text-dark">Have a coupon?</h6>
-              <form onSubmit={handleApplyCoupon} className="d-flex gap-2">
+              <form onSubmit={handleApplyCoupon} className="d-flex gap-2 mb-2">
                 <input
                   type="text"
                   className="form-control form-control-sm form-control-brand"
                   value={couponInput}
-                  onChange={(e) => setCouponInput(e.target.value)}
+                  onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
                 />
                 <button type="submit" className="btn-mg-green btn-sm px-3" style={{ borderRadius: '8px', padding: '6px 16px', fontSize: '12px' }}>Apply</button>
               </form>
-              {couponError && <div className="text-danger fs-8 mt-1">{couponError}</div>}
-              {couponSuccess && <div className="text-success fs-8 mt-1">{couponSuccess}</div>}
+              <div 
+                onClick={() => setShowCouponsList(!showCouponsList)}
+                style={{ fontSize: '12px', color: '#4A90E2', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}
+              >
+                <FiTag size={14} /> {showCouponsList ? 'Hide Offers' : 'View all coupons & offers'} {showCouponsList ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+              </div>
+
+              {/* Collapsible Coupon List */}
+              {showCouponsList && (
+                <div className="mt-3">
+                  {loadingCoupons ? (
+                     <div className="text-muted fs-8">Loading offers...</div>
+                  ) : publicCoupons.length === 0 ? (
+                     <div className="text-muted fs-8">No offers available right now.</div>
+                  ) : (
+                    <div className="d-flex flex-column gap-2 mt-2 custom-scrollbar" style={{ maxHeight: '250px', overflowY: 'auto', paddingRight: '4px' }}>
+                       {publicCoupons.map(coupon => {
+                          const isApplied = couponCode === coupon.code;
+                          const isValid = subtotal >= coupon.minOrderValue;
+                          const potentialDiscount = coupon.discountType === 'flat' ? Math.min(coupon.flatDiscountAmount, subtotal) : Math.round((subtotal * coupon.discountPercentage) / 100);
+                          return (
+                            <div key={coupon._id} className="border rounded p-3 d-flex flex-column" style={{ background: isApplied ? '#ecfdf5' : (isValid ? '#f8fafc' : '#f1f5f9'), borderColor: isApplied ? '#34d399' : '#e2e8f0', transition: 'all 0.2s ease' }}>
+                              <div className="d-flex justify-content-between align-items-start mb-2">
+                                <div style={{ background: isApplied ? '#d1fae5' : (isValid ? '#EAF8FF' : '#e2e8f0'), color: isApplied ? '#059669' : (isValid ? '#4A90E2' : '#475569'), padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '700', border: isApplied ? '1px dashed #6ee7b7' : (isValid ? '1px dashed #bae6fd' : '1px dashed #cbd5e1') }}>
+                                  {coupon.code}
+                                </div>
+                                {isApplied ? (
+                                  <span style={{ fontSize: '11px', fontWeight: '700', color: '#059669' }}>Applied</span>
+                                ) : (
+                                  <button 
+                                    onClick={() => { setCouponInput(coupon.code); handleApplyCoupon({ preventDefault: () => {} }, coupon.code); }}
+                                    style={{ background: 'transparent', border: 'none', color: isValid ? '#3BAE56' : '#94a3b8', fontSize: '11px', fontWeight: '700', cursor: isValid ? 'pointer' : 'not-allowed', padding: 0 }}
+                                    disabled={!isValid}
+                                  >
+                                    {isValid ? 'Apply' : `Add ₹${(coupon.minOrderValue - subtotal).toFixed(0)}`}
+                                  </button>
+                                )}
+                              </div>
+                              <div style={{ fontSize: '12px', fontWeight: '700', color: '#1a2332', marginBottom: '2px' }}>
+                                {coupon.discountType === 'flat' ? `₹${coupon.flatDiscountAmount} OFF` : `${coupon.discountPercentage}% OFF`}
+                              </div>
+                              <div style={{ fontSize: '10px', color: '#64748b' }}>
+                                On orders above ₹{coupon.minOrderValue}
+                              </div>
+                              {isValid && !isApplied && (
+                                <div style={{ fontSize: '10px', fontWeight: '600', color: '#059669', marginTop: '4px' }}>
+                                  Save ₹{potentialDiscount} on this order!
+                                </div>
+                              )}
+                            </div>
+                          )
+                       })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {couponError && <div className="text-danger fs-8 mt-2">{couponError}</div>}
+              {couponSuccess && <div className="text-success fs-8 mt-2">{couponSuccess}</div>}
               {couponCode && (
                 <div className="d-flex justify-content-between align-items-center mt-3 bg-light p-2 rounded border">
                   <span className="fw-semibold text-success fs-7">Code: {couponCode}</span>

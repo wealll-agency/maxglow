@@ -40,12 +40,14 @@ else
 fi
 
 echo "📦 Installing backend dependencies..."
-npm install --omit=dev --prefix backend
+npm install --no-save --omit=dev --prefix backend
+git checkout backend/package-lock.json || true
 echo "🔍 Validating backend dependencies..."
 npm ls --omit=dev --depth=0 --prefix backend || echo "Warning: Dependency tree issues detected in backend"
 
 echo "📦 Installing frontend dependencies..."
-npm install --prefix frontend
+npm install --no-save --prefix frontend
+git checkout frontend/package-lock.json || true
 echo "🔍 Validating frontend dependencies..."
 npm ls --depth=0 --prefix frontend || echo "Warning: Dependency tree issues detected in frontend"
 

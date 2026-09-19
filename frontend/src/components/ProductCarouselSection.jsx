@@ -15,7 +15,7 @@ const ProductCarouselSection = ({ title, products = [], priority = false }) => {
     <section className="mg-section-spacing" style={{ background: 'white', position: 'relative', paddingTop: '20px', paddingBottom: '20px' }}>
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <h2 style={{
               fontFamily: 'var(--font-outfit), sans-serif',

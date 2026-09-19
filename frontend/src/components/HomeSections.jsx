@@ -49,7 +49,7 @@ export const NuttyDelightOffers = () => {
   return (
     <section className="mg-section-spacing" style={{ background: '#F7FBFD' }}>
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
           <h2 className="mg-section-title">Exclusive Herbal Offers</h2>
           <p className="mg-section-subtitle">Hand-picked deals on premium products</p>
         </div>
@@ -103,7 +103,7 @@ export const ShopByCategoryCards = memo(function ShopByCategoryCards() {
       name: 'Face Care',
       discount: 'UPTO 40% OFF',
       image: '/category_face_care_v2.png',
-      query: 'Skin Care',
+      query: 'Face|Skin',
       bg: '#EAF8FF',
       accent: '#4A90E2',
     },
@@ -111,7 +111,7 @@ export const ShopByCategoryCards = memo(function ShopByCategoryCards() {
       name: 'Hair Care',
       discount: 'UPTO 40% OFF',
       image: '/category_hair_care_v2.png',
-      query: 'Hair Care',
+      query: 'Hair|Shampoo|Tonic',
       bg: '#DDF7E3',
       accent: '#3BAE56',
     },
@@ -119,7 +119,7 @@ export const ShopByCategoryCards = memo(function ShopByCategoryCards() {
       name: 'Body Care',
       discount: 'UPTO 40% OFF',
       image: '/category_body_care_v2.png',
-      query: 'Body Care',
+      query: 'Lotion|Soap|Body',
       bg: '#FEF9E7',
       accent: '#f59e0b',
     },
@@ -134,7 +134,7 @@ export const ShopByCategoryCards = memo(function ShopByCategoryCards() {
   ];
 
   return (
-    <section className="mg-section-spacing" style={{ background: 'white', paddingTop: '10px' }}>
+    <section className="mg-section-spacing" style={{ background: 'white' }}>
       <style dangerouslySetInnerHTML={{
         __html: `
         .shop-by-cat-grid {
@@ -258,13 +258,13 @@ export const ShopByCategoryCards = memo(function ShopByCategoryCards() {
       ` }} />
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
         {/* Title with decorative lines */}
-        <div className="mg-divider" style={{ marginBottom: '40px' }}>
+        <div className="mg-divider" style={{ marginBottom: '20px' }}>
           <span className="mg-section-title" style={{ margin: 0 }}>Shop By Categories</span>
         </div>
 
         <div className="shop-by-cat-grid">
           {categories.map((cat, idx) => (
-            <Link key={idx} href={`/shop?category=${encodeURIComponent(cat.query)}`} style={{ textDecoration: 'none' }}>
+            <Link key={idx} href={`/shop?keyword=${encodeURIComponent(cat.query)}`} style={{ textDecoration: 'none' }}>
               <div
                 className="cat-card-container"
                 style={{
@@ -323,7 +323,7 @@ export const RecentBlogs = memo(function RecentBlogs() {
   return (
     <section className="mg-section-spacing" style={{ background: '#F7FBFD' }}>
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
           <h2 className="mg-section-title">From Our Blog</h2>
           <p className="mg-section-subtitle">Tips, guides and insights on herbal </p>
         </div>
@@ -365,7 +365,7 @@ export const Faqs = memo(function Faqs() {
   return (
     <section className="mg-section-spacing" style={{ background: 'white', paddingBottom: '20px' }}>
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 20px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
           <h2 className="mg-section-title">Frequently Asked Questions</h2>
           <p className="mg-section-subtitle">Everything you need to know about MaxGlow</p>
         </div>
