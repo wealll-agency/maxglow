@@ -184,7 +184,7 @@ const Header = () => {
             </nav>
 
             {/* Right Actions & Search */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '2px', flexShrink: 0 }}>
               
               {/* Search Bar */}
               <div ref={searchRef} style={{ position: 'relative', flexShrink: 0 }} className="hide-mobile">

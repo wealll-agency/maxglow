@@ -11,7 +11,7 @@ export default function AdminMedia() {
   const { showAlert } = useNotification();
 
   // States
-  const [heroImages, setHeroImages] = useState(['/hero_final_1.png', '/hero_final_2.png', '/hero_final_3.png']);
+  const [heroImages, setHeroImages] = useState(['/trending_banner.png', '/maxglow_shop_banner.png', '/banner_body_care.png']);
   const [heroImagesMobile, setHeroImagesMobile] = useState(['', '', '']);
   const [newArrivals, setNewArrivals] = useState('/new_arrival_banner.png');
   const [newArrivalsMobile, setNewArrivalsMobile] = useState('');

@@ -22,7 +22,7 @@ const calculateOrderTotals = async (items, couponCode) => {
   const productIds = items.filter(i => i.itemType !== 'Combo').map(item => item.product);
   const comboIds = items.filter(i => i.itemType === 'Combo').map(item => item.combo);
   
-  const products = await Product.find({ _id: { $in: productIds } }).select('name price stock images discount discountType attributes packSizes').lean();
+  const products = await Product.find({ _id: { $in: productIds } }).select('name price stock images discount discountType attributes packSizes isActive').lean();
   const productMap = products.reduce((acc, product) => {
     acc[product._id.toString()] = product;
     return acc;
@@ -49,9 +49,6 @@ const calculateOrderTotals = async (items, couponCode) => {
         throw new Error(`Combo ${combo.name} is currently inactive.`);
       }
       let activePrice = combo.comboPrice;
-      if (item.price && typeof item.price === 'number' && item.price > 0 && Math.abs(item.price - activePrice) <= 10) {
-        activePrice = item.price;
-      }
       subtotal += activePrice * item.quantity;
       item.price = activePrice;
     } else {
@@ -63,6 +60,10 @@ const calculateOrderTotals = async (items, couponCode) => {
       const product = productMap[item.product.toString()];
       if (!product) {
         throw new Error(`Product not found: ${item.name}`);
+      }
+      
+      if (product.isActive === false) {
+        throw new Error(`Product ${product.name} is currently unavailable.`);
       }
       
       // Check stock
@@ -82,9 +83,7 @@ const calculateOrderTotals = async (items, couponCode) => {
       }
       
       let activePrice = basePrice;
-      if (item.price && typeof item.price === 'number' && item.price > 0 && Math.abs(item.price - basePrice) <= (product.discount || 0) + 10) {
-        activePrice = item.price;
-      } else if (product.discount > 0) {
+      if (product.discount > 0) {
         activePrice = product.discountType === 'Percent' 
           ? Math.round(basePrice * (1 - product.discount / 100)) 
           : Math.max(0, basePrice - product.discount);
@@ -691,8 +690,8 @@ export const updateOrderStatus = async (req, res, next) => {
     if (status === 'Shipped') updateQuery.$set.shippedAt = Date.now();
     if (status === 'Delivered') updateQuery.$set.deliveredAt = Date.now();
 
-    // If Order is Cancelled, restore items to stock
-    if (status === 'Cancelled') {
+    // If Order is Cancelled and wasn't already Cancelled, restore items to stock
+    if (status === 'Cancelled' && order.orderStatus !== 'Cancelled') {
       updateQuery.$set.paymentStatus = 'Refunded';
       
       for (const item of order.items) {

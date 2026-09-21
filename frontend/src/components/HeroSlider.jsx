@@ -13,7 +13,7 @@ import { fetchSystemSettings } from '../utils/settingsCache';
 import { getImageUrl } from '../utils/imageConfig';
 
 const BANNER_DESTINATION = '/shop';
-const DEFAULT_IMAGES = ['/hero_final_1.png', '/hero_final_2.png', '/hero_final_3.png'];
+const DEFAULT_IMAGES = ['/trending_banner.png', '/maxglow_shop_banner.png', '/banner_body_care.png'];
 const SLIDE_INTERVAL = 4000;
 
 export default function HeroSlider({ initialImages = [], initialMobileImages = [] }) {

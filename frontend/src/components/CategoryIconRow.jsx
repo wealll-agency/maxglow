@@ -186,6 +186,7 @@ const CategoryIconRow = ({ initialCategories = null }) => {
             min-height: unset !important;
             max-width: 68px !important;
             max-height: 68px !important;
+            box-shadow: none !important;
           }
           .category-circle-wrapper img {
             width: 60% !important;

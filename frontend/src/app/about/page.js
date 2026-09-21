@@ -28,7 +28,7 @@ export default function AboutPage() {
 
       {/* Premium Hero Banner */}
       <section className="position-relative py-5 d-flex align-items-center" style={{ minHeight: '350px' }}>
-        <Image src={content?.hero?.image ? getImageUrl(content.hero.image) : "/hero_final_1.png"} alt="About MaxGlow Banner" fill style={{ objectFit: 'cover', objectPosition: 'center' }} priority />
+        <Image src={content?.hero?.image ? getImageUrl(content.hero.image) : "/trending_banner.png"} alt="About MaxGlow Banner" fill style={{ objectFit: 'cover', objectPosition: 'center' }} priority />
         <div className="position-absolute w-100 h-100" style={{ top: 0, left: 0, background: 'rgba(0, 0, 0, 0.25)' }}></div>
         <div className="container position-relative z-1 text-center mt-4">
           <h1 className="text-white fw-bold display-4 mb-3" style={{ textShadow: '0 4px 15px rgba(0,0,0,0.8)' }}>{content?.hero?.heading || 'About MaxGlow'}</h1>

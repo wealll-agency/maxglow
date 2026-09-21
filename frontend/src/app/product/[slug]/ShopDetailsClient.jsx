@@ -81,9 +81,8 @@ function ShopDetailsContent({ initialProduct }) {
         dispatch(fetchProductDetails(productIdParam));
       }
       dispatch(fetchProductReviews(productIdParam));
-    } else {
-      dispatch(fetchProducts({ limit: 100 }));
     }
+    dispatch(fetchProducts({ limit: 100 }));
   }, [dispatch, productIdParam, initialProduct]);
 
   // 2. Resolve product
@@ -998,7 +997,7 @@ function ShopDetailsContent({ initialProduct }) {
                 {/* Submit Review */}
                 <div style={{ background: '#F7FBFD', border: '1px solid rgba(221,244,255,0.8)', borderRadius: '16px', padding: '24px' }}>
                   <h3 style={{ fontFamily: 'var(--font-outfit)', fontSize: '16px', fontWeight: '700', color: '#1a2332', marginBottom: '16px' }}>Write a Review</h3>
-                  {user ? (
+                  {mounted && user ? (
                     <form onSubmit={handleReviewSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       {/* Rating Selector */}
                       <div>

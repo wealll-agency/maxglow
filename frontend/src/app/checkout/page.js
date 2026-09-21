@@ -440,19 +440,22 @@ export default function CheckoutPage() {
             background: #ffffff;
             border-top: 1px solid #e2e8f0;
             box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
-            padding: 12px 16px;
-            padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-            z-index: 9999 !important;
-            box-sizing: border-box;
-            transform: translate3d(0, 0, 0) !important;
-            -webkit-transform: translate3d(0, 0, 0) !important;
-            backface-visibility: hidden;
-            will-change: transform;
+            padding: 12px 16px !important;
+            padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+            z-index: 99999 !important;
+            box-sizing: border-box !important;
+            height: auto !important;
+            min-height: 72px !important;
+            transform: translateZ(0) !important;
+            -webkit-transform: translateZ(0) !important;
           }
 
           @media (max-width: 768px) {
             .mobile-sticky-checkout-btn-wrapper {
               display: block !important;
+            }
+            .container.py-5 {
+              padding-bottom: 100px !important;
             }
           }
           .mobile-sticky-checkout-btn-wrapper button {

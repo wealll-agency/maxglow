@@ -19,7 +19,7 @@ const router = express.Router();
 
 import Product from '../models/Product.js';
 
-router.get('/migrate-selling-price', async (req, res) => {
+router.get('/migrate-selling-price', protect, authorizeRoles('Super Admin'), async (req, res) => {
   try {
     const products = await Product.find({});
     let updated = 0;

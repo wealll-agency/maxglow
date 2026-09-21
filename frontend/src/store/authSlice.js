@@ -7,6 +7,16 @@ const getInitialUser = () => {
   return null;
 };
 
+const sanitizeUserForStorage = (user) => {
+  if (!user) return null;
+  // Strictly prevent email, phone, addresses, secrets, etc. from being stored in localStorage
+  return {
+    _id: user._id,
+    role: user.role,
+    name: user.name || 'User'
+  };
+};
+
 export const registerUser = createAsyncThunk(
   'auth/register',
   async ({ name, email, password, phone }, { rejectWithValue, dispatch }) => {
@@ -117,7 +127,7 @@ const authSlice = createSlice({
       state.loading = false; // Hydration complete
       if (typeof window !== 'undefined') {
         if (action.payload) {
-          localStorage.setItem('maxglow_user', JSON.stringify(action.payload));
+          localStorage.setItem('maxglow_user', JSON.stringify(sanitizeUserForStorage(action.payload)));
         } else {
           localStorage.removeItem('maxglow_user');
         }
@@ -135,7 +145,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload;
         if (typeof window !== 'undefined') {
-          localStorage.setItem('maxglow_user', JSON.stringify(action.payload));
+          localStorage.setItem('maxglow_user', JSON.stringify(sanitizeUserForStorage(action.payload)));
         }
       })
       .addCase(registerUser.rejected, (state, action) => {
@@ -151,7 +161,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload;
         if (typeof window !== 'undefined') {
-          localStorage.setItem('maxglow_user', JSON.stringify(action.payload));
+          localStorage.setItem('maxglow_user', JSON.stringify(sanitizeUserForStorage(action.payload)));
         }
       })
       .addCase(loginUser.rejected, (state, action) => {
@@ -177,7 +187,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload;
         if (typeof window !== 'undefined') {
-          localStorage.setItem('maxglow_user', JSON.stringify(action.payload));
+          localStorage.setItem('maxglow_user', JSON.stringify(sanitizeUserForStorage(action.payload)));
         }
       })
       .addCase(updateUserProfile.rejected, (state, action) => {
