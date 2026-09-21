@@ -1,8 +1,11 @@
 import dns from 'dns';
 import path from 'path';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
 
-const packageJsonPath = path.resolve(process.cwd(), 'package.json');
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const packageJsonPath = path.resolve(__dirname, 'package.json');
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
 const appVersion = packageJson.version || '1.0.0';
 
@@ -12,9 +15,9 @@ try {
 
 // Robust zero-dependency env loader to fix Next.js 14 ES module top-level evaluation bug
 const candidateEnvPaths = [
-  path.resolve(process.cwd(), '.env.production'),
-  path.resolve(process.cwd(), '.env'),
-  path.resolve(process.cwd(), '../.env'),
+  path.resolve(__dirname, '.env.production'),
+  path.resolve(__dirname, '.env'),
+  path.resolve(__dirname, '../.env'),
 ];
 
 for (const envPath of candidateEnvPaths) {
@@ -53,7 +56,7 @@ const nextConfig = {
   },
   experimental: {
     optimizePackageImports: ['lucide-react', 'react-icons', 'bootstrap'],
-    outputFileTracingRoot: path.resolve(process.cwd(), '..'),
+    outputFileTracingRoot: path.resolve(__dirname, '..'),
   },
   images: {
     formats: ['image/webp'],
