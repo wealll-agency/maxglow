@@ -53,15 +53,15 @@ npm ls --depth=0 --prefix frontend || echo "Warning: Dependency tree issues dete
 
 echo "🧹 Purging stale Next.js cache..."
 rm -rf frontend/.next
-echo "🔍 Loading frontend environment variables..."
+echo "🔍 Validating frontend environment variables..."
 if [ -f "$RELEASE_DIR/.env" ]; then
-    export NEXT_PUBLIC_APP_URL=$(grep "^NEXT_PUBLIC_APP_URL=" "$RELEASE_DIR/.env" | cut -d '=' -f2- | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")
-    export NEXT_PUBLIC_API_URL=$(grep "^NEXT_PUBLIC_API_URL=" "$RELEASE_DIR/.env" | cut -d '=' -f2- | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")
-fi
-
-if [ -z "${NEXT_PUBLIC_APP_URL:-}" ]; then
-    echo "❌ FATAL: NEXT_PUBLIC_APP_URL is missing from .env."
-    echo "SEO features require a valid domain. Aborting deployment."
+    if ! grep -q "^\s*NEXT_PUBLIC_APP_URL\s*=" "$RELEASE_DIR/.env"; then
+        echo "❌ FATAL: NEXT_PUBLIC_APP_URL is missing from .env."
+        echo "SEO features require a valid domain. Aborting deployment."
+        exit 1
+    fi
+else
+    echo "❌ FATAL: .env file missing from isolated release. Aborting deployment."
     exit 1
 fi
 echo "🔨 Building frontend..."

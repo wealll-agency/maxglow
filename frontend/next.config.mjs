@@ -11,18 +11,25 @@ try {
 } catch (e) {}
 
 // Robust zero-dependency env loader to fix Next.js 14 ES module top-level evaluation bug
-const envPath = path.resolve(process.cwd(), '.env.production');
-if (fs.existsSync(envPath)) {
-  const envContent = fs.readFileSync(envPath, 'utf8');
-  envContent.split('\n').forEach(line => {
-    const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
-    if (match) {
-      const key = match[1];
-      let value = match[2] || '';
-      value = value.replace(/^['"]|['"]$/g, '').trim();
-      if (!process.env[key]) process.env[key] = value;
-    }
-  });
+const candidateEnvPaths = [
+  path.resolve(process.cwd(), '.env.production'),
+  path.resolve(process.cwd(), '.env'),
+  path.resolve(process.cwd(), '../.env'),
+];
+
+for (const envPath of candidateEnvPaths) {
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, 'utf8');
+    envContent.split('\n').forEach(line => {
+      const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
+      if (match) {
+        const key = match[1];
+        let value = (match[2] || '').trim();
+        value = value.replace(/^['"]|['"]$/g, '').trim();
+        if (!process.env[key]) process.env[key] = value;
+      }
+    });
+  }
 }
 
 const backendUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api$/, '') : '';
