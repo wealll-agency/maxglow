@@ -226,8 +226,8 @@ const CartOffcanvas = ({ isOpen, onClose }) => {
                   <FiShoppingBag size={14} color="white" />
                 </div>
                 <div>
-                  <div style={{ fontFamily: 'var(--font-outfit)', fontSize: '12px', fontWeight: '700', letterSpacing: '0.03em', color: '#1a2332' }}>YOUR CART</div>
-                  <div style={{ fontSize: '10px', color: '#64748b', fontWeight: '500' }}>{items.length} item{items.length !== 1 ? 's' : ''}</div>
+                  <div style={{ fontFamily: 'var(--font-outfit)', fontSize: '14px', fontWeight: '700', letterSpacing: '0.03em', color: '#1a2332' }}>YOUR CART</div>
+                  <div style={{ fontSize: '12px', color: '#64748b', fontWeight: '500' }}>{items.length} item{items.length !== 1 ? 's' : ''}</div>
                 </div>
               </div>
               <button onClick={onClose} style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'transform 0.15s ease' }}>
@@ -240,9 +240,9 @@ const CartOffcanvas = ({ isOpen, onClose }) => {
                 <div style={{ width: '64px', height: '64px', background: '#EAF8FF', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
                   <FiShoppingBag size={26} color="#4A90E2" />
                 </div>
-                <div style={{ fontFamily: 'var(--font-outfit)', fontSize: '15px', fontWeight: '700', color: '#1a2332', marginBottom: '6px' }}>Your cart is empty</div>
-                <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '18px', textAlign: 'center' }}>Looks like you haven't added anything to your cart yet.</p>
-                <Link href="/shop" onClick={onClose} className="btn-mg-green" style={{ fontSize: '13px', padding: '9px 24px', display: 'inline-flex', borderRadius: '6px' }}>
+                <div style={{ fontFamily: 'var(--font-outfit)', fontSize: '17px', fontWeight: '700', color: '#1a2332', marginBottom: '6px' }}>Your cart is empty</div>
+                <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '18px', textAlign: 'center' }}>Looks like you haven't added anything to your cart yet.</p>
+                <Link href="/shop" onClick={onClose} className="btn-mg-green" style={{ fontSize: '15px', padding: '9px 24px', display: 'inline-flex', borderRadius: '6px' }}>
                   <Leaf size={14} className="me-2" /> Start Shopping
                 </Link>
               </div>
@@ -251,12 +251,12 @@ const CartOffcanvas = ({ isOpen, onClose }) => {
                 {/* Scrollable Content */}
                 <div className="hide-scrollbar" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
                   {/* Tiered Progress Bar */}
-                  <div style={{ padding: '14px 14px 8px', background: 'white', borderBottom: '1px solid #f1f5f9' }}>
-                    <div style={{ fontSize: '11px', fontWeight: '600', color: !nextTarget ? '#3BAE56' : '#374151', marginBottom: '16px', textAlign: 'center' }}>
+                  <div style={{ padding: '16px 14px', background: 'white', borderBottom: '1px solid #f1f5f9' }}>
+                    <div style={{ fontSize: '13px', fontWeight: '600', color: !nextTarget ? '#3BAE56' : '#1a2332', marginBottom: '32px', textAlign: 'center' }}>
                       {progressMessage}
                     </div>
                     
-                    <div style={{ position: 'relative', height: '4px', background: '#e2e8f0', borderRadius: '9999px', marginBottom: '8px', margin: '0 8px' }}>
+                    <div style={{ position: 'relative', height: '6px', background: '#f1f5f9', borderRadius: '9999px', margin: '0 32px 16px 32px' }}>
                       <div style={{
                         position: 'absolute', left: 0, top: 0, height: '100%',
                         width: `${progressPercent}%`,
@@ -272,31 +272,35 @@ const CartOffcanvas = ({ isOpen, onClose }) => {
                         const isNext = nextTarget && t.value === nextTarget.value;
                         
                         return (
-                          <div key={idx} style={{ position: 'absolute', left: `${leftPos}%`, top: '50%', transform: 'translate(-50%, -50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '56px' }}>
-                            <div style={{ whiteSpace: 'normal', fontSize: '8.5px', fontWeight: '700', color: isHit ? '#3BAE56' : '#64748b', marginBottom: '3px', height: '18px', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', textAlign: 'center', lineHeight: '1.1' }}>
-                              <span>{t.label}</span>
+                          <div key={idx} style={{ position: 'absolute', left: `${leftPos}%`, top: '50%', transform: 'translate(-50%, -50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '80px' }}>
+                            
+                            {/* Label Above */}
+                            <div style={{ position: 'absolute', bottom: '100%', marginBottom: '8px', whiteSpace: 'nowrap', fontSize: '12px', fontWeight: '700', color: isHit ? '#3BAE56' : '#64748b' }}>
+                              {t.label}
                             </div>
+
+                            {/* Circle */}
                             <div style={{ 
-                              width: '14px', height: '14px', borderRadius: '50%', 
-                              background: isHit ? '#3BAE56' : 'white', 
-                              border: isHit ? 'none' : (isNext ? '2px solid #4A90E2' : '1.5px solid #cbd5e1'),
-                              boxShadow: '0 0 0 3px white',
+                              width: '24px', height: '24px', borderRadius: '50%', 
+                              background: isHit ? 'linear-gradient(135deg, #3BAE56, #2d8a44)' : 'white', 
+                              border: isHit ? 'none' : (isNext ? '2px solid #4A90E2' : '2px solid #e2e8f0'),
+                              boxShadow: isHit ? '0 0 0 4px #eafceb' : '0 0 0 4px white',
                               zIndex: 2,
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
                               transition: 'all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                              animation: isNext ? 'milestonePulse 2s infinite' : (isHit ? 'milestoneHit 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)' : 'none')
+                              animation: isNext ? 'milestonePulse 2s infinite' : 'none'
                             }}>
-                              {isHit && <FiCheckCircle size={10} color="white" />}
+                              {isHit && <FiCheckCircle size={14} color="white" />}
                             </div>
-                            <div style={{ whiteSpace: 'nowrap', fontSize: '9px', fontWeight: '600', color: isHit ? '#3BAE56' : (isNext ? '#4A90E2' : '#94a3b8'), marginTop: '3px', height: '14px', display: 'flex', alignItems: 'flex-start', justifyContent: 'center' }}>
+
+                            {/* Amount Below */}
+                            <div style={{ position: 'absolute', top: '100%', marginTop: '8px', whiteSpace: 'nowrap', fontSize: '13px', fontWeight: '700', color: isHit ? '#3BAE56' : (isNext ? '#4A90E2' : '#94a3b8') }}>
                               ₹{t.value}
                             </div>
                           </div>
                         )
                       })}
                     </div>
-                    {/* Extra bottom padding to accommodate labels */}
-                    <div style={{ height: '10px' }}></div> 
                   </div>
 
                   {/* Items List */}
@@ -315,7 +319,7 @@ const CartOffcanvas = ({ isOpen, onClose }) => {
                         {/* Details */}
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2px' }}>
-                            <div style={{ fontSize: '11.5px', fontWeight: '600', color: '#1a2332', lineHeight: '1.25', paddingRight: '6px', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                            <div style={{ fontSize: '13.5px', fontWeight: '600', color: '#1a2332', lineHeight: '1.25', paddingRight: '6px', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                               {item.name}
                             </div>
                             <button onClick={() => handleRemove(item)}
@@ -328,12 +332,12 @@ const CartOffcanvas = ({ isOpen, onClose }) => {
                           </div>
                           
                           {item.size && item.size !== 'Default' && (
-                            <div style={{ fontSize: '10px', color: '#64748b', marginBottom: '4px' }}>{item.size}</div>
+                            <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>{item.size}</div>
                           )}
 
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '6px' }}>
                             <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                              <span style={{ fontWeight: '700', fontSize: '12.5px', color: '#1a2332' }}>₹{item.price}</span>
+                              <span style={{ fontWeight: '700', fontSize: '14.5px', color: '#1a2332' }}>₹{item.price}</span>
                             </div>
 
                             {/* Qty controls */}
@@ -342,7 +346,7 @@ const CartOffcanvas = ({ isOpen, onClose }) => {
                                 style={{ padding: '2px 5px', height: '100%', background: 'white', border: 'none', cursor: 'pointer', color: '#374151', display: 'flex', alignItems: 'center' }}>
                                 <FiMinus size={10} />
                               </button>
-                              <span style={{ padding: '0 4px', fontWeight: '700', fontSize: '11px', color: '#1a2332', minWidth: '18px', textAlign: 'center', background: 'white' }}>{item.quantity}</span>
+                              <span style={{ padding: '0 4px', fontWeight: '700', fontSize: '13px', color: '#1a2332', minWidth: '18px', textAlign: 'center', background: 'white' }}>{item.quantity}</span>
                               <button onClick={() => handleIncrement(item)}
                                 style={{ padding: '2px 5px', height: '100%', background: 'white', border: 'none', cursor: 'pointer', color: '#374151', display: 'flex', alignItems: 'center' }}>
                                 <FiPlus size={10} />
@@ -357,20 +361,20 @@ const CartOffcanvas = ({ isOpen, onClose }) => {
                   {/* Recommendations */}
                   {recommended.length > 0 && (
                     <div style={{ padding: '10px 10px', background: '#f8fafc', borderTop: '1px solid #f1f5f9' }}>
-                      <div style={{ fontSize: '11px', fontWeight: '700', color: '#1a2332', marginBottom: '8px', letterSpacing: '0.02em' }}>Recommended for you</div>
+                      <div style={{ fontSize: '13px', fontWeight: '700', color: '#1a2332', marginBottom: '8px', letterSpacing: '0.02em' }}>Recommended for you</div>
                       <div className="hide-scrollbar" style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
                         {recommended.map(product => (
                           <div key={product._id} style={{ width: '92px', flexShrink: 0, background: 'white', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '6px', display: 'flex', flexDirection: 'column' }}>
                             <div style={{ width: '100%', height: '50px', background: '#F7FBFD', borderRadius: '4px', marginBottom: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                               <Image src={getImageUrl(product.images?.[0] || product.image)} alt={product.name} width={40} height={40} style={{ objectFit: 'contain' }} />
                             </div>
-                            <div style={{ fontSize: '9.5px', fontWeight: '600', color: '#1a2332', lineHeight: '1.2', marginBottom: '2px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', flex: 1 }}>
+                            <div style={{ fontSize: '11.5px', fontWeight: '600', color: '#1a2332', lineHeight: '1.2', marginBottom: '2px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', flex: 1 }}>
                               {product.name}
                             </div>
-                            <div style={{ fontSize: '10.5px', fontWeight: '700', color: '#1a2332', marginBottom: '4px' }}>₹{product.price}</div>
+                            <div style={{ fontSize: '12.5px', fontWeight: '700', color: '#1a2332', marginBottom: '4px' }}>₹{product.price}</div>
                             <button 
                               onClick={() => handleAddRecommended(product)}
-                              style={{ width: '100%', background: 'white', border: '1px solid #3BAE56', color: '#3BAE56', borderRadius: '4px', padding: '2px 0', fontSize: '9px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                              style={{ width: '100%', background: 'white', border: '1px solid #3BAE56', color: '#3BAE56', borderRadius: '4px', padding: '2px 0', fontSize: '11px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s ease' }}
                               onMouseEnter={(e) => { e.currentTarget.style.background = '#3BAE56'; e.currentTarget.style.color = 'white'; }}
                               onMouseLeave={(e) => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#3BAE56'; }}
                             >
@@ -392,11 +396,11 @@ const CartOffcanvas = ({ isOpen, onClose }) => {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                           <FiTag size={12} color="#059669" />
                           <div>
-                            <div style={{ fontSize: '11px', fontWeight: '700', color: '#065f46' }}>'{couponCode}' Applied!</div>
-                            <div style={{ fontSize: '10px', color: '#047857' }}>You saved ₹{discount.toFixed(0)}</div>
+                            <div style={{ fontSize: '13px', fontWeight: '700', color: '#065f46' }}>'{couponCode}' Applied!</div>
+                            <div style={{ fontSize: '12px', color: '#047857' }}>You saved ₹{discount.toFixed(0)}</div>
                           </div>
                         </div>
-                        <button onClick={handleRemoveCoupon} style={{ background: 'transparent', border: 'none', color: '#059669', cursor: 'pointer', fontWeight: '600', fontSize: '10.5px', textDecoration: 'underline' }}>Remove</button>
+                        <button onClick={handleRemoveCoupon} style={{ background: 'transparent', border: 'none', color: '#059669', cursor: 'pointer', fontWeight: '600', fontSize: '12.5px', textDecoration: 'underline' }}>Remove</button>
                       </div>
                     ) : (
                       <div 
@@ -405,11 +409,11 @@ const CartOffcanvas = ({ isOpen, onClose }) => {
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                           <FiTag size={12} color="#4A90E2" />
-                          <span style={{ fontSize: '11.5px', fontWeight: '600', color: '#374151' }}>Apply Coupon / Offers</span>
+                          <span style={{ fontSize: '13.5px', fontWeight: '600', color: '#374151' }}>Apply Coupon / Offers</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                           {publicCoupons.length > 0 && (
-                            <span style={{ fontSize: '9px', background: '#fee2e2', color: '#ef4444', padding: '1px 5px', borderRadius: '9999px', fontWeight: '700' }}>{publicCoupons.length} Offers</span>
+                            <span style={{ fontSize: '11px', background: '#fee2e2', color: '#ef4444', padding: '1px 5px', borderRadius: '9999px', fontWeight: '700' }}>{publicCoupons.length} Offers</span>
                           )}
                           <FiChevronRight size={12} color="#94a3b8" />
                         </div>
@@ -425,20 +429,20 @@ const CartOffcanvas = ({ isOpen, onClose }) => {
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                         <FiFileText size={13} color="#64748b" />
-                        <span style={{ fontSize: '11.5px', fontWeight: '700', color: '#1a2332' }}>Estimated total</span>
+                        <span style={{ fontSize: '13.5px', fontWeight: '700', color: '#1a2332' }}>Estimated total</span>
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                           {(discount > 0 || shippingFee === 0) && (
-                            <span style={{ fontSize: '10.5px', color: '#94a3b8', textDecoration: 'line-through' }}>
+                            <span style={{ fontSize: '12.5px', color: '#94a3b8', textDecoration: 'line-through' }}>
                               ₹{(subtotal + (shippingFee === 0 ? 40 : shippingFee)).toFixed(0)}
                             </span>
                           )}
-                          <span style={{ fontSize: '13.5px', fontWeight: '800', color: '#1a2332' }}>₹{total.toFixed(0)}</span>
+                          <span style={{ fontSize: '15.5px', fontWeight: '800', color: '#1a2332' }}>₹{total.toFixed(0)}</span>
                           {showSummary ? <FiChevronUp size={14} color="#64748b" /> : <FiChevronDown size={14} color="#64748b" />}
                         </div>
                         {(discount > 0 || shippingFee === 0) && (
-                          <div style={{ fontSize: '10px', color: '#059669', fontWeight: '600', marginTop: '1px', paddingRight: '18px' }}>
+                          <div style={{ fontSize: '12px', color: '#059669', fontWeight: '600', marginTop: '1px', paddingRight: '18px' }}>
                             You saved ₹{(discount + (shippingFee === 0 ? 40 : 0)).toFixed(0)}!
                           </div>
                         )}
@@ -454,27 +458,27 @@ const CartOffcanvas = ({ isOpen, onClose }) => {
                     >
                       <div style={{ overflow: 'hidden' }}>
                         <div style={{ marginTop: '10px', borderTop: '1px dashed #e2e8f0', paddingTop: '8px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', color: '#475569', marginBottom: '6px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', color: '#475569', marginBottom: '6px' }}>
                             <span>Total MRP</span>
                             <span style={{ fontWeight: '500' }}>₹{subtotal.toFixed(0)}</span>
                           </div>
                           
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', color: '#475569', marginBottom: '6px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', color: '#475569', marginBottom: '6px' }}>
                             <span>Delivery Fee</span>
                             <span style={{ fontWeight: '500' }}>{shippingFee === 0 ? <span style={{ color: '#059669' }}>FREE</span> : 'To be calculated'}</span>
                           </div>
                           
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', color: '#475569', marginBottom: '6px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', color: '#475569', marginBottom: '6px' }}>
                             <span>Discount on MRP</span>
                             <span style={{ color: '#059669', fontWeight: '500' }}>₹{((subtotal + (shippingFee === 0 ? 40 : shippingFee)) - total - discount).toFixed(0)}</span>
                           </div>
                           
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', color: '#475569', marginBottom: '8px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', color: '#475569', marginBottom: '8px' }}>
                             <span>Coupon discount</span>
                             <span style={{ color: '#059669', fontWeight: '500' }}>₹{discount.toFixed(0)}</span>
                           </div>
                           
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', fontWeight: '700', color: '#1a2332', marginTop: '6px', paddingTop: '8px', borderTop: '1px dashed #e2e8f0' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13.5px', fontWeight: '700', color: '#1a2332', marginTop: '6px', paddingTop: '8px', borderTop: '1px dashed #e2e8f0' }}>
                             <span>Grand total</span>
                             <span>₹{total.toFixed(0)}</span>
                           </div>
@@ -487,7 +491,7 @@ const CartOffcanvas = ({ isOpen, onClose }) => {
                   <div style={{ padding: '8px 10px', background: 'white', borderTop: '1px solid #e2e8f0', boxShadow: '0 -4px 12px rgba(0,0,0,0.03)' }}>
                     <button
                       className="btn-mg-green"
-                      style={{ width: '100%', justifyContent: 'center', fontSize: '13px', padding: '8px', fontWeight: '700', borderRadius: '6px' }}
+                      style={{ width: '100%', justifyContent: 'center', fontSize: '15px', padding: '8px', fontWeight: '700', borderRadius: '6px' }}
                       onClick={() => { onClose(); router.push('/checkout'); }}
                     >
                       Checkout <FiArrowRight size={15} className="ms-1" />
@@ -508,8 +512,8 @@ const CartOffcanvas = ({ isOpen, onClose }) => {
                 <FiChevronLeft size={18} />
               </button>
               <div style={{ marginLeft: '10px' }}>
-                <div style={{ fontFamily: 'var(--font-outfit)', fontSize: '13px', fontWeight: '700', color: '#1a2332' }}>Coupons & Offers</div>
-                <div style={{ fontSize: '10.5px', color: '#64748b' }}>Cart value - ₹{subtotal.toFixed(0)}</div>
+                <div style={{ fontFamily: 'var(--font-outfit)', fontSize: '15px', fontWeight: '700', color: '#1a2332' }}>Coupons & Offers</div>
+                <div style={{ fontSize: '12.5px', color: '#64748b' }}>Cart value - ₹{subtotal.toFixed(0)}</div>
               </div>
             </div>
 
@@ -523,26 +527,26 @@ const CartOffcanvas = ({ isOpen, onClose }) => {
                     type="text" 
                     value={couponInput}
                     onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
-                    style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '8px 10px 8px 30px', fontSize: '12px', textTransform: 'uppercase', outline: 'none' }}
+                    style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '8px 10px 8px 30px', fontSize: '14px', textTransform: 'uppercase', outline: 'none' }}
                   />
                 </div>
                 <button 
                   onClick={() => handleApplyCoupon()}
                   disabled={!couponInput.trim() || applyingCoupon}
-                  style={{ background: couponInput.trim() ? '#1a2332' : '#cbd5e1', color: 'white', border: 'none', borderRadius: '6px', padding: '0 14px', fontSize: '11px', fontWeight: '600', cursor: couponInput.trim() ? 'pointer' : 'not-allowed', transition: 'background 0.2s' }}
+                  style={{ background: couponInput.trim() ? '#1a2332' : '#cbd5e1', color: 'white', border: 'none', borderRadius: '6px', padding: '0 14px', fontSize: '13px', fontWeight: '600', cursor: couponInput.trim() ? 'pointer' : 'not-allowed', transition: 'background 0.2s' }}
                 >
                   {applyingCoupon ? '...' : 'APPLY'}
                 </button>
               </div>
 
               {loadingCoupons ? (
-                <div style={{ textAlign: 'center', padding: '30px 0', color: '#94a3b8', fontSize: '12px' }}>Loading offers...</div>
+                <div style={{ textAlign: 'center', padding: '30px 0', color: '#94a3b8', fontSize: '14px' }}>Loading offers...</div>
               ) : (
                 <>
                   {/* Available Coupons */}
                   {publicCoupons.filter(c => subtotal >= c.minOrderValue).length > 0 && (
                     <div style={{ marginBottom: '16px' }}>
-                      <div style={{ fontSize: '11px', fontWeight: '700', color: '#64748b', letterSpacing: '0.05em', marginBottom: '8px' }}>AVAILABLE OFFERS</div>
+                      <div style={{ fontSize: '13px', fontWeight: '700', color: '#64748b', letterSpacing: '0.05em', marginBottom: '8px' }}>AVAILABLE OFFERS</div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         {publicCoupons.filter(c => subtotal >= c.minOrderValue).map(coupon => {
                           const isApplied = couponCode === coupon.code;
@@ -553,26 +557,26 @@ const CartOffcanvas = ({ isOpen, onClose }) => {
                               <div style={{ position: 'absolute', right: '-5px', top: '50%', transform: 'translateY(-50%)', width: '8px', height: '16px', background: '#f8fafc', borderRadius: '8px 0 0 8px', border: '1px solid #e2e8f0', borderRight: 'none' }}></div>
                               
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-                                <div style={{ background: '#EAF8FF', color: '#4A90E2', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '700', border: '1px dashed #bae6fd' }}>
+                                <div style={{ background: '#EAF8FF', color: '#4A90E2', padding: '3px 8px', borderRadius: '4px', fontSize: '13px', fontWeight: '700', border: '1px dashed #bae6fd' }}>
                                   {coupon.code}
                                 </div>
                                 {isApplied ? (
-                                  <div style={{ fontSize: '11.5px', fontWeight: '700', color: '#059669', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                  <div style={{ fontSize: '13.5px', fontWeight: '700', color: '#059669', display: 'flex', alignItems: 'center', gap: '3px' }}>
                                     <FiCheckCircle size={12} /> Applied
                                   </div>
                                 ) : (
-                                  <button onClick={() => handleApplyCoupon(coupon.code)} disabled={applyingCoupon} style={{ background: 'transparent', border: 'none', color: '#3BAE56', fontSize: '11.5px', fontWeight: '700', cursor: 'pointer', padding: 0 }}>
+                                  <button onClick={() => handleApplyCoupon(coupon.code)} disabled={applyingCoupon} style={{ background: 'transparent', border: 'none', color: '#3BAE56', fontSize: '13.5px', fontWeight: '700', cursor: 'pointer', padding: 0 }}>
                                     Apply
                                   </button>
                                 )}
                               </div>
-                              <div style={{ fontSize: '12.5px', fontWeight: '700', color: '#1a2332', marginBottom: '2px' }}>
+                              <div style={{ fontSize: '14.5px', fontWeight: '700', color: '#1a2332', marginBottom: '2px' }}>
                                 {coupon.discountType === 'flat' ? `₹${coupon.flatDiscountAmount} OFF` : `${coupon.discountPercentage}% OFF`}
                               </div>
-                              <div style={{ fontSize: '10.5px', color: '#64748b', marginBottom: '6px' }}>
+                              <div style={{ fontSize: '12.5px', color: '#64748b', marginBottom: '6px' }}>
                                 On orders above ₹{coupon.minOrderValue}
                               </div>
-                              <div style={{ fontSize: '10.5px', fontWeight: '600', color: '#059669' }}>
+                              <div style={{ fontSize: '12.5px', fontWeight: '600', color: '#059669' }}>
                                 Save ₹{potentialDiscount} on this order!
                               </div>
                             </div>
@@ -585,7 +589,7 @@ const CartOffcanvas = ({ isOpen, onClose }) => {
                   {/* Unavailable Coupons */}
                   {publicCoupons.filter(c => subtotal < c.minOrderValue).length > 0 && (
                     <div>
-                      <div style={{ fontSize: '11px', fontWeight: '700', color: '#94a3b8', letterSpacing: '0.05em', marginBottom: '8px' }}>UNAVAILABLE OFFERS</div>
+                      <div style={{ fontSize: '13px', fontWeight: '700', color: '#94a3b8', letterSpacing: '0.05em', marginBottom: '8px' }}>UNAVAILABLE OFFERS</div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', opacity: 0.7 }}>
                         {publicCoupons.filter(c => subtotal < c.minOrderValue).map(coupon => {
                           const diff = coupon.minOrderValue - subtotal;
@@ -595,20 +599,20 @@ const CartOffcanvas = ({ isOpen, onClose }) => {
                               <div style={{ position: 'absolute', right: '-5px', top: '50%', transform: 'translateY(-50%)', width: '8px', height: '16px', background: '#f8fafc', borderRadius: '8px 0 0 8px', border: '1px solid #e2e8f0', borderRight: 'none' }}></div>
                               
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-                                <div style={{ background: '#e2e8f0', color: '#475569', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '700', border: '1px dashed #cbd5e1' }}>
+                                <div style={{ background: '#e2e8f0', color: '#475569', padding: '3px 8px', borderRadius: '4px', fontSize: '13px', fontWeight: '700', border: '1px dashed #cbd5e1' }}>
                                   {coupon.code}
                                 </div>
-                                <button onClick={() => { setCurrentView('MAIN'); }} style={{ background: 'transparent', border: 'none', color: '#4A90E2', fontSize: '11.5px', fontWeight: '700', cursor: 'pointer', padding: 0 }}>
+                                <button onClick={() => { setCurrentView('MAIN'); }} style={{ background: 'transparent', border: 'none', color: '#4A90E2', fontSize: '13.5px', fontWeight: '700', cursor: 'pointer', padding: 0 }}>
                                   Add items
                                 </button>
                               </div>
-                              <div style={{ fontSize: '12.5px', fontWeight: '700', color: '#475569', marginBottom: '2px' }}>
+                              <div style={{ fontSize: '14.5px', fontWeight: '700', color: '#475569', marginBottom: '2px' }}>
                                 {coupon.discountType === 'flat' ? `₹${coupon.flatDiscountAmount} OFF` : `${coupon.discountPercentage}% OFF`}
                               </div>
-                              <div style={{ fontSize: '10.5px', color: '#64748b', marginBottom: '6px' }}>
+                              <div style={{ fontSize: '12.5px', color: '#64748b', marginBottom: '6px' }}>
                                 On orders above ₹{coupon.minOrderValue}
                               </div>
-                              <div style={{ fontSize: '10.5px', fontWeight: '600', color: '#ef4444' }}>
+                              <div style={{ fontSize: '12.5px', fontWeight: '600', color: '#ef4444' }}>
                                 Add ₹{diff.toFixed(0)} more to unlock!
                               </div>
                             </div>

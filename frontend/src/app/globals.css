@@ -567,7 +567,15 @@ main {
 }
 
 @media (max-width: 480px) {
-  .mg-cart-drawer { width: 100vw; }
+  .mg-cart-drawer { 
+    width: 100% !important; 
+    max-width: 100% !important; 
+    height: 100dvh !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    border-radius: 0 !important;
+  }
 }
 
 /* Loader/Skeleton */

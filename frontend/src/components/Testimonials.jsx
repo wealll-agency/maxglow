@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect, useRef, memo } from 'react';
 import { FiStar, FiChevronDown } from 'react-icons/fi';
 import api from '../utils/axiosConfig';
 
@@ -46,7 +46,25 @@ const bgs = ['#DDF4FF', '#DDF7E3', '#FEF9E7', '#F0E6FF'];
 
 const Testimonials = () => {
   const [reviewsList, setReviewsList] = useState([]);
-  const [openIndices, setOpenIndices] = useState([0]);
+  const scrollRef = useRef(null);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (window.innerWidth >= 768) return; // Only auto-slide on mobile
+      
+      const container = scrollRef.current;
+      if (container) {
+        // If reached the end, scroll back to start
+        if (container.scrollLeft >= container.scrollWidth - container.clientWidth - 10) {
+          container.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+          // Scroll forward by one container width; snap will align it
+          container.scrollBy({ left: container.clientWidth, behavior: 'smooth' });
+        }
+      }
+    }, 3500);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -93,45 +111,82 @@ const Testimonials = () => {
             CUSTOMER STORIES
           </span>
           <h2 className="mg-section-title">What Our Customers Say</h2>
-          <p className="mg-section-subtitle">Click on any review to read full details</p>
+          <p className="mg-section-subtitle">Read what our community has to say about their experience</p>
         </div>
 
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '12px',
-          maxWidth: '900px',
-          margin: '0 auto',
-        }}>
+        <style dangerouslySetInnerHTML={{__html: `
+          .reviews-grid {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            gap: 16px;
+            padding-bottom: 24px;
+            margin: 0 -20px;
+            padding-left: 20px;
+            padding-right: 20px;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+          }
+          .reviews-grid::-webkit-scrollbar {
+            display: none;
+          }
+          .testimonial-card {
+            flex: 0 0 100%;
+            scroll-snap-align: center;
+            display: flex;
+            flex-direction: column;
+          }
+          .review-content {
+            display: block;
+            flex-grow: 1;
+          }
+          @media (min-width: 768px) {
+            .reviews-grid {
+              display: grid;
+              grid-template-columns: repeat(2, 1fr);
+              overflow-x: visible;
+              margin: 0 auto;
+              padding-left: 0;
+              padding-right: 0;
+              max-width: 1200px;
+            }
+            .testimonial-card {
+              flex: auto;
+            }
+          }
+          @media (min-width: 1024px) {
+            .reviews-grid {
+              grid-template-columns: repeat(4, 1fr);
+            }
+          }
+        `}} />
+
+        <div className="reviews-grid" ref={scrollRef}>
           {reviewsList.map((review, idx) => {
-            const isOpen = openIndices.includes(idx);
             return (
               <div 
                 key={idx} 
                 className="testimonial-card" 
                 style={{ 
                   padding: 0, 
-                  margin: 0,
                   borderRadius: '16px',
                   overflow: 'hidden',
                   background: 'white',
-                  boxShadow: isOpen ? '0 8px 24px rgba(74, 144, 226, 0.12)' : '0 2px 10px rgba(0, 0, 0, 0.04)',
+                  boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
                   transition: 'all 0.3s ease',
-                  border: isOpen ? '1.5px solid #5DAEFF' : '1.5px solid rgba(221, 244, 255, 0.8)'
+                  border: '1.5px solid rgba(221, 244, 255, 0.8)'
                 }}
               >
-                {/* Accordion Header (Always Visible) */}
+                {/* Header */}
                 <div
-                  onClick={() => toggleReview(idx)}
+                  className="review-card-header"
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: '16px 20px',
-                    cursor: 'pointer',
                     userSelect: 'none',
-                    background: isOpen ? '#F7FBFD' : 'white',
-                    transition: 'background 0.2s ease',
+                    background: 'white',
                   }}
                 >
                   {/* Name and Avatar */}
@@ -151,53 +206,31 @@ const Testimonials = () => {
                     </div>
                   </div>
 
-                  {/* Rating and Toggle Arrow */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ display: 'flex', gap: '2px' }}>
-                      {[...Array(review.rating)].map((_, i) => (
-                        <FiStar key={i} size={14} style={{ color: '#f59e0b', fill: '#f59e0b' }} />
-                      ))}
-                    </div>
-                    <div style={{
-                      width: '28px', height: '28px', borderRadius: '50%',
-                      background: isOpen ? '#EAF8FF' : '#f8fafc',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      transition: 'all 0.3s ease'
-                    }}>
-                      <FiChevronDown 
-                        size={16} 
-                        style={{ 
-                          color: isOpen ? '#4A90E2' : '#64748b', 
-                          transition: 'transform 0.3s ease',
-                          transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)'
-                        }} 
-                      />
-                    </div>
+                  {/* Rating */}
+                  <div style={{ display: 'flex', gap: '2px' }}>
+                    {[...Array(review.rating)].map((_, i) => (
+                      <FiStar key={i} size={14} style={{ color: '#f59e0b', fill: '#f59e0b' }} />
+                    ))}
                   </div>
                 </div>
 
-                {/* Collapsible Content */}
-                {isOpen && (
+                {/* Content */}
+                <div className="review-content" style={{
+                  padding: '16px 20px 20px 20px',
+                  borderTop: '1px dashed rgba(221, 244, 255, 0.9)',
+                  background: 'white',
+                }}>
+                  <p style={{ fontSize: '14px', color: '#374151', lineHeight: '1.7', marginBottom: '14px', fontStyle: 'italic' }}>
+                    "{review.text}"
+                  </p>
                   <div style={{
-                    padding: '16px 20px 20px 20px',
-                    borderTop: '1px dashed rgba(221, 244, 255, 0.9)',
-                    background: 'white',
+                    display: 'inline-block', padding: '4px 12px',
+                    background: review.bg, borderRadius: '9999px',
+                    fontSize: '11px', fontWeight: '600', color: '#1a2332',
                   }}>
-                    {/* Review text */}
-                    <p style={{ fontSize: '14px', color: '#374151', lineHeight: '1.7', marginBottom: '14px', fontStyle: 'italic' }}>
-                      "{review.text}"
-                    </p>
-
-                    {/* Product badge */}
-                    <div style={{
-                      display: 'inline-block', padding: '4px 12px',
-                      background: review.bg, borderRadius: '9999px',
-                      fontSize: '11px', fontWeight: '600', color: '#1a2332',
-                    }}>
-                      ✓ Verified Purchase — {review.product}
-                    </div>
+                    ✓ Verified Purchase — {review.product}
                   </div>
-                )}
+                </div>
               </div>
             );
           })}

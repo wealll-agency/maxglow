@@ -1,4 +1,4 @@
-﻿import express from 'express'; // Trigger restart
+import express from 'express'; // Trigger restart
 import 'express-async-errors'; // Catch async route errors
 import dotenv from 'dotenv';
 import dns from 'dns';
@@ -283,4 +283,4 @@ process.on('uncaughtException', (err) => {
 // Reload trigger 4
 
 // Reload trigger 5
-/ /   T r i g g e r   s y n c 
+// Trigger sync
