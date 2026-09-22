@@ -1,8 +1,8 @@
 import { Suspense } from 'react';
 import ShopClient from './ShopClient';
 
-export async function generateMetadata({ searchParams }) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+export async function generateMetadata({ searchParams = {} }) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.maxglow.in';
   const canonicalUrl = new URL(`${appUrl}/shop`);
   
   if (searchParams.category) {
@@ -19,53 +19,67 @@ export async function generateMetadata({ searchParams }) {
 }
 
 function resolveApiUrl() {
-  const url = process.env.NEXT_PUBLIC_API_URL;
-  if (process.env.NODE_ENV === 'production' && !url) {
-    throw new Error('FATAL CONFIGURATION ERROR: NEXT_PUBLIC_API_URL is missing in production environment. Refusing to fallback to localhost silently.');
+  const url = process.env.NEXT_PUBLIC_API_URL || 'https://www.maxglow.in/api';
+  if (process.env.NODE_ENV === 'production') {
+    // For Server Components on VPS, fetching the public domain often fails due to loopback/SSL issues.
+    // Use an internal URL if provided, or default to the local backend port 5000. 
+    if (typeof window === 'undefined') {
+       return process.env.INTERNAL_API_URL || 'http://127.0.0.1:5000/api'; 
+    }
   }
-  return url || 'http://localhost:7052/api';
+  return url;
 }
 
 async function getProducts(searchParams) {
-  const queryParams = new URLSearchParams();
-  
-  // Map frontend URL params to backend API params
-  if (searchParams.category) queryParams.set('category', searchParams.category);
-  if (searchParams.keyword) queryParams.set('keyword', searchParams.keyword);
-  if (searchParams.minPrice) queryParams.set('minPrice', searchParams.minPrice);
-  if (searchParams.maxPrice) queryParams.set('maxPrice', searchParams.maxPrice);
-  if (searchParams.brand) queryParams.set('brand', searchParams.brand);
-  if (searchParams.inStock !== undefined) queryParams.set('inStock', searchParams.inStock);
-  
-  // Pagination
-  const page = searchParams.page || '1';
-  queryParams.set('page', page);
-  queryParams.set('limit', '12');
+  try {
+    const queryParams = new URLSearchParams();
+    
+    // Map frontend URL params to backend API params
+    if (searchParams.category) queryParams.set('category', searchParams.category);
+    if (searchParams.keyword) queryParams.set('keyword', searchParams.keyword);
+    if (searchParams.minPrice) queryParams.set('minPrice', searchParams.minPrice);
+    if (searchParams.maxPrice) queryParams.set('maxPrice', searchParams.maxPrice);
+    if (searchParams.brand) queryParams.set('brand', searchParams.brand);
+    if (searchParams.inStock !== undefined) queryParams.set('inStock', searchParams.inStock);
+    
+    // Pagination
+    const page = searchParams.page || '1';
+    queryParams.set('page', page);
+    queryParams.set('limit', '12');
 
-  // Sorting
-  if (searchParams.sort) {
-    if (searchParams.sort === 'Price: Low to High') queryParams.set('sort', 'priceAsc');
-    else if (searchParams.sort === 'Price: High to Low') queryParams.set('sort', 'priceDesc');
-    else if (searchParams.sort === 'Newest') queryParams.set('sort', 'newest');
-  }
+    // Sorting
+    if (searchParams.sort) {
+      if (searchParams.sort === 'Price: Low to High') queryParams.set('sort', 'priceAsc');
+      else if (searchParams.sort === 'Price: High to Low') queryParams.set('sort', 'priceDesc');
+      else if (searchParams.sort === 'Newest') queryParams.set('sort', 'newest');
+    }
 
-  const baseUrl = resolveApiUrl();
-  
-  const res = await fetch(`${baseUrl}/products?${queryParams.toString()}`, {
-    cache: 'no-store' // Always fetch fresh data based on URL params
-  });
-  
-  if (!res.ok) {
-    throw new Error(`Failed to fetch products: ${res.status} ${res.statusText}`);
+    const baseUrl = resolveApiUrl();
+    
+    const res = await fetch(`${baseUrl}/products?${queryParams.toString()}`, {
+      cache: 'no-store', // Always fetch fresh data based on URL params
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+    
+    if (!res.ok) {
+      console.error(`Failed to fetch products: ${res.status} ${res.statusText}`);
+      return { products: [], totalPages: 1, currentPage: 1, totalProducts: 0, error: true };
+    }
+    
+    const data = await res.json();
+    return {
+      products: data.products || [],
+      totalPages: data.pages || 1,
+      currentPage: data.currentPage || 1,
+      totalProducts: data.total || 0,
+      error: false
+    };
+  } catch (error) {
+    console.error("Shop page product fetch error:", error);
+    return { products: [], totalPages: 1, currentPage: 1, totalProducts: 0, error: true };
   }
-  
-  const data = await res.json();
-  return {
-    products: data.products || [],
-    totalPages: data.pages || 1,
-    currentPage: data.currentPage || 1,
-    totalProducts: data.total || 0
-  };
 }
 
 async function getCategories() {
@@ -92,7 +106,7 @@ async function getSettings() {
   }
 }
 
-export default async function ShopPage({ searchParams }) {
+export default async function ShopPage({ searchParams = {} }) {
   const [productsData, categories, settings] = await Promise.all([
     getProducts(searchParams),
     getCategories(),
@@ -107,13 +121,13 @@ export default async function ShopPage({ searchParams }) {
         '@type': 'ListItem',
         position: 1,
         name: 'Home',
-        item: process.env.NEXT_PUBLIC_APP_URL,
+        item: process.env.NEXT_PUBLIC_APP_URL || 'https://www.maxglow.in',
       },
       {
         '@type': 'ListItem',
         position: 2,
         name: 'Shop',
-        item: `${process.env.NEXT_PUBLIC_APP_URL}/shop`,
+        item: `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.maxglow.in'}/shop`,
       },
     ],
   };
