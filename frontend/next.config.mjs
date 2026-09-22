@@ -80,6 +80,19 @@ const nextConfig = {
       { protocol: 'https', hostname: 'maxglow.in' },
     ],
   },
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=0, must-revalidate',
+          },
+        ],
+      },
+    ];
+  },
   async rewrites() {
     return [
       {
