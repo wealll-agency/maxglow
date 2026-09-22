@@ -14,7 +14,7 @@ const CashewsBanner = dynamic(() => import('../components/CashewsBanner'));
 const Testimonials = dynamic(() => import('../components/Testimonials'));
 
 async function getHomepageData() {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://maxglow.in/api';
+  const baseUrl = 'http://127.0.0.1:7052/api';
   try {
     const [topRes, arrivalRes, trendingRes, customRes, settingsRes] = await Promise.all([
       fetch(`${baseUrl}/products?topSelling=true&limit=8&inStock=true`, { next: { revalidate: 60 } }),

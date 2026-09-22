@@ -6,7 +6,7 @@ export const revalidate = 60;
 
 async function getProductData(id) {
   if (!id) return null;
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://www.maxglow.in/api';
+  const baseUrl = 'http://127.0.0.1:7052/api';
   try {
     const res = await fetch(`${baseUrl}/products/${id}`, { next: { revalidate: 60 } });
     if (!res.ok) return null;

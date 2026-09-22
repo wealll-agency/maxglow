@@ -47,7 +47,7 @@ export const viewport = {
 
 async function getNotificationSettings() {
   try {
-    const url = `${process.env.NEXT_PUBLIC_API_URL}/auth/settings`;
+    const url = 'http://127.0.0.1:7052/api/auth/settings';
     const res = await fetch(url, { next: { revalidate: 60 } });
     if (res.ok) {
       const data = await res.json();
