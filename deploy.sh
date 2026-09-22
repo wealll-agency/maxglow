@@ -77,10 +77,10 @@ cd "$LIVE_DIR"
 
 BACKUP_DIR="${RELEASES_DIR}/rollback-backup"
 echo "📦 Backing up current stable release..."
-rsync -a --delete "$LIVE_DIR/" "$BACKUP_DIR/"
+rsync -a --delete --exclude 'backend/public/uploads' "$LIVE_DIR/" "$BACKUP_DIR/"
 
 echo "🔄 Switching live traffic to new release..."
-rsync -a --delete "$RELEASE_DIR/" "$LIVE_DIR/"
+rsync -a --delete --exclude 'backend/public/uploads' "$RELEASE_DIR/" "$LIVE_DIR/"
 
 echo "🔄 Reloading PM2 gracefully..."
 pm2 reload maxglow-backend maxglow-frontend || pm2 restart maxglow-backend maxglow-frontend
