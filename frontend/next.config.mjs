@@ -35,7 +35,7 @@ for (const envPath of candidateEnvPaths) {
   }
 }
 
-const backendUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api$/, '') : '';
+const backendUrl = 'http://127.0.0.1:7052';
 
 if (!process.env.NEXT_PUBLIC_APP_URL) {
   throw new Error('NEXT_PUBLIC_APP_URL is not defined in the environment variables. SEO features require a valid domain.');

@@ -6,12 +6,10 @@ export const getImageUrl = (url) => {
   }
   if (cleanedUrl.startsWith('http') || cleanedUrl.startsWith('blob:')) return cleanedUrl;
   if (cleanedUrl.startsWith('/uploads/')) {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://www.maxglow.in/api';
-    const baseUrl = apiUrl.replace('/api', '');
     if (cleanedUrl.toLowerCase().endsWith('.mp4') || cleanedUrl.toLowerCase().endsWith('.webm')) {
-      return `${baseUrl}/api${cleanedUrl}`;
+      return `/api${cleanedUrl}`;
     }
-    return `${baseUrl}${cleanedUrl}`;
+    return cleanedUrl;
   }
   if (cleanedUrl.startsWith('/assets/images/')) {
     return cleanedUrl.replace('/assets/images/', '/');
