@@ -22,9 +22,9 @@ function resolveApiUrl() {
   const url = process.env.NEXT_PUBLIC_API_URL || 'https://www.maxglow.in/api';
   if (process.env.NODE_ENV === 'production') {
     // For Server Components on VPS, fetching the public domain often fails due to loopback/SSL issues.
-    // Use an internal URL if provided, or default to the local backend port 5000. 
+    // Use an internal URL if provided, or default to the local backend port 7052. 
     if (typeof window === 'undefined') {
-       return process.env.INTERNAL_API_URL || 'http://127.0.0.1:5000/api'; 
+       return process.env.INTERNAL_API_URL || 'http://127.0.0.1:7052/api'; 
     }
   }
   return url;
