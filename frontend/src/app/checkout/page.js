@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { createOrder } from '../../store/ordersSlice.js';
 import { clearCart, addToCart, applyCouponCode, clearRemovedCouponNotice } from '../../store/cartSlice.js';
@@ -434,9 +435,10 @@ export default function CheckoutPage() {
           .mobile-sticky-checkout-btn-wrapper {
             display: none;
             position: fixed !important;
-            bottom: 0 !important;
             left: 0 !important;
             right: 0 !important;
+            bottom: 0 !important;
+            width: 100% !important;
             background: #ffffff;
             border-top: 1px solid #e2e8f0;
             box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
@@ -446,8 +448,6 @@ export default function CheckoutPage() {
             box-sizing: border-box !important;
             height: auto !important;
             min-height: 72px !important;
-            transform: translateZ(0) !important;
-            -webkit-transform: translateZ(0) !important;
           }
 
           @media (max-width: 768px) {
@@ -945,30 +945,33 @@ export default function CheckoutPage() {
     </div>
     
       {/* Mobile Sticky Checkout Bar */}
-      <div className="mobile-sticky-checkout-btn-wrapper">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', width: '100%' }}>
-          <div>
-            <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Total Payable</div>
-            <div style={{ fontSize: '18px', fontWeight: 800, color: '#1a2332', fontFamily: 'var(--font-outfit)', lineHeight: 1.1 }}>₹{total}</div>
+      {isMounted && typeof document !== 'undefined' ? createPortal(
+        <div className="mobile-sticky-checkout-btn-wrapper">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', width: '100%' }}>
+            <div>
+              <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Total Payable</div>
+              <div style={{ fontSize: '18px', fontWeight: 800, color: '#1a2332', fontFamily: 'var(--font-outfit)', lineHeight: 1.1 }}>₹{total}</div>
+            </div>
+            <button
+              type="button"
+              onClick={handlePlaceOrder}
+              disabled={loading || isSubmitting}
+              className="btn-mg-green fw-bold fs-6 d-flex align-items-center justify-content-center gap-2"
+              style={{
+                flex: 1,
+                borderRadius: '12px',
+                boxShadow: '0 6px 20px rgba(59, 174, 86, 0.35)',
+                padding: '12px 18px',
+                fontSize: '15px',
+                margin: 0
+              }}
+            >
+              {(loading || isSubmitting) ? 'Processing Order...' : 'Pay Now'}
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={handlePlaceOrder}
-            disabled={loading || isSubmitting}
-            className="btn-mg-green fw-bold fs-6 d-flex align-items-center justify-content-center gap-2"
-            style={{
-              flex: 1,
-              borderRadius: '12px',
-              boxShadow: '0 6px 20px rgba(59, 174, 86, 0.35)',
-              padding: '12px 18px',
-              fontSize: '15px',
-              margin: 0
-            }}
-          >
-            {(loading || isSubmitting) ? 'Processing Order...' : 'Pay Now'}
-          </button>
-        </div>
-      </div>
+        </div>,
+        document.body
+      ) : null}
     </>
   );
 }

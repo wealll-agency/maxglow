@@ -40,6 +40,7 @@ const productSchema = new mongoose.Schema({
   manualTopSelling: { type: Boolean, default: false },
   healthyProduct: { type: Boolean, default: false },
   newArrival: { type: Boolean, default: false },
+  isBestseller: { type: Boolean, default: false },
   totalSold: { type: Number, default: 0 },
   
   description: { type: String, required: true },
@@ -87,6 +88,7 @@ productSchema.index({ price: 1 });
 productSchema.index({ showOnHomepage: 1, stock: 1 });
 productSchema.index({ newArrival: 1, stock: 1 });
 productSchema.index({ isFeatured: 1, stock: 1 });
+productSchema.index({ isBestseller: 1, stock: 1 });
 productSchema.index({ totalSold: -1 });
 productSchema.index({ category: 1, stock: 1 });
 

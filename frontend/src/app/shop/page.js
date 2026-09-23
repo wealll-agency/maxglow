@@ -52,6 +52,8 @@ async function getProducts(searchParams) {
       if (searchParams.sort === 'Price: Low to High') queryParams.set('sort', 'priceAsc');
       else if (searchParams.sort === 'Price: High to Low') queryParams.set('sort', 'priceDesc');
       else if (searchParams.sort === 'Newest') queryParams.set('sort', 'newest');
+      else if (searchParams.sort === 'Best Selling') queryParams.set('sort', 'topSelling');
+      else queryParams.set('sort', searchParams.sort); // 'bestselling' goes directly
     }
 
     const baseUrl = resolveApiUrl();

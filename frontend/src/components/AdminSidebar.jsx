@@ -124,7 +124,7 @@ export default function AdminSidebar() {
     },
     { label: 'Shipments', path: '/admin/shipments', icon: <Package size={20} /> },
     { label: 'Customer Profiling', path: '/admin/customers', icon: <Users size={20} /> },
-    { label: 'Customer Access', path: '/admin/access', icon: <Shield size={20} /> },
+    { label: 'Custom Access', path: '/admin/access', icon: <Shield size={20} /> },
     { label: 'Reports Center', path: '/admin/reports', icon: <Receipt size={20} /> }
   ];
 

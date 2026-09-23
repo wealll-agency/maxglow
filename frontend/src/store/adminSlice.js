@@ -281,6 +281,18 @@ export const fetchAdminOrders = createAsyncThunk(
   }
 );
 
+export const clearAllOrders = createAsyncThunk(
+  'admin/clearAllOrders',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.delete(`${ORDERS_URL}/clear-all`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to clear orders');
+    }
+  }
+);
+
 export const updateOrderStatus = createAsyncThunk(
   'admin/updateOrderStatus',
   async ({ id, status, trackingNumber }, { rejectWithValue }) => {
@@ -532,6 +544,11 @@ const adminSlice = createSlice({
         state.orders = action.payload.orders || action.payload;
         state.ordersTotalPages = action.payload.pages || 1;
         state.ordersCurrentPage = action.payload.currentPage || 1;
+      })
+      .addCase(clearAllOrders.fulfilled, (state) => {
+        state.orders = [];
+        state.ordersTotalPages = 1;
+        state.ordersCurrentPage = 1;
       })
       .addCase(fetchAdminShipments.pending, (state) => {
         state.ordersLoading = true;

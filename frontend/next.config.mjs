@@ -14,10 +14,11 @@ try {
 } catch (e) {}
 
 // Robust zero-dependency env loader to fix Next.js 14 ES module top-level evaluation bug
+const isProduction = process.env.NODE_ENV === 'production';
 const candidateEnvPaths = [
   path.resolve(__dirname, '.env.production'),
   path.resolve(__dirname, '.env'),
-  path.resolve(__dirname, '../.env'),
+  ...(isProduction ? [] : [path.resolve(__dirname, '../.env')]),
 ];
 
 for (const envPath of candidateEnvPaths) {

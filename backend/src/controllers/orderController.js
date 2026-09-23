@@ -598,6 +598,23 @@ export const getMyOrders = async (req, res, next) => {
   }
 };
 
+// @desc    Clear all orders
+// @route   DELETE /api/orders/clear-all
+// @access  Private/Super Admin
+export const deleteAllOrders = async (req, res, next) => {
+  try {
+    await Order.deleteMany({});
+    await Payment.deleteMany({});
+    
+    await logActivity(req.user._id, 'CLEAR_ALL_ORDERS', 'Cleared all orders and payments from the system', req);
+
+    res.json({ success: true, message: 'All orders have been successfully cleared.' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
 // @desc    Get order details
 // @route   GET /api/orders/:id
 // @access  Private

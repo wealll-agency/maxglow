@@ -8,7 +8,7 @@ import Image from 'next/image';
 
 import { useEffect, useState, Suspense } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchAdminOrders, updateOrderStatus, refundOrder, createDelhiveryShipment, cancelDelhiveryShipment, getDelhiveryLabel, fetchWarehouses } from '../../../store/adminSlice';
+import { fetchAdminOrders, updateOrderStatus, refundOrder, createDelhiveryShipment, cancelDelhiveryShipment, getDelhiveryLabel, fetchWarehouses, clearAllOrders } from '../../../store/adminSlice';
 import { ShoppingBag, Eye, MapPin, Check, Filter, Clock, Search, X, Printer, Package, Truck, CheckCircle, CreditCard, RotateCcw, AlertTriangle, Download } from 'lucide-react';
 
 
@@ -142,6 +142,20 @@ function AdminOrdersContent() {
     dispatch(fetchAdminOrders({ limit: 1000 }));
     dispatch(fetchWarehouses());
   }, [dispatch]);
+
+  const handleClearOrders = async () => {
+    const confirmed = await showConfirm('Are you absolutely sure you want to delete ALL orders? This action cannot be undone and will permanently wipe all order and payment history.');
+    if (confirmed) {
+      dispatch(clearAllOrders())
+        .unwrap()
+        .then(() => {
+          showAlert('All orders have been cleared successfully.', 'success');
+        })
+        .catch(err => {
+          showAlert(err || 'Failed to clear orders.', 'error');
+        });
+    }
+  };
 
   const handleStatusChange = (id, status) => {
     setActionSuccess('');
@@ -421,6 +435,9 @@ function AdminOrdersContent() {
           <p className="text-muted m-0">View customer checkouts, ship packages, and verify transaction receipts.</p>
         </div>
         <div className="d-flex align-items-center gap-3">
+          <button onClick={handleClearOrders} className="btn btn-danger d-flex align-items-center gap-2 btn-sm fw-medium px-3 py-2">
+            <X size={16} /> Clear All Orders
+          </button>
           <button onClick={exportToExcel} className="btn btn-success d-flex align-items-center gap-2 btn-sm fw-medium px-3 py-2">
             <Download size={16} /> Export to Excel
           </button>

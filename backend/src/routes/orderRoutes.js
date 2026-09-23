@@ -9,7 +9,8 @@ import {
   updateOrderStatus,
   processRefund,
   getAdminShipments,
-  getShipmentByWaybill
+  getShipmentByWaybill,
+  deleteAllOrders
 } from '../controllers/orderController.js';
 import { protect, authorizeRoles } from '../middleware/auth.js';
 import { auditRoute } from '../middleware/logger.js';
@@ -32,6 +33,8 @@ router.route('/shipments')
 
 router.route('/shipments/:waybill')
   .get(protect, authorizeRoles('Super Admin', 'Manager', 'Staff'), getShipmentByWaybill);
+
+router.delete('/clear-all', protect, authorizeRoles('Super Admin'), auditRoute('CLEAR_ALL_ORDERS'), deleteAllOrders);
 
 router.post('/icici-callback', iciciCallback);
 router.post('/icici-advice', iciciAdvice);

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { registerUser, clearError } from '../../store/authSlice';
-import { FiUser, FiMail, FiPhone, FiLock, FiUserPlus } from 'react-icons/fi';
+import { FiUser, FiMail, FiPhone, FiLock, FiUserPlus, FiEye, FiEyeOff } from 'react-icons/fi';
 import { Leaf } from 'lucide-react';
 
 export default function RegisterPage() {
@@ -26,6 +26,7 @@ function RegisterContent() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { user, loading, error } = useSelector((state) => state.auth);
@@ -54,7 +55,7 @@ function RegisterContent() {
     { icon: <FiUser size={16} color="#94a3b8" />, label: 'Full Name', type: 'text', value: name, onChange: setName, required: true },
     { icon: <FiMail size={16} color="#94a3b8" />, label: 'Email Address', type: 'email', value: email, onChange: setEmail, required: true },
     { icon: <FiPhone size={16} color="#94a3b8" />, label: 'Phone Number', type: 'tel', value: phone, onChange: setPhone, required: false },
-    { icon: <FiLock size={16} color="#94a3b8" />, label: 'Password', type: 'password', value: password, onChange: setPassword, required: true },
+    { icon: <FiLock size={16} color="#94a3b8" />, label: 'Password', type: showPassword ? 'text' : 'password', value: password, onChange: setPassword, required: true },
   ];
 
   return (
@@ -105,8 +106,30 @@ function RegisterContent() {
                     className="mg-input"
                     value={field.value}
                     onChange={(e) => field.onChange(e.target.value)}
-                    style={{ paddingLeft: '40px' }}
+                    style={{ paddingLeft: '40px', paddingRight: field.label === 'Password' ? '40px' : '16px' }}
                   />
+                  {field.label === 'Password' && (
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{
+                        position: 'absolute',
+                        right: '14px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#94a3b8'
+                      }}
+                    >
+                      {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

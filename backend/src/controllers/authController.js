@@ -74,7 +74,7 @@ export const registerUser = async (req, res, next) => {
 // @route   POST /api/auth/login
 // @access  Public
 export const loginUser = async (req, res, next) => {
-  console.log('LOGIN ATTEMPT:', JSON.stringify(req.body));
+  
   let { email, password, rememberMe, localCart = [], localWishlist = [] } = req.body;
   if (email) email = email.toLowerCase().trim();
 
@@ -421,7 +421,7 @@ export const getSystemSettings = async (req, res, next) => {
       });
     }
 
-    const keys = ['cod', 'refund', 'topSellingSource', 'media_hero', 'media_hero_mobile', 'media_new_arrivals', 'media_new_arrivals_mobile', 'media_trending_banner', 'media_trending_banner_mobile', 'media_offers', 'media_category_banner', 'media_category_banners', 'media_reels', 'about_page_content', 'media_shop_by_products', 'media_combo_banner', 'notification_settings'];
+    const keys = ['cod', 'refund', 'topSellingSource', 'media_hero', 'media_hero_mobile', 'media_new_arrivals', 'media_new_arrivals_mobile', 'media_trending_banner', 'media_trending_banner_mobile', 'media_offers', 'media_category_banner', 'media_category_banners', 'media_reels', 'about_page_content', 'media_shop_by_products', 'media_combo_banner', 'media_bestseller_banner', 'notification_settings'];
     const docs = await SystemSetting.find({ key: { $in: keys } }).lean();
     const map = new Map(docs.map(d => [d.key, d.value]));
 
@@ -442,6 +442,7 @@ export const getSystemSettings = async (req, res, next) => {
       about_page_content: map.has('about_page_content') ? map.get('about_page_content') : null,
       media_shop_by_products: map.has('media_shop_by_products') ? map.get('media_shop_by_products') : null,
       media_combo_banner: map.has('media_combo_banner') ? map.get('media_combo_banner') : null,
+      media_bestseller_banner: map.has('media_bestseller_banner') ? map.get('media_bestseller_banner') : null,
       notification_settings: map.has('notification_settings') ? map.get('notification_settings') : null,
     };
 
@@ -462,7 +463,7 @@ export const getSystemSettings = async (req, res, next) => {
 // @access  Private/Admin
 export const updateSystemSettings = async (req, res, next) => {
   const { settings } = req.body;
-  console.log('updateSystemSettings called! body settings:', settings);
+
 
   try {
     if (settings && typeof settings === 'object') {
@@ -483,6 +484,7 @@ export const updateSystemSettings = async (req, res, next) => {
         { key: 'about_page_content', type: 'object' },
         { key: 'media_shop_by_products', type: 'array' },
         { key: 'media_combo_banner', type: 'string' },
+        { key: 'media_bestseller_banner', type: 'string' },
         { key: 'notification_settings', type: 'object' }
       ];
 

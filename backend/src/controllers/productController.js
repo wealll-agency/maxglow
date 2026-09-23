@@ -124,6 +124,8 @@ export const getProducts = async (req, res, next) => {
       if (sort === 'priceAsc') sortBy = { sellingPrice: 1 };
       else if (sort === 'priceDesc') sortBy = { sellingPrice: -1 };
       else if (sort === 'rating') sortBy = { rating: -1 };
+      else if (sort === 'topSelling') sortBy = { totalSold: -1 };
+      else if (sort === 'bestselling') query.isBestseller = true;
     }
 
     const pageNum = Number(page);
@@ -525,9 +527,9 @@ export const toggleProductStatus = async (req, res, next) => {
 // @access  Private/Admin/Manager
 export const bulkUpdateHomepageFlags = async (req, res, next) => {
   try {
-    const { flag, productIds } = req.body; // flag: showOnHomepage, healthyProduct, newArrival, manualTopSelling
+    const { flag, productIds } = req.body; // flag: showOnHomepage, healthyProduct, newArrival, manualTopSelling, isBestseller
 
-    if (!['showOnHomepage', 'newArrival', 'manualTopSelling', 'healthyProduct', 'isFeatured'].includes(flag)) {
+    if (!['showOnHomepage', 'newArrival', 'manualTopSelling', 'healthyProduct', 'isFeatured', 'isBestseller'].includes(flag)) {
       return res.status(400).json({ success: false, message: 'Invalid flag specified' });
     }
     

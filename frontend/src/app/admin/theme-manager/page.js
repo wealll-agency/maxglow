@@ -6,7 +6,7 @@ import { useNotification } from '../../../context/NotificationContext';
 import { 
   Trash2, Plus, Edit2, ArrowLeft, Home, Gift, Info, 
   ShoppingBag, Check, Sparkles, Layers, FileText,
-  ChevronRight, UploadCloud, RefreshCw
+  ChevronRight, UploadCloud, RefreshCw, Award
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -61,6 +61,17 @@ export default function ThemeManagerPage() {
       bgLight: '#f3e5f5',
       borderColor: '#ce93d8',
       sections: ['ShopBanner']
+    },
+    {
+      id: 'bestsellers',
+      title: 'Bestseller Page Theme',
+      subtitle: 'Manage Bestseller Banner',
+      badge: '1 Theme Section',
+      icon: Award,
+      color: '#00796b',
+      bgLight: '#e0f2f1',
+      borderColor: '#80cbc4',
+      sections: ['BestsellerBanner']
     }
   ];
 
@@ -123,6 +134,12 @@ export default function ThemeManagerPage() {
       id: 'ComboBanner', title: 'Combo Page Header Banner', subtitle: 'Recommended: 1920 × 400 px', 
       recWidth: 1920, recHeight: 400, previewClass: 'ratio-shop-banner', previewMaxWidth: '100%', allowMultiple: false,
       key: 'media_combo_banner', isArray: false
+    },
+    // BESTSELLERS PAGE
+    { 
+      id: 'BestsellerBanner', title: 'Bestseller Page Header Banner', subtitle: 'Recommended: 1920 × 400 px', 
+      recWidth: 1920, recHeight: 400, previewClass: 'ratio-shop-banner', previewMaxWidth: '100%', allowMultiple: false,
+      key: 'media_bestseller_banner', isArray: false
     }
   ];
 

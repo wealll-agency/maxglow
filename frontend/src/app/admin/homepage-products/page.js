@@ -26,14 +26,16 @@ export default function HomepageProductsPage() {
     showOnHomepage: {},
     newArrival: {},
     isFeatured: {},
-    manualTopSelling: {}
+    manualTopSelling: {},
+    isBestseller: {}
   });
 
   const [saving, setSaving] = useState({
     showOnHomepage: false,
     newArrival: false,
     isFeatured: false,
-    manualTopSelling: false
+    manualTopSelling: false,
+    isBestseller: false
   });
 
   const [activeTab, setActiveTab] = useState('showOnHomepage');
@@ -50,13 +52,15 @@ export default function HomepageProductsPage() {
         showOnHomepage: {},
         newArrival: {},
         isFeatured: {},
-        manualTopSelling: {}
+        manualTopSelling: {},
+        isBestseller: {}
       };
       products.forEach(p => {
         initialSelections.showOnHomepage[p._id] = p.showOnHomepage || false;
         initialSelections.newArrival[p._id] = p.newArrival || false;
         initialSelections.isFeatured[p._id] = p.isFeatured || false;
         initialSelections.manualTopSelling[p._id] = p.manualTopSelling || false;
+        initialSelections.isBestseller[p._id] = p.isBestseller || false;
       });
       setSelections(initialSelections);
     }
@@ -198,7 +202,7 @@ export default function HomepageProductsPage() {
 
   const exportToExcel = () => {
     const csvRows = [];
-    const headers = ['Product ID', 'Product Name', 'Category', 'Price', 'Status', 'Show On Homepage', 'New Arrival', 'Trending Now', 'Manual Top Selling'];
+    const headers = ['Product ID', 'Product Name', 'Category', 'Price', 'Status', 'Show On Homepage', 'New Arrival', 'Trending Now', 'Manual Top Selling', 'Bestseller'];
     csvRows.push(headers.join(','));
 
     filteredProducts.forEach(prod => {
@@ -211,7 +215,8 @@ export default function HomepageProductsPage() {
         selections.showOnHomepage[prod._id] ? 'Yes' : 'No',
         selections.newArrival[prod._id] ? 'Yes' : 'No',
         selections.isFeatured[prod._id] ? 'Yes' : 'No',
-        selections.manualTopSelling[prod._id] ? 'Yes' : 'No'
+        selections.manualTopSelling[prod._id] ? 'Yes' : 'No',
+        selections.isBestseller[prod._id] ? 'Yes' : 'No'
       ];
       csvRows.push(row.join(','));
     });
@@ -372,6 +377,15 @@ export default function HomepageProductsPage() {
                 Top Selling (Manual)
               </button>
             </li>
+            <li className="nav-item">
+              <button 
+                className={`nav-link fw-medium border-0 ${activeTab === 'isBestseller' ? 'text-brand border-bottom border-brand border-3' : 'text-muted'}`}
+                onClick={() => setActiveTab('isBestseller')}
+                style={{ backgroundColor: 'transparent' }}
+              >
+                Bestseller
+              </button>
+            </li>
             {customSections.map(section => (
               <li className="nav-item" key={section._id}>
                 <button 
@@ -513,6 +527,21 @@ export default function HomepageProductsPage() {
                     </button>
                   </div>
                   {renderProductList('manualTopSelling')}
+                </div>
+              )}
+
+              {activeTab === 'isBestseller' && (
+                <div className="animate-fade-in">
+                  <div className="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                      <h5 className="fw-bold mb-1">Bestseller Page Products</h5>
+                      <p className="text-muted fs-7 mb-0">Select products that will be showcased on the dedicated Bestseller page.</p>
+                    </div>
+                    <button className="btn btn-brand d-flex align-items-center gap-2" onClick={() => handleSaveFlag('isBestseller')} disabled={saving.isBestseller}>
+                      <Save size={16} /> {saving.isBestseller ? 'Saving...' : 'Save Assignments'}
+                    </button>
+                  </div>
+                  {renderProductList('isBestseller')}
                 </div>
               )}
 

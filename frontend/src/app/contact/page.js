@@ -4,7 +4,7 @@ import Link from 'next/link';
 import React, { useState } from 'react';
 import { 
   FiMail, FiPhone, FiMapPin, FiChevronRight, 
-  FiFacebook, FiInstagram, FiTwitter, FiYoutube 
+  FiFacebook, FiInstagram 
 } from 'react-icons/fi';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://maxglow.in/api';
@@ -192,10 +192,8 @@ export default function ContactPage() {
                   </h5>
                   <div style={{ display: 'flex', gap: '10px' }}>
                     {[
-                      { icon: <FiFacebook size={16} />, href: '#', color: '#1877F2' },
-                      { icon: <FiInstagram size={16} />, href: '#', color: '#E1306C' },
-                      { icon: <FiTwitter size={16} />, href: '#', color: '#1DA1F2' },
-                      { icon: <FiYoutube size={16} />, href: '#', color: '#FF0000' },
+                      { icon: <FiFacebook size={16} />, href: 'https://www.facebook.com/share/1C1AdhokbG/', color: '#1877F2' },
+                      { icon: <FiInstagram size={16} />, href: 'https://www.instagram.com/maxglowherbals?igsi=OHgwZmFvbGNhcjZ1', color: '#E1306C' },
                     ].map((social, idx) => (
                       <Link
                         key={idx}

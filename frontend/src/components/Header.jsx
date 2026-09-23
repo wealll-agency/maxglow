@@ -125,7 +125,7 @@ const Header = () => {
 
   const navLinks = [
     { href: '/shop', label: 'SHOP', icon: <FiShoppingBag size={14} /> },
-    { href: '/shop?sort=bestselling', label: 'BESTSELLERS', icon: <Award size={14} /> },
+    { href: '/bestsellers', label: 'BESTSELLERS', icon: <Award size={14} /> },
     { href: '/combos', label: 'COMBO', icon: <FiGift size={14} /> },
     { href: '/about', label: 'ABOUT', icon: <Leaf size={14} /> },
   ];
