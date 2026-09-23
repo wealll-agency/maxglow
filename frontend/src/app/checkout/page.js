@@ -523,7 +523,7 @@ export default function CheckoutPage() {
         }
       `}</style>
 
-      <div className="row g-5 align-items-start">
+      <div className="row g-3 g-lg-5 align-items-start">
         
         {/* Left Side: Delivery Address + Payment method */}
         <div className="col-lg-7">

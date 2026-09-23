@@ -439,6 +439,7 @@ const Header = () => {
           {[
             { href: '/shop', label: 'Shop', icon: <FiShoppingBag size={20} /> },
             { href: '/combos', label: 'Combo', icon: <FiGift size={20} /> },
+            { href: '/bestsellers', label: 'Bestseller', icon: <Flame size={20} /> },
             { href: '/wishlist', label: 'Favorite', icon: <FiHeart size={20} /> },
             { href: '/about', label: 'About', icon: <Leaf size={20} /> },
           ].map((item) => {
