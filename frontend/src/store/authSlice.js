@@ -10,11 +10,16 @@ const getInitialUser = () => {
 const sanitizeUserForStorage = (user) => {
   if (!user) return null;
   // Strictly prevent email, phone, addresses, secrets, etc. from being stored in localStorage
-  return {
+  const data = JSON.stringify({
     _id: user._id,
     role: user.role,
     name: user.name || 'User'
-  };
+  });
+  // Encode to base64 to prevent casual snooping in browser Developer Tools
+  if (typeof btoa !== 'undefined') {
+    return btoa(encodeURIComponent(data));
+  }
+  return JSON.parse(data); // fallback
 };
 
 export const registerUser = createAsyncThunk(
@@ -26,6 +31,9 @@ export const registerUser = createAsyncThunk(
       const response = await api.post(`/auth/register`, { name, email, password, phone, localCart, localWishlist });
       if (response.data.cart) dispatch(hydrateCart(response.data.cart));
       if (response.data.wishlist) dispatch(hydrateWishlist(response.data.wishlist));
+      if (typeof window !== 'undefined' && response.data.token) {
+        localStorage.setItem('maxglow_token', response.data.token);
+      }
       return response.data.user;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Registration failed');
@@ -42,6 +50,9 @@ export const loginUser = createAsyncThunk(
       const response = await api.post(`/auth/login`, { email, password, rememberMe, localCart, localWishlist });
       if (response.data.cart) dispatch(hydrateCart(response.data.cart));
       if (response.data.wishlist) dispatch(hydrateWishlist(response.data.wishlist));
+      if (typeof window !== 'undefined' && response.data.token) {
+        localStorage.setItem('maxglow_token', response.data.token);
+      }
       return response.data.user;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Login failed');
@@ -56,6 +67,9 @@ export const logoutUser = createAsyncThunk(
       await api.post(`/auth/logout`);
       dispatch(clearCart());
       dispatch(clearWishlist());
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('maxglow_token');
+      }
       return null;
     } catch (error) {
       return rejectWithValue('Logout failed');

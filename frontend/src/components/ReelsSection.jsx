@@ -251,65 +251,58 @@ const ReelCard = ({ reel }) => {
 };
 
 /* ── Main Section ── */
-const ReelsSection = () => {
-  const [reelsState, setReelsState] = useState(reels);
+const ReelsSection = ({ initialReelsProducts = [] }) => {
+  // Format the raw products passed from the server into the reels format
+  const formatProductsToReels = (products) => {
+    if (!products || products.length === 0) return [];
+    
+    return products
+      .filter(p => p.videos && p.videos.length > 0)
+      .map((p, idx) => {
+        let finalPrice = p.price;
+        let originalPrice = p.price;
+        if (p.discount > 0) {
+          finalPrice = p.discountType === 'Percent'
+            ? Math.round(p.price * (1 - p.discount / 100))
+            : Math.max(0, p.price - p.discount);
+        }
+        
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : '';
+        let videoUrl = p.videos[0];
+        if (videoUrl.startsWith('/uploads/')) {
+          videoUrl = `${baseUrl}/api${videoUrl}`;
+        } else if (typeof videoUrl === 'string' && videoUrl.includes('/uploads/')) {
+          videoUrl = `${baseUrl}/api${videoUrl.substring(videoUrl.indexOf('/uploads/'))}`;
+        }
+
+        let posterUrl = p.images && p.images.length > 0 ? p.images[0] : 'https://placehold.co/400x600/0a1628/ffffff';
+        if (posterUrl.startsWith('/uploads/')) {
+          posterUrl = `${baseUrl}${posterUrl}`;
+        } else if (typeof posterUrl === 'string' && posterUrl.includes('/uploads/')) {
+          posterUrl = `${baseUrl}${posterUrl.substring(posterUrl.indexOf('/uploads/'))}`;
+        }
+
+        return {
+          id: p._id || idx,
+          video: videoUrl,
+          poster: posterUrl,
+          title: p.name,
+          tag: p.category || 'Product',
+          price: finalPrice,
+          originalPrice: p.discount > 0 ? originalPrice : null,
+          link: `/product/${p.slug || p._id}`,
+          originalProduct: { ...p, price: finalPrice }
+        };
+      });
+  };
+
+  // Initialize state directly with the formatted SSR data, completely preventing the placeholder flash
+  const [reelsState, setReelsState] = useState(() => formatProductsToReels(initialReelsProducts));
+
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchReels = async () => {
-      try {
-        const { default: api } = await import('../utils/axiosConfig');
-        const res = await api.get('/products?showInReels=true');
-        if (res.data.success && res.data.products) {
-          const fetchedReels = res.data.products
-            .filter(p => p.videos && p.videos.length > 0)
-            .map((p, idx) => {
-              let finalPrice = p.price;
-              let originalPrice = p.price;
-              if (p.discount > 0) {
-                finalPrice = p.discountType === 'Percent'
-                  ? Math.round(p.price * (1 - p.discount / 100))
-                  : Math.max(0, p.price - p.discount);
-              }
-                const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : '';
-                let videoUrl = p.videos[0];
-                if (videoUrl.startsWith('/uploads/')) {
-                  videoUrl = `${baseUrl}/api${videoUrl}`;
-                } else if (typeof videoUrl === 'string' && videoUrl.includes('/uploads/')) {
-                  videoUrl = `${baseUrl}/api${videoUrl.substring(videoUrl.indexOf('/uploads/'))}`;
-                }
-
-                let posterUrl = p.images && p.images.length > 0 ? p.images[0] : 'https://placehold.co/400x600/0a1628/ffffff';
-                if (posterUrl.startsWith('/uploads/')) {
-                  posterUrl = `${baseUrl}${posterUrl}`;
-                } else if (typeof posterUrl === 'string' && posterUrl.includes('/uploads/')) {
-                  posterUrl = `${baseUrl}${posterUrl.substring(posterUrl.indexOf('/uploads/'))}`;
-                }
-
-              return {
-                id: p._id || idx,
-                video: videoUrl,
-                poster: posterUrl,
-                title: p.name,
-                tag: p.category || 'Product',
-                price: finalPrice,
-                originalPrice: p.discount > 0 ? originalPrice : null,
-                link: `/product/${p.slug || p._id}`,
-                originalProduct: { ...p, price: finalPrice }
-              };
-            });
-          if (fetchedReels.length > 0) {
-            setReelsState(fetchedReels);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to fetch reels", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchReels();
-  }, []);
+  // Removed redundant client-side fetch to eliminate SSR/CSR hydration flash.
+  // The component now relies entirely on the server-provided `initialReelsProducts` data.
 
   if (reelsState.length === 0) return null;
 

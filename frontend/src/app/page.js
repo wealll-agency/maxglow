@@ -16,28 +16,31 @@ const Testimonials = dynamic(() => import('../components/Testimonials'));
 async function getHomepageData() {
   const baseUrl = 'http://127.0.0.1:7052/api';
   try {
-    const [topRes, arrivalRes, trendingRes, customRes, settingsRes] = await Promise.all([
+    const [topRes, arrivalRes, trendingRes, customRes, settingsRes, reelsRes] = await Promise.all([
       fetch(`${baseUrl}/products?topSelling=true&limit=8&inStock=true`, { next: { revalidate: 60 } }),
       fetch(`${baseUrl}/products?newArrival=true&limit=8&inStock=true`, { next: { revalidate: 60 } }),
       fetch(`${baseUrl}/products?featured=true&limit=8&inStock=true`, { next: { revalidate: 60 } }),
       fetch(`${baseUrl}/custom-sections?isActive=true`, { next: { revalidate: 60 } }),
       fetch(`${baseUrl}/auth/settings`, { next: { revalidate: 60 } }),
+      fetch(`${baseUrl}/products?showInReels=true`, { next: { revalidate: 60 } }),
     ]);
     const topData = await topRes.json();
     const arrivalData = await arrivalRes.json();
     const trendingData = await trendingRes.json();
     const customData = await customRes.json();
     const settingsData = await settingsRes.json();
+    const reelsData = await reelsRes.json();
     return {
       topSellingProducts: topData.success ? topData.products || [] : [],
       newArrivalProducts: arrivalData.success ? arrivalData.products || [] : [],
       trendingProducts: trendingData.success ? trendingData.products || [] : [],
       customSections: customData.success ? customData.sections || [] : [],
-      settings: settingsData.success ? settingsData.settings || {} : {}
+      settings: settingsData.success ? settingsData.settings || {} : {},
+      reelsProducts: reelsData.success ? reelsData.products || [] : []
     };
   } catch (error) {
     console.error("Error fetching homepage data:", error);
-    return { topSellingProducts: [], newArrivalProducts: [], trendingProducts: [], customSections: [], settings: {} };
+    return { topSellingProducts: [], newArrivalProducts: [], trendingProducts: [], customSections: [], settings: {}, reelsProducts: [] };
   }
 }
 
@@ -52,10 +55,10 @@ export async function generateMetadata() {
   };
 }
 
-export default async function Home() {
-  const { topSellingProducts, newArrivalProducts, trendingProducts, customSections, settings } = await getHomepageData();
-  const heroImages = settings?.media_hero?.filter(img => img && img.trim() !== '') || [];
-  const heroMobileImages = settings?.media_hero_mobile?.filter(img => img && img.trim() !== '') || [];
+  export default async function Home() {
+    const { topSellingProducts, newArrivalProducts, trendingProducts, customSections, settings, reelsProducts } = await getHomepageData();
+    const heroImages = settings?.media_hero?.filter(img => img && img.trim() !== '') || [];
+    const heroMobileImages = settings?.media_hero_mobile?.filter(img => img && img.trim() !== '') || [];
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -103,7 +106,7 @@ export default async function Home() {
       <ShopByPurpose />
 
       {/* Reels / Watch & Buy */}
-      <ReelsSection />
+      <ReelsSection initialReelsProducts={reelsProducts} />
 
       {/* Banner */}
       <CashewsBanner />

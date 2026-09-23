@@ -48,6 +48,7 @@ const ProductCarouselSection = ({ title, products = [], priority = false }) => {
             }
           `}</style>
           <Swiper
+            className="product-carousel-swiper"
             modules={[Autoplay, Navigation]}
             spaceBetween={10}
             slidesPerView={2}

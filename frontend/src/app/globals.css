@@ -797,3 +797,55 @@ main {
   color: #374151;
 }
 
+/*  ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ?
+   Swiper SSR FOUC Fallbacks (Prevents Layout Flash before JS init)
+    ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? */
+
+/* 1. Product Carousel Fallback */
+.product-carousel-swiper:not(.swiper-initialized) {
+  display: flex !important;
+  overflow: hidden !important;
+}
+.product-carousel-swiper:not(.swiper-initialized) .swiper-wrapper {
+  display: flex !important;
+  width: 100% !important;
+}
+.product-carousel-swiper:not(.swiper-initialized) .swiper-slide {
+  width: calc(50% - 5px) !important;
+  flex-shrink: 0 !important;
+}
+@media (min-width: 480px) {
+  .product-carousel-swiper:not(.swiper-initialized) .swiper-slide {
+    width: calc(50% - 6px) !important;
+  }
+}
+@media (min-width: 768px) {
+  .product-carousel-swiper:not(.swiper-initialized) .swiper-slide {
+    width: calc(33.333% - 11px) !important;
+  }
+}
+@media (min-width: 1024px) {
+  .product-carousel-swiper:not(.swiper-initialized) .swiper-slide {
+    width: calc(25% - 15px) !important;
+  }
+}
+
+/* 2. Reels Section Fallback */
+.reels-swiper:not(.swiper-initialized) {
+  display: flex !important;
+  overflow: hidden !important;
+}
+.reels-swiper:not(.swiper-initialized) .swiper-wrapper {
+  display: flex !important;
+}
+.reels-swiper:not(.swiper-initialized) .swiper-slide {
+  flex-shrink: 0 !important;
+  margin-right: 14px !important;
+}
+@media (max-width: 767.98px) {
+  .reels-swiper:not(.swiper-initialized) .swiper-slide {
+    margin-right: 10px !important;
+  }
+}
+
+

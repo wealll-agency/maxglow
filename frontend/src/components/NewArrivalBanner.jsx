@@ -6,8 +6,8 @@ import api from '../utils/axiosConfig';
 import { getImageUrl } from '../utils/imageConfig';
 
 const NewArrivalBanner = () => {
-  const [bgImage, setBgImage] = useState('');
-  const [bgImageMobile, setBgImageMobile] = useState('');
+  const [bgImage, setBgImage] = useState('/new_arrival_banner.png');
+  const [bgImageMobile, setBgImageMobile] = useState('/new_arrival_banner.png');
 
   useEffect(() => {
     const fetchImage = async () => {

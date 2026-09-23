@@ -20,21 +20,8 @@ const AnnouncementBar = ({ initialSettings }) => {
     }
   }, [initialSettings]);
 
-  useEffect(() => {
-    let mounted = true;
-    const getSettings = async () => {
-      try {
-        const res = await fetchSystemSettings();
-        if (mounted && res && res.settings && res.settings.notification_settings) {
-          setSettings(res.settings.notification_settings);
-        }
-      } catch (error) {
-        console.error("Failed to load notification settings", error);
-      }
-    };
-    getSettings();
-    return () => { mounted = false; };
-  }, [pathname]);
+  // Removed redundant client-side fetch to eliminate SSR/CSR hydration flash.
+  // The component now consistently trusts the `initialSettings` provided by the server.
 
   if (!settings) {
     return <div style={{ height: '37px', width: '100%' }}></div>;

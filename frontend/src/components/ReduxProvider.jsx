@@ -22,6 +22,15 @@ function StateHydrator() {
 
     // Delay hydration to ensure it happens strictly AFTER React's initial hydration phase
     const timer = setTimeout(() => {
+      
+    // Clean up old Razorpay garbage from local storage
+    try {
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('rzp_')) {
+          localStorage.removeItem(key);
+        }
+      });
+    } catch (e) {}
       // Products Hydration (Instant Shop Catalog rendering from Cache)
     const cachedProducts = localStorage.getItem('maxglow_cached_products');
     if (cachedProducts) {
@@ -72,7 +81,12 @@ function StateHydrator() {
         let parsedUser = null;
         if (localUser) {
           try {
-            parsedUser = JSON.parse(localUser);
+            const rawParsed = JSON.parse(localUser);
+            if (typeof rawParsed === 'string' && typeof atob !== 'undefined') {
+              parsedUser = JSON.parse(decodeURIComponent(atob(rawParsed)));
+            } else {
+              parsedUser = rawParsed; // Fallback for old unencoded data
+            }
             dispatch(setCredentials(parsedUser));
           } catch (e) {
             localStorage.removeItem('maxglow_user');
@@ -130,7 +144,10 @@ function StateHydrator() {
           
           originalRequest._retry = true;
           try {
-             await axios.post(`${api.defaults.baseURL}/auth/refresh`, {}, { withCredentials: true });
+             const refreshResponse = await axios.post(`${api.defaults.baseURL}/auth/refresh`, {}, { withCredentials: true });
+             if (refreshResponse.data && refreshResponse.data.token && typeof window !== 'undefined') {
+                localStorage.setItem('maxglow_token', refreshResponse.data.token);
+             }
              return api(originalRequest);
           } catch(err) {
              if (err.response && err.response.status === 401) {

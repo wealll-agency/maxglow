@@ -6,8 +6,8 @@ import api from '../utils/axiosConfig';
 import { getImageUrl } from '../utils/imageConfig';
 
 const CashewsBanner = () => {
-  const [bannerImg, setBannerImg] = useState('');
-  const [bannerImgMobile, setBannerImgMobile] = useState('');
+  const [bannerImg, setBannerImg] = useState('/trending_banner.png');
+  const [bannerImgMobile, setBannerImgMobile] = useState('/trending_banner.png');
 
   useEffect(() => {
     const fetchBanner = async () => {
