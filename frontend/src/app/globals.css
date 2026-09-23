@@ -864,3 +864,9 @@ main {
 }
 
 
+
+@media (max-width: 768px) {
+  .mg-product-card-body { padding: 10px !important; }
+  .product-actions-container { gap: 4px !important; }
+  .mg-product-action-btn { padding: 12px 2px !important; font-size: 11px !important; }
+}

@@ -73,6 +73,17 @@ export default function CheckoutPage() {
     }
   }, [hasCodPermission, paymentMode]);
 
+  // Fix Bfcache issue: reset isSubmitting when user navigates back from payment gateway
+  useEffect(() => {
+    const handlePageShow = (event) => {
+      if (event.persisted) {
+        setIsSubmitting(false);
+      }
+    };
+    window.addEventListener('pageshow', handlePageShow);
+    return () => window.removeEventListener('pageshow', handlePageShow);
+  }, []);
+
   useEffect(() => {
     setIsMounted(true);
 

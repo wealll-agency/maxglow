@@ -96,9 +96,11 @@ const Header = () => {
         setIsUserDropdownOpen(false);
       }
       if (searchRef.current && !searchRef.current.contains(e.target)) {
-        setIsSearchOpen(false);
-        setIsMobileSearchOpen(false);
-        setSuggestions([]);
+        if (!e.target.closest('.mobile-search-container')) {
+          setIsSearchOpen(false);
+          setIsMobileSearchOpen(false);
+          setSuggestions([]);
+        }
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -224,7 +226,7 @@ const Header = () => {
                             {suggestions.map(product => (
                               <Link 
                                 key={product._id} 
-                                href={`/product/${product.slug}`}
+                                href={`/product/${product.slug || product._id}`}
                                 onClick={() => { setIsSearchOpen(false); setSuggestions([]); setSearchQuery(''); }}
                                 style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 15px', textDecoration: 'none', borderBottom: '1px solid #f8fafc', transition: 'background 0.2s ease' }}
                                 onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
@@ -279,7 +281,7 @@ const Header = () => {
               </div>
 
               {/* Mobile Search Toggle */}
-              <div className="show-mobile" style={{ position: 'relative' }}>
+              <div className="show-mobile mobile-search-container" style={{ position: 'relative' }}>
                 <button className="mg-action-btn" onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)} type="button">
                   {isMobileSearchOpen ? <FiX size={18} /> : <FiSearch size={18} />}
                 </button>
@@ -352,7 +354,7 @@ const Header = () => {
 
           {/* Mobile Search Dropdown Overlay */}
           {isMobileSearchOpen && (
-            <div className="show-mobile" style={{ position: 'absolute', top: '100%', left: 0, right: 0, padding: '12px 20px', background: 'white', borderBottom: '1px solid #f1f5f9', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', zIndex: 9999 }}>
+            <div className="show-mobile mobile-search-container" style={{ position: 'absolute', top: '100%', left: 0, right: 0, padding: '12px 20px', background: 'white', borderBottom: '1px solid #f1f5f9', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', zIndex: 9999 }}>
               <form onSubmit={handleSearch} style={{ display: 'flex', alignItems: 'center', background: '#F7FBFD', borderRadius: '9999px', padding: '8px 16px', border: '1.5px solid #4A90E2' }}>
                 <FiSearch size={16} color="#94a3b8" />
                 <input
@@ -378,7 +380,7 @@ const Header = () => {
                       {suggestions.map(product => (
                         <Link 
                           key={product._id} 
-                          href={`/product/${product.slug}`}
+                          href={`/product/${product.slug || product._id}`}
                           onClick={() => { setIsMobileSearchOpen(false); setSuggestions([]); setSearchQuery(''); }}
                           style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 15px', textDecoration: 'none', borderBottom: '1px solid #f8fafc' }}
                         >

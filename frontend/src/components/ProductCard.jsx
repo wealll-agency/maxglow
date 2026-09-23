@@ -213,7 +213,7 @@ const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggl
       </div>
 
       {/* Card Body */}
-      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+      <div className="mg-product-card-body" style={{ padding: '16px', display: 'flex', flexDirection: 'column', flex: 1 }}>
         {/* Brand + Rating */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
           <span style={{ fontSize: '10px', fontWeight: '700', color: '#3BAE56', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
