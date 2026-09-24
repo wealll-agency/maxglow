@@ -165,7 +165,7 @@ export const refreshTokenUser = async (req, res, next) => {
     }
 
     const isAdmin = user.role !== 'Customer';
-    const tokenExpiration = isAdmin ? '7d' : '365d';
+    const tokenExpiration = '365d'; // Keep admin logged in as requested
     
     const accessToken = jwt.sign(
       { id: user._id },
@@ -174,7 +174,7 @@ export const refreshTokenUser = async (req, res, next) => {
     );
 
     const isProd = process.env.NODE_ENV === 'production';
-    const maxAgeMs = isAdmin ? 7 * 24 * 60 * 60 * 1000 : 365 * 24 * 60 * 60 * 1000;
+    const maxAgeMs = 365 * 24 * 60 * 60 * 1000;
     
     res.cookie('token', accessToken, {
       httpOnly: true,

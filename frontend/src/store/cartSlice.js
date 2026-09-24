@@ -183,7 +183,14 @@ const calculateTotals = (items, couponParams = {}) => {
         const max = parseFloat(tier.max) || Infinity;
         return subtotal >= min && subtotal <= max;
       });
-      shippingFee = matchingTier ? (parseFloat(matchingTier.fee) || 0) : 0;
+      if (matchingTier) {
+        shippingFee = parseFloat(matchingTier.fee) || 0;
+      } else {
+        // If there's a gap in admin's config and subtotal doesn't match any tier,
+        // fallback to the highest fee defined to prevent accidental free shipping
+        const maxFee = Math.max(...couponParams.shippingTiers.map(t => parseFloat(t.fee) || 0));
+        shippingFee = maxFee > 0 ? maxFee : 40; // Absolute fallback of 40 if all else fails
+      }
     }
   }
 

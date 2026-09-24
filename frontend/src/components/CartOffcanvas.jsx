@@ -16,7 +16,7 @@ const CartOffcanvas = ({ isOpen, onClose }) => {
   const router = useRouter();
   const { showAlert } = useNotification();
   
-  const { items, subtotal, discount, total, couponCode, shippingFee, removedCouponNotice } = useSelector((state) => state.cart);
+  const { items, subtotal, discount, total, couponCode, shippingFee, removedCouponNotice, shippingTiers } = useSelector((state) => state.cart);
   const allProducts = useSelector((state) => state.products?.items || []);
 
   const [currentView, setCurrentView] = useState('MAIN'); // 'MAIN' | 'COUPONS'
@@ -128,8 +128,19 @@ const CartOffcanvas = ({ isOpen, onClose }) => {
   // --- Derived State & Calculations ---
   
   // 1. Progress Bar Logic
-  const freeShippingThreshold = 999;
-  let rawTargets = [{ value: freeShippingThreshold, type: 'shipping', label: 'Free Shipping' }];
+  let freeShippingThreshold = 0;
+  if (shippingTiers && shippingTiers.length > 0) {
+    const freeTier = shippingTiers.find(tier => Number(tier.fee) === 0);
+    if (freeTier) {
+      freeShippingThreshold = Number(freeTier.min);
+    }
+  }
+
+  let rawTargets = [];
+  if (freeShippingThreshold > 0) {
+    rawTargets.push({ value: freeShippingThreshold, type: 'shipping', label: 'Free Shipping' });
+  }
+  
   publicCoupons.forEach(c => {
     if (c.minOrderValue > 0) {
       const label = c.discountType === 'flat' ? `₹${c.flatDiscountAmount} OFF` : `${c.discountPercentage}% OFF`;
@@ -139,23 +150,32 @@ const CartOffcanvas = ({ isOpen, onClose }) => {
   rawTargets.sort((a, b) => a.value - b.value);
 
   let targets = [];
-  const seenValues = new Set();
+  const maxTargetForGrouping = rawTargets.length > 0 ? rawTargets[rawTargets.length - 1].value : 1000;
+  
   rawTargets.forEach(t => {
-    if (!seenValues.has(t.value)) {
-      seenValues.add(t.value);
-      targets.push(t);
+    // Prevent overlapping by grouping targets that are extremely close (< 5% difference of the max bar)
+    const existingCloseTarget = targets.find(existing => Math.abs(existing.value - t.value) < (maxTargetForGrouping * 0.05));
+    if (existingCloseTarget) {
+      if (!existingCloseTarget.label.includes(t.label)) {
+        existingCloseTarget.label += ` + ${t.label}`; // Combine labels!
+        // We keep the value of the first one we found (or average them)
+      }
+    } else {
+      targets.push({ ...t });
     }
   });
   
-  const maxTargetValue = targets.length > 0 ? targets[targets.length - 1].value : freeShippingThreshold;
-  const progressPercent = Math.min(100, (subtotal / maxTargetValue) * 100);
+  const maxTargetValue = targets.length > 0 ? targets[targets.length - 1].value : (freeShippingThreshold || 1000);
+  const progressPercent = Math.min(100, maxTargetValue > 0 ? (subtotal / maxTargetValue) * 100 : 100);
 
   // Find next target user hasn't hit
   const nextTarget = targets.find(t => subtotal < t.value);
   const remainingForNext = nextTarget ? Math.max(0, nextTarget.value - subtotal) : 0;
   
   let progressMessage = '';
-  if (!nextTarget) {
+  if (targets.length === 0) {
+    progressMessage = "🎉 Add items to your cart";
+  } else if (!nextTarget) {
     progressMessage = "🎉 You've unlocked all rewards!";
   } else if (nextTarget.type === 'shipping') {
     progressMessage = <>Add <span style={{ color: '#4A90E2', fontWeight: '700' }}>₹{remainingForNext.toFixed(0)}</span> more for Free Shipping</>;
@@ -166,6 +186,14 @@ const CartOffcanvas = ({ isOpen, onClose }) => {
   // 2. Recommendations Logic
   const cartProductIds = items.map(i => i.product);
   const recommended = allProducts.filter(p => !cartProductIds.includes(p._id)).slice(0, 4);
+
+  // 3. Dynamic Savings Logic
+  let baseShippingFee = 40;
+  if (shippingTiers && shippingTiers.length > 0) {
+    const fees = shippingTiers.map(t => Number(t.fee) || 0);
+    const maxFee = Math.max(...fees);
+    if (maxFee > 0) baseShippingFee = maxFee;
+  }
 
   const totalMrp = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const totalSavings = (totalMrp - subtotal) + discount; // Assuming some discount is applied to subtotal if there are discounts on products, but subtotal usually = totalMrp in this simple flow.
@@ -435,7 +463,7 @@ const CartOffcanvas = ({ isOpen, onClose }) => {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                           {(discount > 0 || shippingFee === 0) && (
                             <span style={{ fontSize: '12.5px', color: '#94a3b8', textDecoration: 'line-through' }}>
-                              ₹{(subtotal + (shippingFee === 0 ? 40 : shippingFee)).toFixed(0)}
+                              ₹{(subtotal + (shippingFee === 0 ? baseShippingFee : shippingFee)).toFixed(0)}
                             </span>
                           )}
                           <span style={{ fontSize: '15.5px', fontWeight: '800', color: '#1a2332' }}>₹{total.toFixed(0)}</span>
@@ -443,7 +471,7 @@ const CartOffcanvas = ({ isOpen, onClose }) => {
                         </div>
                         {(discount > 0 || shippingFee === 0) && (
                           <div style={{ fontSize: '12px', color: '#059669', fontWeight: '600', marginTop: '1px', paddingRight: '18px' }}>
-                            You saved ₹{(discount + (shippingFee === 0 ? 40 : 0)).toFixed(0)}!
+                            You saved ₹{(discount + (shippingFee === 0 ? baseShippingFee : 0)).toFixed(0)}!
                           </div>
                         )}
                       </div>
@@ -465,12 +493,12 @@ const CartOffcanvas = ({ isOpen, onClose }) => {
                           
                           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', color: '#475569', marginBottom: '6px' }}>
                             <span>Delivery Fee</span>
-                            <span style={{ fontWeight: '500' }}>{shippingFee === 0 ? <span style={{ color: '#059669' }}>FREE</span> : 'To be calculated'}</span>
+                            <span style={{ fontWeight: '500' }}>{shippingFee === 0 ? <span style={{ color: '#059669' }}>FREE</span> : `₹${shippingFee}`}</span>
                           </div>
                           
                           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', color: '#475569', marginBottom: '6px' }}>
                             <span>Discount on MRP</span>
-                            <span style={{ color: '#059669', fontWeight: '500' }}>₹{((subtotal + (shippingFee === 0 ? 40 : shippingFee)) - total - discount).toFixed(0)}</span>
+                            <span style={{ color: '#059669', fontWeight: '500' }}>₹{((subtotal + (shippingFee === 0 ? baseShippingFee : shippingFee)) - total - discount).toFixed(0)}</span>
                           </div>
                           
                           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', color: '#475569', marginBottom: '8px' }}>

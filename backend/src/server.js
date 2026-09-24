@@ -72,9 +72,6 @@ if (process.env.NODE_ENV) {
   if (process.env.ICICI_INITIATE_SALE_URL && process.env.ICICI_INITIATE_SALE_URL.includes('uat')) {
     console.warn('\n[WARNING] Running in production mode but using ICICI UAT/Test Gateway.');
   }
-  if (process.env.DELHIVERY_API_TOKEN === 'YOUR_MAXGLOW_DELHIVERY_TOKEN') {
-    console.warn('\n[WARNING] Running in production mode but using placeholder Delhivery token.');
-  }
 }
 
 // Connect to MongoDB
