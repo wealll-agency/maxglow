@@ -183,9 +183,7 @@ const calculateTotals = (items, couponParams = {}) => {
         const max = parseFloat(tier.max) || Infinity;
         return subtotal >= min && subtotal <= max;
       });
-      shippingFee = matchingTier ? (parseFloat(matchingTier.fee) || 0) : (subtotal > 999 ? 0 : 40);
-    } else {
-      shippingFee = subtotal > 999 ? 0 : 40;
+      shippingFee = matchingTier ? (parseFloat(matchingTier.fee) || 0) : 0;
     }
   }
 

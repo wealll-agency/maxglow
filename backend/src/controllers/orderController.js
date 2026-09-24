@@ -150,11 +150,7 @@ const calculateOrderTotals = async (items, couponCode) => {
       
       if (matchingTier) {
         shippingFee = parseFloat(matchingTier.fee) || 0;
-      } else {
-        shippingFee = subtotal > 999 ? 0 : 40; // Fallback
       }
-    } else {
-      shippingFee = subtotal > 999 ? 0 : 40; // Default logic
     }
   }
 
