@@ -165,7 +165,7 @@ export const refreshTokenUser = async (req, res, next) => {
     }
 
     const isAdmin = user.role !== 'Customer';
-    const tokenExpiration = isAdmin ? '7d' : '100y';
+    const tokenExpiration = isAdmin ? '7d' : '365d';
     
     const accessToken = jwt.sign(
       { id: user._id },
@@ -174,7 +174,7 @@ export const refreshTokenUser = async (req, res, next) => {
     );
 
     const isProd = process.env.NODE_ENV === 'production';
-    const maxAgeMs = isAdmin ? 7 * 24 * 60 * 60 * 1000 : 100 * 365 * 24 * 60 * 60 * 1000;
+    const maxAgeMs = isAdmin ? 7 * 24 * 60 * 60 * 1000 : 365 * 24 * 60 * 60 * 1000;
     
     res.cookie('token', accessToken, {
       httpOnly: true,
@@ -421,13 +421,14 @@ export const getSystemSettings = async (req, res, next) => {
       });
     }
 
-    const keys = ['cod', 'refund', 'topSellingSource', 'media_hero', 'media_hero_mobile', 'media_new_arrivals', 'media_new_arrivals_mobile', 'media_trending_banner', 'media_trending_banner_mobile', 'media_offers', 'media_category_banner', 'media_category_banners', 'media_reels', 'about_page_content', 'media_shop_by_products', 'media_combo_banner', 'media_bestseller_banner', 'notification_settings'];
+    const keys = ['cod', 'refund', 'shipping_tiers', 'topSellingSource', 'media_hero', 'media_hero_mobile', 'media_new_arrivals', 'media_new_arrivals_mobile', 'media_trending_banner', 'media_trending_banner_mobile', 'media_offers', 'media_category_banner', 'media_category_banners', 'media_reels', 'about_page_content', 'media_shop_by_products', 'media_combo_banner', 'media_bestseller_banner', 'notification_settings'];
     const docs = await SystemSetting.find({ key: { $in: keys } }).lean();
     const map = new Map(docs.map(d => [d.key, d.value]));
 
     const settings = {
       cod: map.has('cod') ? map.get('cod') : true,
       refund: map.has('refund') ? map.get('refund') : true,
+      shipping_tiers: map.has('shipping_tiers') ? map.get('shipping_tiers') : [],
       topSellingSource: map.has('topSellingSource') ? map.get('topSellingSource') : 'automatic',
       media_hero: map.has('media_hero') ? map.get('media_hero') : null,
       media_hero_mobile: map.has('media_hero_mobile') ? map.get('media_hero_mobile') : null,
@@ -470,6 +471,7 @@ export const updateSystemSettings = async (req, res, next) => {
       const keysToUpdate = [
         { key: 'cod', type: 'boolean' },
         { key: 'refund', type: 'boolean' },
+        { key: 'shipping_tiers', type: 'array' },
         { key: 'topSellingSource', type: 'string' },
         { key: 'media_hero', type: 'array' },
         { key: 'media_hero_mobile', type: 'array' },

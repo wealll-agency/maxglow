@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 
 const generateToken = (res, userId, rememberMe = true, role = 'Customer') => {
   const isAdmin = role !== 'Customer';
-  const tokenExpiration = isAdmin ? '7d' : '100y';
+  const tokenExpiration = isAdmin ? '7d' : '365d';
   
   const accessToken = jwt.sign(
     { id: userId },
@@ -24,7 +24,7 @@ const generateToken = (res, userId, rememberMe = true, role = 'Customer') => {
     ...(isProd && process.env.COOKIE_DOMAIN ? { domain: process.env.COOKIE_DOMAIN } : {})
   };
 
-  const maxAgeMs = isAdmin ? 7 * 24 * 60 * 60 * 1000 : 100 * 365 * 24 * 60 * 60 * 1000;
+  const maxAgeMs = isAdmin ? 7 * 24 * 60 * 60 * 1000 : 365 * 24 * 60 * 60 * 1000;
   res.cookie('token', accessToken, { ...cookieOptions, maxAge: maxAgeMs });
   res.cookie('refreshToken', refreshToken, { ...cookieOptions, maxAge: maxAgeMs });
 

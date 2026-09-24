@@ -51,14 +51,40 @@ export default function BestsellersPage() {
             gap: 12px;
           }
         }
-        .bestseller-banner {
-          background: linear-gradient(135deg, #EAF8FF 0%, #F5FBF6 100%);
-          border-radius: 20px;
-          padding: 60px 40px;
-          text-align: center;
-          margin-bottom: 40px;
+        .shop-banner-section {
           position: relative;
           overflow: hidden;
+          min-height: 220px;
+          display: flex;
+          align-items: center;
+          border-radius: 24px;
+          margin: 20px auto 40px;
+          max-width: 1400px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+          width: 100%;
+        }
+        @media (max-width: 768px) {
+          .shop-banner-section {
+            min-height: 160px;
+            margin-bottom: 24px;
+          }
+        }
+        .bestseller-banner {
+          background: linear-gradient(135deg, #EAF8FF 0%, #F5FBF6 100%);
+          border-radius: 24px;
+          padding: 60px 40px;
+          text-align: center;
+          margin: 20px auto 40px;
+          position: relative;
+          overflow: hidden;
+          min-height: 220px;
+        }
+        @media (max-width: 768px) {
+          .bestseller-banner {
+            padding: 40px 20px;
+            min-height: 160px;
+            margin-bottom: 24px;
+          }
         }
         .bestseller-banner::before {
           content: '';
@@ -71,20 +97,10 @@ export default function BestsellersPage() {
           transform: rotate(30deg);
         }
       `}} />
-      <div className="container" style={{ padding: '40px 16px', maxWidth: '1440px', margin: '0 auto' }}>
+      <div className="container" style={{ padding: '0 20px', maxWidth: '1440px', margin: '0 auto' }}>
         
         {bannerImg ? (
-          <div style={{ 
-            position: 'relative', 
-            overflow: 'hidden', 
-            width: '100%', 
-            minHeight: '220px',
-            maxHeight: '400px',
-            aspectRatio: '1400 / 300',
-            borderRadius: '24px', 
-            marginBottom: '40px',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.08)'
-          }}>
+          <div className="shop-banner-section">
             <Image 
               src={getImageUrl(bannerImg)} 
               alt="Bestsellers Banner" 

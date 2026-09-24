@@ -115,17 +115,21 @@ function ComboListingContent() {
       `}</style>
       
       {loading ? (
-        <div className="shop-banner-section placeholder-glow" style={{ backgroundColor: '#f8fafc' }}></div>
+        <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
+          <div className="shop-banner-section placeholder-glow" style={{ backgroundColor: '#f8fafc', width: '100%', margin: '20px 0 40px' }}></div>
+        </div>
       ) : bannerImg ? (
-        <div className="shop-banner-section">
-          <Image
-            src={getImageUrl(bannerImg)}
-            alt="MaxGlow Premium Combos"
-            fill
-            priority
-            sizes="(max-width: 768px) 100vw, 1400px"
-            style={{ objectFit: 'cover' }}
-          />
+        <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
+          <div className="shop-banner-section" style={{ width: '100%', margin: '20px 0 40px' }}>
+            <Image
+              src={getImageUrl(bannerImg)}
+              alt="MaxGlow Premium Combos"
+              fill
+              priority
+              sizes="(max-width: 768px) 100vw, 1400px"
+              style={{ objectFit: 'cover' }}
+            />
+          </div>
         </div>
       ) : null}
 
@@ -306,7 +310,7 @@ function ComboListingContent() {
                         {mrp > combo.comboPrice && (
                           <del style={{ fontSize: '13px', color: '#94a3b8', fontWeight: '400' }}>₹{mrp}</del>
                         )}
-                        <span style={{ fontSize: '11px', color: '#94a3b8' }}>({combo.components?.length} Items)</span>
+                        <span style={{ fontSize: '11px', color: '#94a3b8', whiteSpace: 'nowrap' }}>({combo.components?.length} Items)</span>
                       </div>
 
                       <div className="product-actions-container" style={{ marginTop: 'auto', display: 'flex', gap: '8px' }}>

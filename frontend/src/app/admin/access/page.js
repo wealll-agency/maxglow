@@ -5,8 +5,10 @@
 import { useState, useEffect } from 'react';
 import { Shield, Save, Check, RefreshCw, AlertCircle, ShoppingBag, RotateCcw } from 'lucide-react';
 import api from '../../../utils/axiosConfig';
+import { useNotification } from '../../../context/NotificationContext';
 
 export default function CustomerAccessPage() {
+  const { showAlert } = useNotification();
   const [settings, setSettings] = useState({ cod: true, refund: true });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -40,6 +42,29 @@ export default function CustomerAccessPage() {
     }));
   };
 
+  const handleAddTier = () => {
+    setSettings(prev => ({
+      ...prev,
+      shipping_tiers: [...(prev.shipping_tiers || []), { min: '', max: '', fee: '' }]
+    }));
+  };
+
+  const handleRemoveTier = (index) => {
+    setSettings(prev => {
+      const newTiers = [...(prev.shipping_tiers || [])];
+      newTiers.splice(index, 1);
+      return { ...prev, shipping_tiers: newTiers };
+    });
+  };
+
+  const handleTierChange = (index, field, value) => {
+    setSettings(prev => {
+      const newTiers = [...(prev.shipping_tiers || [])];
+      newTiers[index] = { ...newTiers[index], [field]: value };
+      return { ...prev, shipping_tiers: newTiers };
+    });
+  };
+
   const saveSettings = async () => {
     setSaving(true);
     setStatusMessage(null);
@@ -50,6 +75,7 @@ export default function CustomerAccessPage() {
           type: 'success',
           text: 'Global access settings saved successfully.'
         });
+        showAlert('Global access settings saved successfully.', 'success');
         setTimeout(() => setStatusMessage(null), 4000);
       }
     } catch (err) {
@@ -168,6 +194,75 @@ export default function CustomerAccessPage() {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Dynamic Shipping Tiers Card */}
+      <div className="card border-0 shadow-sm rounded-4 p-4 bg-white mt-4">
+        <div className="d-flex align-items-center gap-3 mb-3">
+          <div className="rounded-4 p-3 bg-info bg-opacity-10 text-info d-flex align-items-center justify-content-center">
+            <ShoppingBag size={24} />
+          </div>
+          <div>
+            <h5 className="fw-bold text-dark m-0">Dynamic Shipping Tiers</h5>
+            <small className="text-muted">Configure shipping fees based on order subtotal</small>
+          </div>
+        </div>
+        <p className="text-muted fs-7 mb-4">
+          Define the shipping fee for different order value ranges. The system will automatically apply the fee based on the matching tier.
+        </p>
+
+        <div className="d-flex flex-column gap-3 mb-4">
+          {(settings.shipping_tiers || []).map((tier, index) => (
+            <div key={index} className="d-flex align-items-center gap-3 flex-wrap">
+              <div className="flex-grow-1">
+                <label className="form-label fs-8 text-muted mb-1">Min Value (₹)</label>
+                <input 
+                  type="number" 
+                  className="form-control" 
+                  value={tier.min} 
+                  onChange={(e) => handleTierChange(index, 'min', e.target.value)} 
+                />
+              </div>
+              <div className="flex-grow-1">
+                <label className="form-label fs-8 text-muted mb-1">Max Value (₹)</label>
+                <input 
+                  type="number" 
+                  className="form-control" 
+                  value={tier.max} 
+                  onChange={(e) => handleTierChange(index, 'max', e.target.value)} 
+                />
+              </div>
+              <div className="flex-grow-1">
+                <label className="form-label fs-8 text-muted mb-1">Shipping Fee (₹)</label>
+                <input 
+                  type="number" 
+                  className="form-control" 
+                  value={tier.fee} 
+                  onChange={(e) => handleTierChange(index, 'fee', e.target.value)} 
+                />
+              </div>
+              <div className="d-flex align-items-end mb-1" style={{ paddingTop: '22px' }}>
+                <button 
+                  type="button" 
+                  onClick={() => handleRemoveTier(index)}
+                  className="btn btn-outline-danger px-3 py-2"
+                >
+                  X
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div>
+          <button 
+            type="button" 
+            onClick={handleAddTier}
+            className="btn btn-outline-primary px-4 py-2"
+          >
+            + Add Shipping Tier
+          </button>
         </div>
       </div>
 

@@ -174,7 +174,21 @@ const calculateTotals = (items, couponParams = {}) => {
 
   const discountedSubtotal = Math.max(0, subtotal - discount);
   const tax = Math.round(discountedSubtotal - (discountedSubtotal / 1.05));
-  const shippingFee = subtotal > 999 || items.length === 0 ? 0 : 40;
+  
+  let shippingFee = 0;
+  if (items.length > 0) {
+    if (couponParams.shippingTiers && couponParams.shippingTiers.length > 0) {
+      const matchingTier = couponParams.shippingTiers.find(tier => {
+        const min = parseFloat(tier.min) || 0;
+        const max = parseFloat(tier.max) || Infinity;
+        return subtotal >= min && subtotal <= max;
+      });
+      shippingFee = matchingTier ? (parseFloat(matchingTier.fee) || 0) : (subtotal > 999 ? 0 : 40);
+    } else {
+      shippingFee = subtotal > 999 ? 0 : 40;
+    }
+  }
+
   const total = discountedSubtotal + shippingFee;
 
   return { subtotal, discount, tax, shippingFee, total, discountableSubtotal, isCouponValid, invalidReason };
@@ -188,7 +202,8 @@ const updateTotalsAndCheckCoupon = (state) => {
     flatDiscountAmount: state.flatDiscountAmount,
     applicableProducts: state.applicableProducts,
     isCombo: state.isCombo,
-    minOrderValue: state.minOrderValue
+    minOrderValue: state.minOrderValue,
+    shippingTiers: state.shippingTiers
   });
 
   if (state.couponCode && !totals.isCouponValid) {
@@ -231,9 +246,14 @@ const cartSlice = createSlice({
     tax: 0,
     shippingFee: 0,
     total: 0,
-    discountableSubtotal: 0
+    discountableSubtotal: 0,
+    shippingTiers: []
   },
   reducers: {
+    setShippingTiers: (state, action) => {
+      state.shippingTiers = action.payload || [];
+      updateTotalsAndCheckCoupon(state);
+    },
     setCartSyncing: (state, action) => {
       state.isCartSyncing = action.payload;
     },
@@ -392,5 +412,5 @@ const cartSlice = createSlice({
   }
 });
 
-export const { setCartSyncing, addToCartLocal, removeFromCartLocal, updateCartQuantityLocal, applyCouponCode, clearCart, recalculateCart, hydrateCart, clearRemovedCouponNotice } = cartSlice.actions;
+export const { setShippingTiers, setCartSyncing, addToCartLocal, removeFromCartLocal, updateCartQuantityLocal, applyCouponCode, clearCart, recalculateCart, hydrateCart, clearRemovedCouponNotice } = cartSlice.actions;
 export default cartSlice.reducer;

@@ -125,20 +125,20 @@ export default function ThemeManagerPage() {
     },
     // SHOP PAGE
     { 
-      id: 'ShopBanner', title: 'Shop Page Header Banner', subtitle: 'Recommended: 1920 × 400 px', 
-      recWidth: 1920, recHeight: 400, previewClass: 'ratio-shop-banner', previewMaxWidth: '100%', allowMultiple: false,
+      id: 'ShopBanner', title: 'Shop Page Header Banner', subtitle: 'Exact Size: 1400 × 220 px', 
+      recWidth: 1400, recHeight: 220, previewClass: 'ratio-shop-banner', previewMaxWidth: '100%', allowMultiple: false,
       key: 'media_category_banner', isArray: false
     },
     // COMBO PAGE
     { 
-      id: 'ComboBanner', title: 'Combo Page Header Banner', subtitle: 'Recommended: 1920 × 400 px', 
-      recWidth: 1920, recHeight: 400, previewClass: 'ratio-shop-banner', previewMaxWidth: '100%', allowMultiple: false,
+      id: 'ComboBanner', title: 'Combo Page Header Banner', subtitle: 'Exact Size: 1400 × 220 px', 
+      recWidth: 1400, recHeight: 220, previewClass: 'ratio-shop-banner', previewMaxWidth: '100%', allowMultiple: false,
       key: 'media_combo_banner', isArray: false
     },
     // BESTSELLERS PAGE
     { 
-      id: 'BestsellerBanner', title: 'Bestseller Page Header Banner', subtitle: 'Recommended: 1920 × 400 px', 
-      recWidth: 1920, recHeight: 400, previewClass: 'ratio-shop-banner', previewMaxWidth: '100%', allowMultiple: false,
+      id: 'BestsellerBanner', title: 'Bestseller Page Header Banner', subtitle: 'Exact Size: 1400 × 220 px', 
+      recWidth: 1400, recHeight: 220, previewClass: 'ratio-shop-banner', previewMaxWidth: '100%', allowMultiple: false,
       key: 'media_bestseller_banner', isArray: false
     }
   ];

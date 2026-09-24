@@ -135,7 +135,29 @@ const calculateOrderTotals = async (items, couponCode) => {
   const discountedSubtotal = Math.max(0, subtotal - discount);
   // GST 5% is Included in product MRP
   const tax = Math.round(discountedSubtotal - (discountedSubtotal / 1.05));
-  const shippingFee = subtotal > 999 || items.length === 0 ? 0 : 40;
+  
+  // Dynamic Shipping Tiers Calculation
+  let shippingFee = 0;
+  if (items.length > 0) {
+    const shippingTiersSetting = await SystemSetting.findOne({ key: 'shipping_tiers' });
+    if (shippingTiersSetting && shippingTiersSetting.value && Array.isArray(shippingTiersSetting.value) && shippingTiersSetting.value.length > 0) {
+      // Find matching tier
+      const matchingTier = shippingTiersSetting.value.find(tier => {
+        const min = parseFloat(tier.min) || 0;
+        const max = parseFloat(tier.max) || Infinity;
+        return subtotal >= min && subtotal <= max;
+      });
+      
+      if (matchingTier) {
+        shippingFee = parseFloat(matchingTier.fee) || 0;
+      } else {
+        shippingFee = subtotal > 999 ? 0 : 40; // Fallback
+      }
+    } else {
+      shippingFee = subtotal > 999 ? 0 : 40; // Default logic
+    }
+  }
+
   const totalAmount = discountedSubtotal + shippingFee;
 
   return { subtotal, discount, tax, shippingFee, totalAmount, validatedItems: items };
@@ -373,8 +395,6 @@ export const createOrder = async (req, res, next) => {
         timeout: 15000
       });
 
-      console.log("ICICI S2S Response:", iciciResponse.data);
-
       if (iciciResponse.data && (iciciResponse.data.responseCode === '0000' || iciciResponse.data.responseCode === 'R1000')) {
         let paymentUrl = iciciResponse.data.paymentUrl || iciciResponse.data.redirectURI;
         if (paymentUrl && iciciResponse.data.tranCtx && !paymentUrl.includes('tranCtx')) {
@@ -588,7 +608,13 @@ export const iciciAdvice = async (req, res, next) => {
 // @access  Private
 export const getMyOrders = async (req, res, next) => {
   try {
-    const orders = await Order.find({ user: req.user._id })
+    const orders = await Order.find({ 
+      user: req.user._id,
+      $or: [
+        { paymentMode: 'COD' },
+        { paymentStatus: { $nin: ['Pending', 'Failed'] } }
+      ]
+    })
       .populate('items.product', 'images name')
       .sort({ createdAt: -1 })
       .lean();

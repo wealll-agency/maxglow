@@ -4,7 +4,7 @@ import { Provider, useDispatch } from 'react-redux';
 import { store } from '../store/index.js';
 import { useEffect, useRef } from 'react';
 import { setCredentials } from '../store/authSlice.js';
-import { hydrateCart, setCartSyncing } from '../store/cartSlice.js';
+import { hydrateCart, setCartSyncing, setShippingTiers } from '../store/cartSlice.js';
 import { hydrateWishlist } from '../store/wishlistSlice.js';
 import { hydrateProducts } from '../store/productsSlice.js';
 
@@ -74,9 +74,22 @@ function StateHydrator() {
       dispatch(hydrateWishlist(JSON.parse(wishlist)));
     }
 
+    // Fetch Global Settings (Shipping Tiers)
+    const fetchSettings = async () => {
+      try {
+        const res = await api.get('/auth/settings');
+        if (res.data.success && res.data.settings?.shipping_tiers) {
+          dispatch(setShippingTiers(res.data.settings.shipping_tiers));
+        }
+      } catch (err) {
+        console.error("Failed to fetch settings", err);
+      }
+    };
+    fetchSettings();
+
     // Session Restoration on Startup
-      const initAuth = async () => {
-        // Optimistic session restoration from localStorage
+    const initAuth = async () => {
+      // Optimistic session restoration from localStorage
         const localUser = localStorage.getItem('maxglow_user');
         let parsedUser = null;
         if (localUser) {

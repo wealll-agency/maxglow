@@ -61,15 +61,17 @@ export default function ShopBanner({ category, serverSettings = {} }) {
         </nav>
       </div>
 
-      <div className="shop-banner-section" style={{ position: 'relative' }}>
-        <Image
-          src={finalBgUrl}
-          alt={title}
-          fill
-          priority
-          sizes="(max-width: 768px) 100vw, 1400px"
-          style={{ objectFit: 'cover' }}
-        />
+      <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
+        <div className="shop-banner-section" style={{ position: 'relative', width: '100%', margin: '20px 0 0' }}>
+          <Image
+            src={finalBgUrl}
+            alt={title}
+            fill
+            priority
+            sizes="(max-width: 768px) 100vw, 1400px"
+            style={{ objectFit: 'cover' }}
+          />
+        </div>
       </div>
     </>
   );

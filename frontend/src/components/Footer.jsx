@@ -7,7 +7,8 @@ import { Leaf } from 'lucide-react';
 
 const Footer = () => {
   const pathname = usePathname();
-  const hideBottomNav = pathname?.startsWith('/product/') || 
+  const isProductOrComboDetails = pathname?.startsWith('/product/') || (pathname?.startsWith('/combos/') && pathname !== '/combos');
+  const hideBottomNav = isProductOrComboDetails || 
                         pathname?.startsWith('/checkout') || 
                         pathname?.startsWith('/login') || 
                         pathname?.startsWith('/register');
@@ -30,6 +31,9 @@ const Footer = () => {
         @media (max-width: 991px) {
           .mg-footer.has-bottom-nav {
             padding-bottom: 75px !important;
+          }
+          .mg-footer.has-product-sticky-bar {
+            padding-bottom: 100px !important;
           }
         }
       ` }} />
@@ -64,7 +68,7 @@ const Footer = () => {
       </div>
 
       {/* Main Footer */}
-      <div className={`mg-footer ${!hideBottomNav ? 'has-bottom-nav' : ''}`} style={{ padding: '60px 0 0' }}>
+      <div className={`mg-footer ${!hideBottomNav ? 'has-bottom-nav' : ''} ${isProductOrComboDetails ? 'has-product-sticky-bar' : ''}`} style={{ padding: '60px 0 0' }}>
         <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '40px', marginBottom: '48px' }}>
 
