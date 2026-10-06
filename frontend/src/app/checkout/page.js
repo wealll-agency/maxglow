@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useSelector, useDispatch } from 'react-redux';
@@ -100,18 +100,23 @@ export default function CheckoutPage() {
     return () => window.removeEventListener('pageshow', handlePageShow);
   }, []);
 
-  useEffect(() => {
-    setIsMounted(true);
+  const searchParams = useSearchParams();
 
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('mode') === 'buynow') {
+  useEffect(() => {
+    const mode = searchParams.get('mode');
+    if (mode === 'buynow') {
       const stored = sessionStorage.getItem('buyNowItem');
       if (stored) {
         setBuyNowData(JSON.parse(stored));
       }
     } else {
+      setBuyNowData(null);
       sessionStorage.removeItem('buyNowItem');
     }
+  }, [searchParams]);
+
+  useEffect(() => {
+    setIsMounted(true);
 
     const fetchGlobalSettings = async () => {
       try {
