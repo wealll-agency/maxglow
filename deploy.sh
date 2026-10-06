@@ -14,20 +14,26 @@ RELEASES_DIR="$BASE_DIR/releases"
 SHARED_DIR="$BASE_DIR/shared"
 CURRENT_DIR="$BASE_DIR/current"
 
-TIMESTAMP=$(date +"%Y%md%H%M%S")
+TIMESTAMP=$(date +"%Y%m%d%H%M%S")
 NEW_RELEASE_DIR="$RELEASES_DIR/$TIMESTAMP"
 
 echo "📂 Base Directory: $BASE_DIR"
 
-# 1. Validate prerequisites
+# 1. Validate prerequisites and setup
 if [ ! -d "$SHARED_DIR" ]; then
-    echo "❌ FATAL: Shared directory $SHARED_DIR does not exist. Cannot proceed."
-    exit 1
+    echo "⚙️ Setting up shared directory structure..."
+    mkdir -p "$SHARED_DIR/uploads"
 fi
 
 if [ ! -f "$SHARED_DIR/.env" ]; then
-    echo "❌ FATAL: .env file missing from $SHARED_DIR. Aborting deployment."
-    exit 1
+    echo "⚠️ WARNING: .env file missing from $SHARED_DIR. Creating from example."
+    if [ -f ".env" ]; then
+       cp ".env" "$SHARED_DIR/.env"
+    elif [ -f ".env.example" ]; then
+       cp ".env.example" "$SHARED_DIR/.env"
+    else
+       touch "$SHARED_DIR/.env"
+    fi
 fi
 
 # 2. Acquire deployment lock (simple directory-based lock)
@@ -85,7 +91,7 @@ ln -sfn "$NEW_RELEASE_DIR" "$CURRENT_DIR"
 # 10. Reload PM2
 echo "🔄 Reloading PM2 gracefully..."
 cd "$CURRENT_DIR"
-pm2 reload maxglow-backend maxglow-frontend || pm2 restart maxglow-backend maxglow-frontend
+pm2 reload ecosystem.config.js || pm2 start ecosystem.config.js
 pm2 save
 
 # 11. Clean old releases
