@@ -7,6 +7,7 @@ import { logoutUser } from '../store/authSlice';
 import { clearCart } from '../store/cartSlice';
 import { Home, Bell, User, LogOut, ShoppingCart, RotateCcw, MessageSquare, Truck, CheckCircle, ChevronRight } from 'lucide-react';
 import api from '../utils/axiosConfig';
+import { requestNotificationPermission, onMessageListener } from '../utils/firebase';
 
 const TYPE_CONFIG = {
   new_order:       { icon: <ShoppingCart size={15} />, color: '#3b82f6', bg: '#eff6ff' },
@@ -64,6 +65,34 @@ export default function AdminHeader() {
     if (!isMounted) return;
     fetchNotifs();
     const interval = setInterval(fetchNotifs, 30000);
+
+    // Setup Firebase Push Notifications
+    const setupFirebase = async () => {
+      try {
+        const token = await requestNotificationPermission();
+        if (token) {
+          await api.post('/auth/fcm-token', { token });
+        }
+      } catch (err) {
+        console.error("Firebase setup error:", err);
+      }
+    };
+    setupFirebase();
+
+    // Listen for foreground notifications
+    onMessageListener((payload) => {
+      console.log('Received foreground message:', payload);
+      fetchNotifs();
+      
+      // Trigger a system popup manually if the tab is open
+      if (Notification.permission === 'granted' && payload.notification) {
+        new Notification(payload.notification.title, {
+          body: payload.notification.body,
+          icon: '/icon_organic.jpg'
+        });
+      }
+    });
+
     return () => clearInterval(interval);
   }, [isMounted]);
 

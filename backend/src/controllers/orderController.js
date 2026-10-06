@@ -10,27 +10,36 @@ import Payment from '../models/Payment.js';
 import Coupon from '../models/Coupon.js';
 import User from '../models/User.js';
 import Combo from '../models/Combo.js';
+import { sendAdminNotification } from '../utils/firebaseHelper.js';
+import { sendEmail } from '../utils/mail.js';
+import { generateInvoicePDF } from '../utils/invoiceGenerator.js';
 
 import { logActivity } from '../middleware/logger.js';
 
 // CCAvenue/Razorpay configuration removed. Using ICICI configuration.
 
 // Helper: Calculate order totals
-const calculateOrderTotals = async (items, couponCode) => {
+const calculateOrderTotals = async (items, couponCode, userId = null) => {
   let subtotal = 0;
   
   const productIds = items.filter(i => i.itemType !== 'Combo').map(item => item.product);
   const comboIds = items.filter(i => i.itemType === 'Combo').map(item => item.combo);
   
-  const products = await Product.find({ _id: { $in: productIds } }).select('name price stock images discount discountType attributes packSizes isActive').lean();
-  const productMap = products.reduce((acc, product) => {
-    acc[product._id.toString()] = product;
-    return acc;
-  }, {});
-
   const combos = await Combo.find({ _id: { $in: comboIds } }).select('name comboPrice status components').lean();
   const comboMap = combos.reduce((acc, combo) => {
     acc[combo._id.toString()] = combo;
+    return acc;
+  }, {});
+
+  combos.forEach(combo => {
+    if (combo.components) {
+      combo.components.forEach(comp => productIds.push(comp.product));
+    }
+  });
+
+  const products = await Product.find({ _id: { $in: productIds } }).select('name price stock images discount discountType attributes packSizes isActive').lean();
+  const productMap = products.reduce((acc, product) => {
+    acc[product._id.toString()] = product;
     return acc;
   }, {});
 
@@ -48,6 +57,19 @@ const calculateOrderTotals = async (items, couponCode) => {
       if (combo.status !== 'Active') {
         throw new Error(`Combo ${combo.name} is currently inactive.`);
       }
+
+      if (combo.components && combo.components.length > 0) {
+        for (const comp of combo.components) {
+          const compProduct = productMap[comp.product.toString()];
+          if (!compProduct) throw new Error(`Component product not found for combo ${combo.name}`);
+          if (compProduct.isActive === false) throw new Error(`Component ${compProduct.name} inside ${combo.name} is currently unavailable.`);
+          const requiredStock = comp.quantity * item.quantity;
+          if (compProduct.stock < requiredStock) {
+            throw new Error(`Insufficient stock for component ${compProduct.name} inside ${combo.name}. Available: ${compProduct.stock}`);
+          }
+        }
+      }
+
       let activePrice = combo.comboPrice;
       subtotal += activePrice * item.quantity;
       item.price = activePrice;
@@ -105,9 +127,18 @@ const calculateOrderTotals = async (items, couponCode) => {
       throw err;
     }
     if (!coupon.isValid()) {
-      const err = new Error('Coupon is expired, inactive, or has reached its usage limit');
+      const err = new Error('Coupon is expired, inactive, or has reached its global usage limit');
       err.statusCode = 400;
       throw err;
+    }
+
+    if (userId) {
+      const userUsageCount = await mongoose.model('Order').countDocuments({ user: userId, couponCode: coupon.code, paymentStatus: { $ne: 'Failed' }, orderStatus: { $ne: 'Cancelled' } });
+      if (userUsageCount >= 1) {
+        const err = new Error('You have already used this coupon.');
+        err.statusCode = 400;
+        throw err;
+      }
     }
     if (coupon.minOrderValue > 0 && subtotal < coupon.minOrderValue) {
       const err = new Error(`Order subtotal (₹${subtotal}) is below the minimum required spend of ₹${coupon.minOrderValue} for coupon ${coupon.code}`);
@@ -117,9 +148,15 @@ const calculateOrderTotals = async (items, couponCode) => {
 
     if (coupon.applicableProducts && coupon.applicableProducts.length > 0) {
       items.forEach(item => {
-        if (coupon.applicableProducts.some(p => p.toString() === item.product.toString())) {
+        if (item.product && coupon.applicableProducts.some(p => p.toString() === item.product.toString())) {
+          discountableSubtotal += item.price * item.quantity;
+        } else if (item.combo && coupon.isCombo) {
           discountableSubtotal += item.price * item.quantity;
         }
+      });
+    } else if (coupon.isCombo) {
+      items.forEach(item => {
+        if (item.itemType === 'Combo') discountableSubtotal += item.price * item.quantity;
       });
     } else {
       discountableSubtotal = subtotal;
@@ -178,7 +215,7 @@ export const createOrder = async (req, res, next) => {
       }
     }
 
-    const { subtotal, discount, tax, shippingFee, totalAmount, validatedItems } = await calculateOrderTotals(items, couponCode);
+    const { subtotal, discount, tax, shippingFee, totalAmount, validatedItems } = await calculateOrderTotals(items, couponCode, req.user ? req.user._id : null);
 
     // 1. Create Local Order (Pending Payment)
     const mappedDeliveryAddress = {
@@ -211,7 +248,8 @@ export const createOrder = async (req, res, next) => {
         totalAmount,
         paymentMode,
         paymentStatus: 'Pending',
-        orderStatus: 'Placed'
+        orderStatus: 'Placed',
+        isBuyNow: !!req.body.isBuyNow
       });
 
       savedOrder = await order.save({ session });
@@ -239,15 +277,18 @@ export const createOrder = async (req, res, next) => {
                for (const batch of batches) {
                  if (remainingToDeduct <= 0) break;
                  const dQty = Math.min(batch.stockQuantity, remainingToDeduct);
-                 batch.stockQuantity -= dQty;
+                 await Inventory.findByIdAndUpdate(batch._id, {
+                   $inc: { stockQuantity: -dQty },
+                   $push: {
+                     adjustments: {
+                       quantityChanged: -dQty,
+                       type: 'Sale',
+                       reason: `Combo Order Placement (Local ID: ${savedOrder._id})`,
+                       adjustedBy: req.user._id
+                     }
+                   }
+                 }, { session });
                  remainingToDeduct -= dQty;
-                 batch.adjustments.push({
-                   quantityChanged: -dQty,
-                   type: 'Sale',
-                   reason: `Combo Order Placement (Local ID: ${savedOrder._id})`,
-                   adjustedBy: req.user._id
-                 });
-                 await batch.save({ session });
                }
              }
            }
@@ -269,41 +310,49 @@ export const createOrder = async (req, res, next) => {
             // Fallback if no active batches are found, just to avoid breaking
             const firstBatch = await Inventory.findOne({ product: item.product }).session(session);
             if (firstBatch) {
-              firstBatch.stockQuantity = Math.max(0, firstBatch.stockQuantity - remainingToDeduct);
-              firstBatch.adjustments.push({
-                quantityChanged: -remainingToDeduct,
-                type: 'Sale',
-                reason: `Order Placement - Fallback (Local ID: ${savedOrder._id})`,
-                adjustedBy: req.user._id
-              });
-              await firstBatch.save({ session });
+              await Inventory.findByIdAndUpdate(firstBatch._id, {
+                $set: { stockQuantity: Math.max(0, firstBatch.stockQuantity - remainingToDeduct) },
+                $push: {
+                  adjustments: {
+                    quantityChanged: -remainingToDeduct,
+                    type: 'Sale',
+                    reason: `Order Placement - Fallback (Local ID: ${savedOrder._id})`,
+                    adjustedBy: req.user._id
+                  }
+                }
+              }, { session });
             }
           } else {
             for (const batch of batches) {
               if (remainingToDeduct <= 0) break;
               const deductQty = Math.min(batch.stockQuantity, remainingToDeduct);
-              batch.stockQuantity -= deductQty;
+              await Inventory.findByIdAndUpdate(batch._id, {
+                $inc: { stockQuantity: -deductQty },
+                $push: {
+                  adjustments: {
+                    quantityChanged: -deductQty,
+                    type: 'Sale',
+                    reason: `Order Placement (Local ID: ${savedOrder._id})`,
+                    adjustedBy: req.user._id
+                  }
+                }
+              }, { session });
               remainingToDeduct -= deductQty;
-
-              batch.adjustments.push({
-                quantityChanged: -deductQty,
-                type: 'Sale',
-                reason: `Order Placement (Local ID: ${savedOrder._id})`,
-                adjustedBy: req.user._id
-              });
-              await batch.save({ session });
             }
 
             if (remainingToDeduct > 0 && batches.length > 0) {
               const lastBatch = batches[batches.length - 1];
-              lastBatch.stockQuantity = Math.max(0, lastBatch.stockQuantity - remainingToDeduct);
-              lastBatch.adjustments.push({
-                quantityChanged: -remainingToDeduct,
-                type: 'Sale',
-                reason: `Order Placement - Sync adjustment (Local ID: ${savedOrder._id})`,
-                adjustedBy: req.user._id
-              });
-              await lastBatch.save({ session });
+              await Inventory.findByIdAndUpdate(lastBatch._id, {
+                $set: { stockQuantity: Math.max(0, lastBatch.stockQuantity - remainingToDeduct) },
+                $push: {
+                  adjustments: {
+                    quantityChanged: -remainingToDeduct,
+                    type: 'Sale',
+                    reason: `Order Placement - Sync adjustment (Local ID: ${savedOrder._id})`,
+                    adjustedBy: req.user._id
+                  }
+                }
+              }, { session });
             }
           }
         }
@@ -328,10 +377,46 @@ export const createOrder = async (req, res, next) => {
           paymentMode: 'COD'
         }], { session });
 
+        // Clear user cart in database for COD order only if it's not a Buy Now order
+        if (req.user && req.user._id && !req.body.isBuyNow) {
+          await User.findByIdAndUpdate(req.user._id, { $set: { cart: [] } }, { session });
+        }
+
         await session.commitTransaction();
         session.endSession();
 
         await logActivity(req.user._id, 'CREATE_ORDER', `Created COD order ID: ${savedOrder._id}`, req);
+
+        // Send Push Notification
+        sendAdminNotification(
+          'New COD Order Placed!',
+          `${req.user.name || 'Customer'} placed an order worth ₹${totalAmount}`,
+          '/admin/orders'
+        );
+
+        // Send Email to Customer with PDF
+        try {
+          const pdfBuffer = await generateInvoicePDF(savedOrder, req.user);
+          const trackUrl = `${process.env.CLIENT_URL || 'https://maxglow.in'}/user/orders/${savedOrder._id}`;
+          const htmlContent = `
+            <h2>Thank you for your order, ${req.user.name || 'Customer'}!</h2>
+            <p>Your COD order (ID: ${savedOrder._id}) has been placed successfully.</p>
+            <p>Total Amount: ₹${totalAmount}</p>
+            <br/>
+            <a href="${trackUrl}" style="background:#22c55e;color:#fff;padding:10px 20px;text-decoration:none;border-radius:5px;">Track Your Order</a>
+            <p>Please find your invoice attached to this email.</p>
+          `;
+          
+          await sendEmail(
+            req.user.email,
+            `Order Confirmation - MaxGlow`,
+            `Your order is confirmed.`,
+            htmlContent,
+            [{ filename: `Invoice_${savedOrder._id}.pdf`, content: pdfBuffer, contentType: 'application/pdf' }]
+          );
+        } catch (mailErr) {
+          console.error("Failed to send COD order email:", mailErr);
+        }
 
         return res.status(201).json({
           success: true,
@@ -476,16 +561,20 @@ export const iciciCallback = async (req, res, next) => {
     if (lockedOrder.paymentStatus === 'Paid') {
       await session.commitTransaction();
       session.endSession();
-      return res.redirect(`${frontendUrl}/user/orders/${lockedOrder._id}?success=true`);
+      return res.redirect(`${frontendUrl}/shop?success=true`);
     }
     
-    if (lockedOrder.paymentStatus === 'Failed' && responseCode !== '0000' && responseCode !== '0') {
+    const successCodes = ['0000', '0', '0300', 'R1000'];
+    const isSuccess = successCodes.includes(String(responseCode)) || 
+                      (message && String(message).toUpperCase() === 'SUCCESS');
+
+    if (lockedOrder.paymentStatus === 'Failed' && !isSuccess) {
       await session.commitTransaction();
       session.endSession();
       return res.redirect(`${frontendUrl}/checkout?error=${encodeURIComponent(message || 'Payment Failed')}`);
     }
 
-    if (responseCode === '0000' || responseCode === '0') {
+    if (isSuccess) {
       if (Number(amount) !== Number(lockedOrder.totalAmount)) {
         lockedOrder.paymentStatus = 'Failed';
         lockedOrder.gatewayTxnId = txnId;
@@ -506,6 +595,8 @@ export const iciciCallback = async (req, res, next) => {
         return res.redirect(`${frontendUrl}/checkout?error=${encodeURIComponent('Payment failed due to amount mismatch. Please contact support.')}`);
       }
 
+      const wasCancelled = lockedOrder.orderStatus === 'Cancelled';
+      
       lockedOrder.paymentStatus = 'Paid';
       lockedOrder.orderStatus = 'Confirmed';
       lockedOrder.confirmedAt = Date.now();
@@ -513,6 +604,38 @@ export const iciciCallback = async (req, res, next) => {
       lockedOrder.bankRefNo = bankRefNo;
       lockedOrder.paymentMode = 'ICICI';
       await lockedOrder.save({ session });
+      
+      // Clear user cart if it was a standard cart checkout
+      if (!lockedOrder.isBuyNow && lockedOrder.user) {
+        await User.findByIdAndUpdate(lockedOrder.user, { $set: { cart: [] } }, { session });
+      }
+      
+      // If the cron job previously abandoned this order and restored stock, we must re-deduct it now.
+      if (wasCancelled) {
+        for (const item of lockedOrder.items) {
+          if (item.itemType === 'Combo') {
+            const combo = await Combo.findById(item.combo).session(session).lean();
+            if (combo && combo.components) {
+              for (const comp of combo.components) {
+                const deductQty = comp.quantity * item.quantity;
+                await Product.findByIdAndUpdate(comp.product, { $inc: { stock: -deductQty, totalSold: deductQty } }, { runValidators: true, session });
+                const batch = await Inventory.findOne({ product: comp.product, stockQuantity: { $gt: 0 }, expiryDate: { $gt: new Date() } }).sort({ expiryDate: 1 }).session(session);
+                if (batch) {
+                  batch.stockQuantity -= Math.min(batch.stockQuantity, deductQty);
+                  await batch.save({ session });
+                }
+              }
+            }
+          } else {
+            await Product.findByIdAndUpdate(item.product, { $inc: { stock: -item.quantity, totalSold: item.quantity } }, { runValidators: true, session });
+            const batch = await Inventory.findOne({ product: item.product, stockQuantity: { $gt: 0 }, expiryDate: { $gt: new Date() } }).sort({ expiryDate: 1 }).session(session);
+            if (batch) {
+              batch.stockQuantity -= Math.min(batch.stockQuantity, item.quantity);
+              await batch.save({ session });
+            }
+          }
+        }
+      }
 
       lockedPayment.status = 'Captured';
       lockedPayment.gatewayTxnId = txnId;
@@ -523,7 +646,42 @@ export const iciciCallback = async (req, res, next) => {
 
       await session.commitTransaction();
       session.endSession();
-      return res.redirect(`${frontendUrl}/user/orders/${lockedOrder._id}?success=true`);
+
+      // Send Push Notification
+      sendAdminNotification(
+        'New Prepaid Order Confirmed!',
+        `Order #${lockedOrder._id.toString().slice(-8).toUpperCase()} worth ₹${lockedOrder.totalAmount} was paid via ICICI.`,
+        '/admin/orders'
+      );
+
+      // Send Email to Customer with PDF
+      try {
+        const orderUser = await User.findById(lockedOrder.user);
+        if (orderUser && orderUser.email) {
+          const pdfBuffer = await generateInvoicePDF(lockedOrder, orderUser);
+          const trackUrl = `${frontendUrl}/user/orders/${lockedOrder._id}`;
+          const htmlContent = `
+            <h2>Payment Successful! Thank you for your order.</h2>
+            <p>Your order (ID: ${lockedOrder._id}) has been confirmed.</p>
+            <p>Total Amount Paid: ₹${lockedOrder.totalAmount}</p>
+            <br/>
+            <a href="${trackUrl}" style="background:#22c55e;color:#fff;padding:10px 20px;text-decoration:none;border-radius:5px;">Track Your Order</a>
+            <p>Please find your invoice attached to this email.</p>
+          `;
+          
+          await sendEmail(
+            orderUser.email,
+            `Payment Successful - MaxGlow Order Confirmed`,
+            `Your payment was successful and your order is confirmed.`,
+            htmlContent,
+            [{ filename: `Invoice_${lockedOrder._id}.pdf`, content: pdfBuffer, contentType: 'application/pdf' }]
+          );
+        }
+      } catch (mailErr) {
+        console.error("Failed to send ICICI order email:", mailErr);
+      }
+
+      return res.redirect(`${frontendUrl}/shop?success=true`);
       
     } else {
       lockedOrder.paymentStatus = 'Failed';

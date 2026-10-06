@@ -24,9 +24,18 @@ export default function CheckoutPage() {
   const router = useRouter();
 
   const { user } = useSelector((state) => state.auth);
-  const { items, isHydrated, isCartSyncing, couponCode, subtotal, discount, tax, shippingFee, total, isCombo, applicableProducts, discountPercentage, removedCouponNotice } = useSelector((state) => state.cart);
+  const { items: cartItems, isHydrated, isCartSyncing, couponCode, subtotal: cartSubtotal, discount: cartDiscount, tax: cartTax, shippingFee: cartShippingFee, total: cartTotal, isCombo, applicableProducts, discountPercentage, removedCouponNotice } = useSelector((state) => state.cart);
   const { loading, error } = useSelector((state) => state.orders);
   const { showAlert } = useNotification();
+
+  const [buyNowData, setBuyNowData] = useState(null);
+
+  const items = buyNowData ? buyNowData.items : cartItems;
+  const subtotal = buyNowData ? buyNowData.subtotal : cartSubtotal;
+  const discount = buyNowData ? buyNowData.discount : cartDiscount;
+  const tax = buyNowData ? buyNowData.tax : cartTax;
+  const shippingFee = buyNowData ? buyNowData.shippingFee : cartShippingFee;
+  const total = buyNowData ? buyNowData.total : cartTotal;
 
   // Address selection states
   const [selectedAddressIndex, setSelectedAddressIndex] = useState(0);
@@ -53,8 +62,15 @@ export default function CheckoutPage() {
   }, [removedCouponNotice, dispatch]);
 
   // New Address Form fields
-  const [addrName, setAddrName] = useState('');
-  const [addrPhone, setAddrPhone] = useState('');
+  const [addrName, setAddrName] = useState(user?.name || '');
+  const [addrPhone, setAddrPhone] = useState(user?.phone || '');
+
+  useEffect(() => {
+    if (user) {
+      setAddrName(prev => prev || user.name || '');
+      setAddrPhone(prev => prev || user.phone || '');
+    }
+  }, [user]);
   const [pincode, setPincode] = useState('');
   const [locality, setLocality] = useState('');
   const [address, setAddress] = useState('');
@@ -86,6 +102,16 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     setIsMounted(true);
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('mode') === 'buynow') {
+      const stored = sessionStorage.getItem('buyNowItem');
+      if (stored) {
+        setBuyNowData(JSON.parse(stored));
+      }
+    } else {
+      sessionStorage.removeItem('buyNowItem');
+    }
 
     const fetchGlobalSettings = async () => {
       try {
@@ -121,14 +147,16 @@ export default function CheckoutPage() {
         setPaymentError(params.get('error'));
       }
     }
+  }, []);
 
-    // Fetch recommended products
+  // Fetch recommended products whenever items change
+  useEffect(() => {
     const fetchRecommended = async () => {
       try {
         const res = await api.get(`/products`);
         if (res.data.success) {
           // Exclude products already in cart, get top 3
-          const cartProductIds = items.map(item => item.product);
+          const cartProductIds = items.map(item => typeof item.product === 'object' && item.product !== null ? item.product._id : item.product);
           const availableRecs = res.data.products
             .filter(p => !cartProductIds.includes(p._id) && p.stock > 0)
             .slice(0, 3);
@@ -138,7 +166,7 @@ export default function CheckoutPage() {
         console.error('Failed to load recommendations', err);
       }
     };
-    if (items.length > 0) {
+    if (items && items.length > 0) {
       fetchRecommended();
     }
   }, [items]);
@@ -241,7 +269,8 @@ export default function CheckoutPage() {
         addrName, addrPhone, pincode, locality, address, city, stateName, landmark, altPhone, addressType, paymentMode
       };
       sessionStorage.setItem('pendingCheckout', JSON.stringify(checkoutState));
-      router.push('/login?redirect=checkout');
+      const modeQuery = buyNowData ? '&mode=buynow' : '';
+      router.push(`/login?redirect=checkout${modeQuery}`);
       return;
     }
 
@@ -252,7 +281,21 @@ export default function CheckoutPage() {
     }
 
     const orderData = {
-      items: items.map(i => ({ itemType: i.itemType || 'Product', product: i.product || undefined, combo: i.combo || undefined, name: i.name, quantity: i.quantity, price: i.price })),
+      items: items.map(i => {
+        const prodId = typeof i.product === 'object' && i.product !== null ? i.product._id : i.product;
+        const comboId = typeof i.combo === 'object' && i.combo !== null ? i.combo._id : i.combo;
+        return { 
+          itemType: i.itemType || (prodId ? 'Product' : 'Combo'), 
+          product: prodId || undefined, 
+          combo: comboId || undefined, 
+          name: i.name, 
+          quantity: i.quantity, 
+          price: i.price 
+        };
+      }).filter(i => {
+        const idToCheck = i.itemType === 'Combo' ? i.combo : i.product;
+        return typeof idToCheck === 'string' && /^[0-9a-fA-F]{24}$/.test(idToCheck);
+      }),
       deliveryAddress: {
         name: addressObj.name || user.name || 'Guest Customer',
         phone: addressObj.phone || user.phone || '9999999999',
@@ -266,7 +309,8 @@ export default function CheckoutPage() {
         addressType: addressObj.addressType || 'Home'
       },
       couponCode: couponCode || undefined,
-      paymentMode: paymentMode
+      paymentMode: paymentMode,
+      isBuyNow: !!buyNowData
     };
 
     setIsSubmitting(true);
@@ -282,9 +326,13 @@ export default function CheckoutPage() {
 
       // If COD, skip redirection and go to user profile
       if (paymentMode === 'COD') {
-        dispatch(clearCart());
+        if (!buyNowData) {
+          dispatch(clearCart());
+        } else {
+          sessionStorage.removeItem('buyNowItem');
+        }
         showAlert('Order placed successfully via Cash on Delivery!', 'success');
-        router.push('/user/profile');
+        router.push('/shop');
         return;
       }
 
@@ -313,9 +361,20 @@ export default function CheckoutPage() {
       const applicableProductsList = response.data.applicableProducts || [];
 
       if (applicableProductsList.length > 0) {
-        const hasEligibleItem = items.some(item => applicableProductsList.includes(typeof item.product === 'object' ? item.product._id : item.product));
+        const hasEligibleItem = items.some(item => {
+          if (item.itemType === 'Combo' || item.combo) return false;
+          const pid = typeof item.product === 'object' ? item.product?._id : item.product;
+          return pid && applicableProductsList.includes(pid);
+        });
         if (!hasEligibleItem && !response.data.isCombo) {
           setCouponError('This coupon is not valid for any items in your cart.');
+          dispatch(applyCouponCode({ code: '', discountType: 'percentage', discountPercentage: 0, flatDiscountAmount: 0, applicableProducts: [], isCombo: false, minOrderValue: 0 }));
+          return;
+        }
+      } else if (response.data.isCombo) {
+        const hasCombo = items.some(item => item.itemType === 'Combo' || item.combo);
+        if (!hasCombo) {
+          setCouponError('This coupon is only valid for combo offers.');
           dispatch(applyCouponCode({ code: '', discountType: 'percentage', discountPercentage: 0, flatDiscountAmount: 0, applicableProducts: [], isCombo: false, minOrderValue: 0 }));
           return;
         }
@@ -368,23 +427,25 @@ export default function CheckoutPage() {
             return (
               <div key={product._id} className="col-6 col-md-4">
                 <div className="p-3 bg-white border rounded-4 shadow-sm h-100 d-flex flex-column align-items-center text-center transition-all" style={{ border: '1px solid #e2e8f0' }}>
-                  <div style={{ width: '100%', aspectRatio: '1/1', borderRadius: '12px', overflow: 'hidden', backgroundColor: '#f8f9fa', marginBottom: '12px', position: 'relative' }}>
-                    <Image 
-                      src={imageSrc} 
-                      alt={product.name}
-                      fill
-                      sizes="(max-width: 768px) 100vw, 33vw"
-                      style={{ objectFit: 'cover' }}
-                      onError={(e) => { e.currentTarget.src = '/placeholder.png'; }}
-                    />
-                  </div>
-                  <h6 className="fw-semibold fs-7 mb-2 text-truncate w-100" title={product.name}>{product.name}</h6>
-                  <div className="mb-3">
-                    <span className="fw-bold fs-6 text-dark">₹{activePrice}</span>
-                    {product.discount > 0 && (
-                      <span className="text-muted text-decoration-line-through fs-8 ms-2">₹{product.purchasePrice || product.price}</span>
-                    )}
-                  </div>
+                  <Link href={`/product/${product.slug}`} style={{ textDecoration: 'none', color: 'inherit', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+                    <div style={{ width: '100%', aspectRatio: '1/1', borderRadius: '12px', overflow: 'hidden', backgroundColor: '#f8f9fa', marginBottom: '12px', position: 'relative' }}>
+                      <Image 
+                        src={imageSrc} 
+                        alt={product.name}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                        style={{ objectFit: 'cover' }}
+                        onError={(e) => { e.currentTarget.src = '/placeholder.png'; }}
+                      />
+                    </div>
+                    <h6 className="fw-semibold fs-7 mb-2 text-truncate w-100" title={product.name}>{product.name}</h6>
+                    <div className="mb-3">
+                      <span className="fw-bold fs-6 text-dark">₹{activePrice}</span>
+                      {product.discount > 0 && (
+                        <span className="text-muted text-decoration-line-through fs-8 ms-2">₹{product.purchasePrice || product.price}</span>
+                      )}
+                    </div>
+                  </Link>
                   <button 
                     onClick={() => handleAddRecommended(product)}
                     className="btn btn-outline-brand btn-sm w-100 mt-auto fw-bold"
@@ -533,6 +594,12 @@ export default function CheckoutPage() {
           }
         }
       `}</style>
+
+      <div className="mb-3">
+        <Link href="/shop" className="text-decoration-none text-muted fw-bold d-inline-flex align-items-center gap-2" style={{ fontSize: '14px', transition: 'color 0.2s' }}>
+          <i className="fas fa-arrow-left"></i> Continue Shopping
+        </Link>
+      </div>
 
       <div className="row g-3 g-lg-5 align-items-start">
         
@@ -803,8 +870,18 @@ export default function CheckoutPage() {
               {items.map(item => (
                 <div key={`${item.product}-${item.size}`} className="d-flex align-items-center justify-content-between">
                   <div className="d-flex align-items-center gap-3">
-                    <div style={{ width: '48px', height: '48px', borderRadius: '10px', background: '#F7FBFD', border: '1px solid #EAF8FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <ShoppingBag size={20} className="text-muted opacity-50" />
+                    <div style={{ width: '48px', height: '48px', position: 'relative', borderRadius: '10px', overflow: 'hidden', border: '1px solid #EAF8FF', background: '#F7FBFD' }}>
+                      <Image 
+                        src={getImageUrl(item.image || item.images?.[0] || item.product?.image || item.product?.images?.[0] || item.combo?.image || item.combo?.images?.[0])}
+                        alt={item.name}
+                        fill
+                        sizes="48px"
+                        style={{ objectFit: 'cover' }}
+                        onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }}
+                      />
+                      <div style={{ display: 'none', width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                        <ShoppingBag size={20} className="text-muted opacity-50" />
+                      </div>
                     </div>
                     <div>
                       <span className="fw-bold text-dark fs-7 d-block text-truncate" style={{ maxWidth: '180px', lineHeight: '1.2' }}>{item.name}</span>

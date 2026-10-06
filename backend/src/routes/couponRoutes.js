@@ -7,7 +7,7 @@ import {
   deleteCoupon,
   getCouponAnalytics
 } from '../controllers/couponController.js';
-import { protect, authorizeRoles } from '../middleware/auth.js';
+import { protect, authorizeRoles, optionalProtect } from '../middleware/auth.js';
 import { auditRoute } from '../middleware/logger.js';
 
 const router = express.Router();
@@ -18,7 +18,7 @@ router.route('/')
 
 router.get('/public', getPublicCoupons);
 
-router.post('/apply', applyCoupon);
+router.post('/apply', optionalProtect, applyCoupon);
 
 router.get('/:id/analytics', protect, authorizeRoles('Super Admin', 'Manager', 'Staff'), getCouponAnalytics);
 

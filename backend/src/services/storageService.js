@@ -9,19 +9,32 @@ import crypto from 'crypto';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Initialize S3 Client if credentials exist
-const isS3Configured = process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY && process.env.AWS_BUCKET_NAME;
+let s3Client = null;
 
-let s3Client;
-if (isS3Configured) {
-  s3Client = new S3Client({
-    region: process.env.AWS_REGION || 'us-east-1',
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
-    }
+const getS3Client = () => {
+  if (s3Client !== null) return s3Client;
+
+  const isS3Configured = process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY && process.env.AWS_BUCKET_NAME;
+  console.log("Checking S3 Configuration...", {
+    hasAccessKey: !!process.env.AWS_ACCESS_KEY_ID,
+    hasSecretKey: !!process.env.AWS_SECRET_ACCESS_KEY,
+    hasBucket: !!process.env.AWS_BUCKET_NAME,
+    region: process.env.AWS_REGION
   });
-}
+
+  if (isS3Configured) {
+    s3Client = new S3Client({
+      region: process.env.AWS_REGION || 'us-east-1',
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+      }
+    });
+  } else {
+    s3Client = false;
+  }
+  return s3Client;
+};
 
 // Multer Storage Configuration
 // Using memory storage for ease of handling buffer uploads to S3 or disk
@@ -56,7 +69,9 @@ export const uploadFile = async (file, prefix = '') => {
   const sanitizedOriginalName = path.basename(file.originalname, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
   const fileName = `${prefixStr}${uniqueId}_${timestamp}_${sanitizedOriginalName}${ext}`;
 
-  if (isS3Configured) {
+  const client = getS3Client();
+
+  if (client) {
     try {
       const command = new PutObjectCommand({
         Bucket: process.env.AWS_BUCKET_NAME,
@@ -66,7 +81,7 @@ export const uploadFile = async (file, prefix = '') => {
         // Remove ACL as some buckets block ACL controls
       });
 
-      await s3Client.send(command);
+      await client.send(command);
       return `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION || 'us-east-1'}.amazonaws.com/${fileName}`;
     } catch (error) {
       console.error(`S3 upload error, falling back to local storage: ${error.message}`);

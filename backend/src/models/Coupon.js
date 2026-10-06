@@ -11,6 +11,7 @@ const couponSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true },
   isCombo: { type: Boolean, default: false },
   minOrderValue: { type: Number, default: 0, min: 0 },
+  usageLimitPerUser: { type: Number, default: 0, min: 0 }, // 0 means unlimited
   applicableProducts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }]
 }, {
   timestamps: true

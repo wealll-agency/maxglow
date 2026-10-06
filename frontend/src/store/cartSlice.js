@@ -230,12 +230,36 @@ const updateTotalsAndCheckCoupon = (state) => {
   state.shippingFee = totals.shippingFee;
   state.total = totals.total;
   state.discountableSubtotal = totals.discountableSubtotal;
+
+  if (state.buyNowItem) {
+    const buyNowTotals = calculateTotals([state.buyNowItem], {
+      couponCode: state.couponCode,
+      discountType: state.discountType,
+      discountPercentage: state.discountPercentage,
+      flatDiscountAmount: state.flatDiscountAmount,
+      applicableProducts: state.applicableProducts,
+      isCombo: state.isCombo,
+      minOrderValue: state.minOrderValue,
+      shippingTiers: state.shippingTiers
+    });
+    state.buyNowSubtotal = buyNowTotals.subtotal;
+    state.buyNowDiscount = buyNowTotals.discount;
+    state.buyNowTax = buyNowTotals.tax;
+    state.buyNowShippingFee = buyNowTotals.shippingFee;
+    state.buyNowTotal = buyNowTotals.total;
+  }
 };
 
 const cartSlice = createSlice({
   name: 'cart',
   initialState: {
     items: getInitialCart(),
+    buyNowItem: null,
+    buyNowSubtotal: 0,
+    buyNowDiscount: 0,
+    buyNowTax: 0,
+    buyNowShippingFee: 0,
+    buyNowTotal: 0,
     isHydrated: false,
     isCartSyncing: true, // Initially true until ReduxProvider finishes fetching from server
     couponCode: '',
@@ -382,6 +406,13 @@ const cartSlice = createSlice({
       }
       updateTotalsAndCheckCoupon(state);
     },
+    setBuyNowItem: (state, action) => {
+      state.buyNowItem = action.payload;
+      updateTotalsAndCheckCoupon(state);
+    },
+    clearBuyNowItem: (state) => {
+      state.buyNowItem = null;
+    },
     recalculateCart: (state) => {
       updateTotalsAndCheckCoupon(state);
     },
@@ -417,5 +448,5 @@ const cartSlice = createSlice({
   }
 });
 
-export const { setShippingTiers, setCartSyncing, addToCartLocal, removeFromCartLocal, updateCartQuantityLocal, applyCouponCode, clearCart, recalculateCart, hydrateCart, clearRemovedCouponNotice } = cartSlice.actions;
+export const { setShippingTiers, setCartSyncing, addToCartLocal, removeFromCartLocal, updateCartQuantityLocal, applyCouponCode, clearCart, setBuyNowItem, clearBuyNowItem, recalculateCart, hydrateCart, clearRemovedCouponNotice } = cartSlice.actions;
 export default cartSlice.reducer;

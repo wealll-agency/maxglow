@@ -71,10 +71,10 @@ export default function AboutPage() {
               ) : (
                 <>
                   <p className="text-secondary fs-5 mb-4" style={{ lineHeight: '1.8', whiteSpace: 'pre-wrap' }}>
-                    At MaxGlow, we believe in delivering the pure bounty of nature to your personal care routine. Our journey started with a simple vision: to bridge the gap between premium organic ingredients and skin-conscious consumers. Over the years, we have mastered the art of formulating the most exquisite herbal face serums, oils, and body care items using botanical extracts sourced from the finest organic gardens.
+                    MaxGlow was established in 2010 with a dream to bring pure nature into your daily skincare ritual. What began as a vision to connect premium organic ingredients with skin-conscious individuals has blossomed into an extraordinary journey.
                   </p>
                   <p className="text-secondary fs-5 mb-5" style={{ lineHeight: '1.8', whiteSpace: 'pre-wrap' }}>
-                    Every product in our collection is carefully formulated, rigorously tested, and meticulously crafted to preserve the natural active ingredients and therapeutic value. With a deep commitment to excellence, MaxGlow isn't just a cosmetics brand—it's a promise of purity, radiant beauty, and holistic well-being.
+                    Today, MaxGlow stands as a beloved skincare sensation, touching lives nationwide through trusted B2B and B2C connections. From our 2010 beginnings to a nationwide household name, our commitment remains unchanged: delivering effective, nurturing skincare that lets your natural glow shine daily.
                   </p>
                 </>
               )}
@@ -120,8 +120,8 @@ export default function AboutPage() {
                 <div className="mx-auto mb-4 d-flex justify-content-center align-items-center rounded-circle" style={{ width: '80px', height: '80px', backgroundColor: '#f0fdf4' }}>
                   <Image src="/icon_organic.jpg" alt="Organic" width={48} height={48} style={{ width: '48px', height: 'auto', objectFit: 'contain', mixBlendMode: 'multiply' }} />
                 </div>
-                <h4 className="fw-bold mb-3 text-dark">100% Organic</h4>
-                <p className="text-secondary mb-0" style={{ fontSize: '1.05rem', lineHeight: '1.6' }}>Carefully formulated using certified organic botanical extracts.</p>
+                <h4 className="fw-bold mb-3 text-dark">Organic infusion</h4>
+                <p className="text-secondary mb-0" style={{ fontSize: '1.05rem', lineHeight: '1.6' }}>Carefully formulated using organic botanical extracts.</p>
               </MgCard>
             </div>
             <div className="col-lg-3 col-md-6">
@@ -139,7 +139,7 @@ export default function AboutPage() {
                   <Image src="/icon_toxin_free.jpg" alt="Toxin Free" width={48} height={48} style={{ width: '48px', height: 'auto', objectFit: 'contain', mixBlendMode: 'multiply' }} />
                 </div>
                 <h4 className="fw-bold mb-3 text-dark">Toxin Free</h4>
-                <p className="text-secondary mb-0" style={{ fontSize: '1.05rem', lineHeight: '1.6' }}>Completely free of parabens, sulfates, and harmful artificial chemicals.</p>
+                <p className="text-secondary mb-0" style={{ fontSize: '1.05rem', lineHeight: '1.6' }}>Free of harmful artificial chemicals.</p>
               </MgCard>
             </div>
             <div className="col-lg-3 col-md-6">
@@ -148,7 +148,7 @@ export default function AboutPage() {
                   <Image src="/icon_tested.jpg" alt="Tested" width={48} height={48} style={{ width: '48px', height: 'auto', objectFit: 'contain', mixBlendMode: 'multiply' }} />
                 </div>
                 <h4 className="fw-bold mb-3 text-dark">Dermatologically Tested</h4>
-                <p className="text-secondary mb-0" style={{ fontSize: '1.05rem', lineHeight: '1.6' }}>Clinically evaluated to be safe and gentle on all skin types.</p>
+                <p className="text-secondary mb-0" style={{ fontSize: '1.05rem', lineHeight: '1.6' }}>Clinically tested to be safe and gentle on your skin.</p>
               </MgCard>
             </div>
           </div>
@@ -164,9 +164,9 @@ export default function AboutPage() {
             </div>
             <div className="col-lg-6 order-lg-1 pe-lg-5 text-center text-lg-start">
               <span className="d-inline-block px-4 py-2 rounded-pill mb-3 fw-bold shadow-sm" style={{ backgroundColor: '#fff7ed', color: '#ea580c', fontSize: '0.9rem', letterSpacing: '1px' }}>
-                {content?.mission?.tagline || 'OUR MISSION'}
+                {content?.mission?.tagline || 'OUR JOURNEY'}
               </span>
-              <h2 className="display-6 fw-bold mb-4 text-dark">{content?.mission?.heading || "Bringing Nature's Purest to Your Skincare"}</h2>
+              <h2 className="display-6 fw-bold mb-4 text-dark">{content?.mission?.heading || "Started as B2B, now B2C also"}</h2>
               
               {content?.mission?.paragraphs && content.mission.paragraphs.length > 0 ? (
                 content.mission.paragraphs.map((para, idx) => (
@@ -176,7 +176,7 @@ export default function AboutPage() {
                 ))
               ) : (
                 <p className="text-secondary fs-5 mb-0" style={{ lineHeight: '1.8', whiteSpace: 'pre-wrap' }}>
-                  Our mission is to establish a robust and ethical extraction process that empowers local herb farmers while delivering uncompromised quality skincare globally. We are dedicated to making botanical excellence and natural glow seamlessly accessible to everyone, ensuring every drop is as wholesome as nature intended.
+                  MaxGlow started out as a trusted B2B partner for parlours & salons initially before expanding its B2C journey directly to skincare lovers everywhere. Today, MaxGlow stands as a beloved household name across India, bringing the pure, natural extracts of organic botanical ingredients straight to your daily ritual for healthy skin.
                 </p>
               )}
             </div>
@@ -219,12 +219,12 @@ export default function AboutPage() {
             <div className="accordion-item border-0 shadow-sm rounded-4 mb-3 overflow-hidden">
               <h2 className="accordion-header" id="headingOne">
                 <button className="accordion-button fw-bold fs-5 p-4 bg-white text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne" style={{ boxShadow: 'none' }}>
-                  1. How often should I apply the Vitamin C Face Serum?
+                  1. Are MaxGlow products safe for sensitive skin types?
                 </button>
               </h2>
-              <div id="collapseOne" className="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
-                <div className="accordion-body p-4 pt-0 text-secondary fs-5" style={{ backgroundColor: '#fff' }}>
-                  For best results, apply 3-5 drops of the Vitamin C Face Serum once daily during your morning skincare routine, followed by a broad-spectrum sunscreen.
+              <div id="collapseOne" className="accordion-collapse collapse show" aria-labelledby="headingOne">
+                <div className="accordion-body p-4 text-dark fs-5">
+                  Yes, all MaxGlow formulations are dermatologically tested and carefully crafted to be gentle for all skin types, including sensitive skin.
                 </div>
               </div>
             </div>
@@ -232,12 +232,38 @@ export default function AboutPage() {
             <div className="accordion-item border-0 shadow-sm rounded-4 mb-3 overflow-hidden">
               <h2 className="accordion-header" id="headingTwo">
                 <button className="accordion-button collapsed fw-bold fs-5 p-4 bg-white text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo" style={{ boxShadow: 'none' }}>
-                  2. Are MaxGlow products safe for sensitive skin types?
+                  2. Can I combine multiple MaxGlow products in one routine?
                 </button>
               </h2>
-              <div id="collapseTwo" className="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
-                <div className="accordion-body p-4 pt-0 text-secondary fs-5" style={{ backgroundColor: '#fff' }}>
-                  Yes, all MaxGlow products are dermatologically tested, hypoallergenic, and formulated with soothing botanicals like chamomile and aloe vera to be gentle on sensitive skin.
+              <div id="collapseTwo" className="accordion-collapse collapse" aria-labelledby="headingTwo">
+                <div className="accordion-body p-4 text-dark fs-5">
+                  Yes, our entire collection is thoughtfully designed to complement one another.
+                </div>
+              </div>
+            </div>
+
+            <div className="accordion-item border-0 shadow-sm rounded-4 mb-3 overflow-hidden">
+              <h2 className="accordion-header" id="headingThree">
+                <button className="accordion-button collapsed fw-bold fs-5 p-4 bg-white text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree" style={{ boxShadow: 'none' }}>
+                  3. Are MaxGlow products suitable for both men and women?
+                </button>
+              </h2>
+              <div id="collapseThree" className="accordion-collapse collapse" aria-labelledby="headingThree">
+                <div className="accordion-body p-4 text-dark fs-5">
+                  Yes, our skincare ranges are universally formulated to nourish healthy skin for all individuals, regardless of gender.
+                </div>
+              </div>
+            </div>
+
+            <div className="accordion-item border-0 shadow-sm rounded-4 mb-3 overflow-hidden">
+              <h2 className="accordion-header" id="headingFour">
+                <button className="accordion-button collapsed fw-bold fs-5 p-4 bg-white text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour" style={{ boxShadow: 'none' }}>
+                  4. Are MaxGlow products cruelty-free?
+                </button>
+              </h2>
+              <div id="collapseFour" className="accordion-collapse collapse" aria-labelledby="headingFour">
+                <div className="accordion-body p-4 text-dark fs-5">
+                  Yes, we love our furry friends. Every MaxGlow product is ethically formulated and never tested on animals.
                 </div>
               </div>
             </div>

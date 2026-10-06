@@ -9,3 +9,6 @@ backend/firebase-service-account.json
 backend/public/uploads/
 *.mp4
 *.tmp
+
+# Firebase Config
+backend/src/config/firebaseServiceAccount.json

@@ -37,6 +37,47 @@ export default function RefundsPageClient({ status }) {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredRefunds.slice(indexOfFirstItem, indexOfLastItem);
 
+  const exportToExcel = () => {
+    const csvRows = [];
+    const headers = ['Refund ID', 'Order ID', 'Customer Name', 'Customer Email', 'Customer Phone', 'Date', 'Amount', 'Status', 'Reason', 'Customer Comment'];
+    csvRows.push(headers.join(','));
+
+    filteredRefunds.forEach(ref => {
+      let formattedDate = 'N/A';
+      if (ref.createdAt) {
+        const d = new Date(ref.createdAt);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        formattedDate = `="${day}/${month}/${year}"`;
+      }
+
+      const row = [
+        ref._id,
+        ref.order?._id || 'N/A',
+        `"${(ref.user?.name || 'N/A').replace(/"/g, '""')}"`,
+        `"${(ref.user?.email || 'N/A').replace(/"/g, '""')}"`,
+        `"${(ref.user?.phone || 'N/A').replace(/"/g, '""')}"`,
+        formattedDate,
+        ref.amount || 0,
+        `"${ref.status}"`,
+        `"${(ref.reason || 'N/A').replace(/"/g, '""')}"`,
+        `"${(ref.customerComment || 'N/A').replace(/"/g, '""')}"`
+      ];
+      csvRows.push(row.join(','));
+    });
+
+    const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.setAttribute('hidden', '');
+    a.setAttribute('href', url);
+    a.setAttribute('download', `refunds_${status.toLowerCase()}_export.csv`);
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
   return (
     <div className="container-fluid py-4 px-4">
       
@@ -80,7 +121,11 @@ export default function RefundsPageClient({ status }) {
 
           {/* Actions */}
           <div className="d-flex gap-3 align-items-center">
-            <button className="btn btn-outline-secondary d-flex align-items-center gap-2 rounded px-3 py-2">
+            <button 
+              onClick={exportToExcel}
+              className="btn btn-outline-secondary d-flex align-items-center gap-2 rounded px-3 py-2"
+              disabled={filteredRefunds.length === 0}
+            >
               <Download size={16} />
               Export
               <ChevronDown size={16} />

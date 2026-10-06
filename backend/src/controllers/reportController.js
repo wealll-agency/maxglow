@@ -42,10 +42,18 @@ export const getDashboardSummary = async (req, res, next) => {
       paymentStatus: 'Paid'
     };
 
+    // Condition to include only real orders (excluding abandoned/failed checkouts)
+    const realOrderMatch = {
+      $or: [
+        { paymentMode: 'COD' },
+        { paymentStatus: { $in: ['Paid', 'Refunded'] } }
+      ]
+    };
+
     // Parallelize all DB queries with Promise.all
     const [
       salesAggregation,
-      totalCustomers,
+      totalCustomersArray,
       lowStockItems,
       totalProducts,
       orderStatusesRaw,
@@ -62,8 +70,8 @@ export const getDashboardSummary = async (req, res, next) => {
         { $match: validRevenueMatch },
         { $group: { _id: null, totalSales: { $sum: '$totalAmount' }, count: { $sum: 1 } } }
       ]),
-      // 2. Customers
-      User.countDocuments({ role: 'Customer' }),
+      // 2. Customers (Only users who have placed a real order)
+      Order.distinct('user', realOrderMatch),
       // 3. Low stock count
       Inventory.countDocuments({
         $expr: { $lte: ['$stockQuantity', '$lowStockThreshold'] }
@@ -72,6 +80,7 @@ export const getDashboardSummary = async (req, res, next) => {
       Product.countDocuments(),
       // 5. Order Statuses
       Order.aggregate([
+        { $match: realOrderMatch },
         { $group: { _id: '$orderStatus', count: { $sum: 1 } } }
       ]),
       // 6. Wallet Aggregation
@@ -122,6 +131,7 @@ export const getDashboardSummary = async (req, res, next) => {
 
     const totalSales = salesAggregation[0]?.totalSales || 0;
     const totalOrders = salesAggregation[0]?.count || 0;
+    const totalCustomers = totalCustomersArray.length;
 
     const orderStatuses = orderStatusesRaw.reduce((acc, curr) => {
       acc[curr._id] = curr.count;

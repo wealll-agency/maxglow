@@ -215,14 +215,32 @@ function ShopDetailsContent({ initialProduct }) {
         image: realProduct.images?.[0] || '/top_product1.png',
         stock: realProduct.stock
       };
-      dispatch(addToCart({
+
+      const buyNowItem = {
+        itemType: 'Product',
         product: mockProduct,
         quantity,
-        size: selectedPack || defaultPackName
+        size: selectedPack || defaultPackName,
+        price: finalPrice,
+        name: realProduct.name
+      };
+
+      sessionStorage.setItem('buyNowItem', JSON.stringify({
+        items: [buyNowItem],
+        subtotal: finalPrice * quantity,
+        discount: 0,
+        tax: 0,
+        shippingFee: 40,
+        total: (finalPrice * quantity) + 40
       }));
 
+      if (!user) {
+        router.push('/login?redirect=checkout&mode=buynow');
+        return;
+      }
+
       setTimeout(() => {
-        router.push('/checkout');
+        router.push('/checkout?mode=buynow');
       }, 100);
     };
 

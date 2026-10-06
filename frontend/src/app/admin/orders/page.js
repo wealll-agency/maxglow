@@ -400,18 +400,39 @@ function AdminOrdersContent() {
         <head>
           <title>Tax Invoice - ${selectedOrder?._id}</title>
           <style>
-            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #1e293b; background: #fff; line-height: 1.4; }
-            .table-bordered { border: 1px solid #000; border-collapse: collapse; width: 100%; }
-            .table-bordered td, .table-bordered th { border: 1px solid #000; padding: 6px 8px; font-size: 11px; }
-            .text-center { text-align: center; }
-            .text-end { text-align: right; }
-            .text-start { text-align: left; }
-            .fw-bold { font-weight: bold; }
-            .border-bottom { border-bottom: 1px solid #000; }
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+            @media print {
+              @page { margin: 8mm; size: A4 portrait; }
+              body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            }
+            body { font-family: 'Inter', sans-serif; padding: 0; margin: 0; color: #374151; background: #fff; line-height: 1.3; font-size: 10px; }
+            .invoice-wrapper { max-width: 100%; padding: 0 10px; }
+            .invoice-header { display: flex; justify-content: space-between; border-bottom: 2px solid #00d2d3; padding-bottom: 10px; margin-bottom: 10px; }
+            .invoice-title { font-size: 20px; font-weight: 700; color: #111827; letter-spacing: 1px; text-transform: uppercase; }
+            .invoice-meta { font-size: 9px; color: #6b7280; text-align: right; }
+            .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 10px; }
+            .info-box { background: #f9fafb; padding: 10px; border-radius: 6px; border: 1px solid #e5e7eb; }
+            .info-title { font-size: 9px; text-transform: uppercase; color: #6b7280; font-weight: 600; margin-bottom: 4px; letter-spacing: 0.5px; }
+            .info-text { font-size: 10px; color: #111827; }
+            .table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+            .table th, .table td { padding: 6px; border-bottom: 1px solid #e5e7eb; text-align: left; }
+            .table th { background-color: #f3f4f6; color: #374151; font-weight: 600; font-size: 9px; text-transform: uppercase; }
+            .text-center { text-align: center !important; }
+            .text-end { text-align: right !important; }
+            .fw-bold { font-weight: 600; color: #111827; }
+            .text-brand { color: #00d2d3; }
+            .totals-section { display: flex; justify-content: space-between; border-top: 2px solid #e5e7eb; padding-top: 10px; margin-top: 10px; page-break-inside: avoid; }
+            .tax-table th, .tax-table td { padding: 4px; font-size: 9px; }
+            .footer-section { margin-top: 15px; border-top: 1px solid #e5e7eb; padding-top: 10px; display: flex; justify-content: space-between; page-break-inside: avoid; }
+            .qr-code { width: 60px; height: 60px; border-radius: 4px; }
+            .badge-paid { background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 600; }
+            .badge-cod { background: #ffedd5; color: #9a3412; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 600; }
           </style>
         </head>
         <body>
-          ${printContent}
+          <div class="invoice-wrapper">
+            ${printContent}
+          </div>
           <script>
             window.onload = () => {
               setTimeout(() => {
@@ -812,19 +833,31 @@ function AdminOrdersContent() {
                   
                   
                   {/* Cancel / Refund */}
-                  {selectedOrder.orderStatus !== 'Delivered' && selectedOrder.orderStatus !== 'Cancelled' && user.role === 'Super Admin' && (
-                    <button 
-                      onClick={() => {
-                        if (selectedOrder.paymentStatus === 'Paid') {
-                          handleRefund(selectedOrder._id);
-                        } else {
-                          handleStatusChange(selectedOrder._id, 'Cancelled');
-                        }
-                      }} 
-                      className="btn btn-sm btn-danger"
-                    >
-                      {selectedOrder.paymentStatus === 'Paid' ? 'Cancel & Refund Order' : 'Cancel Order'}
-                    </button>
+                  {selectedOrder.orderStatus !== 'Delivered' && user.role === 'Super Admin' && (
+                    <div className="d-flex gap-2">
+                      {selectedOrder.orderStatus !== 'Cancelled' && (
+                        <button 
+                          onClick={() => {
+                            if (selectedOrder.paymentStatus === 'Paid') {
+                              handleRefund(selectedOrder._id);
+                            } else {
+                              handleStatusChange(selectedOrder._id, 'Cancelled');
+                            }
+                          }} 
+                          className="btn btn-sm btn-danger"
+                        >
+                          {selectedOrder.paymentStatus === 'Paid' ? 'Cancel & Refund Order' : 'Cancel Order'}
+                        </button>
+                      )}
+                      {selectedOrder.orderStatus === 'Cancelled' && selectedOrder.paymentStatus === 'Paid' && (
+                        <button 
+                          onClick={() => handleRefund(selectedOrder._id)} 
+                          className="btn btn-sm btn-warning fw-bold text-dark"
+                        >
+                          Process Refund
+                        </button>
+                      )}
+                    </div>
                   )}
                 <div className="fs-8 text-muted border-top pt-3 mt-3">
                   <div className="mb-2">
@@ -866,337 +899,228 @@ function AdminOrdersContent() {
         </div>
       )}
 
-      {/* Hidden Printable Invoice - Flipkart Style */}
+      {/* Hidden Printable Invoice - Premium Single Page Design */}
       {selectedOrder && (
         <div id="printable-invoice" className="d-none">
-          <div className="invoice-box">
-            {/* Title */}
-            <div className="text-center fw-bold border-bottom py-2" style={{ fontSize: '14px', textTransform: 'uppercase' }}>
-              Tax Invoice
+          {/* Header */}
+          <div className="invoice-header">
+            <div>
+              <div className="invoice-title">Tax Invoice</div>
+              <div style={{ fontSize: '10px', marginTop: '4px' }}>
+                <span className="fw-bold">Invoice No:</span> ST-{selectedOrder._id.substring(0, 10).toUpperCase()} &nbsp;|&nbsp; 
+                <span className="fw-bold">Date:</span> {new Date(selectedOrder.createdAt).toLocaleDateString()}
+              </div>
+              <div style={{ fontSize: '10px', marginTop: '2px' }}>
+                <span className="fw-bold">IRN:</span> 4ecf1455f213378bf{selectedOrder._id.substring(0, 6)}a0db3dd8fd9e{selectedOrder._id.substring(6, 12)}59bed15e10d4c6f86eee4add3
+              </div>
+            </div>
+            <div className="invoice-meta d-flex align-items-center gap-3">
+              <div className="text-end">
+                <div><span className={selectedOrder.paymentStatus === 'Paid' ? 'badge-paid' : 'badge-cod'}>{selectedOrder.paymentStatus === 'Paid' ? 'PREPAID' : 'COD'}</span></div>
+                <div style={{ marginTop: '4px' }}><strong>Ack No:</strong> 18262310{selectedOrder._id.substring(0, 6).replace(/[^0-9]/g, '8')}84</div>
+              </div>
+              <img 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=${encodeURIComponent('https://maxglow.in/invoice/' + selectedOrder._id)}`} 
+                alt="e-invoice QR" 
+                className="qr-code"
+              />
+            </div>
+          </div>
+
+          {/* Addresses */}
+          <div className="grid-2">
+            <div className="info-box">
+              <div className="info-title">Billed By (Seller)</div>
+              <div className="info-text">
+                <div className="fw-bold text-brand" style={{ fontSize: '12px' }}>MaxGlow Enterprises</div>
+                <div>33, Maharshi Devendra Road, Kolkata - 700006</div>
+                <div><strong>GSTIN:</strong> 19AAACC1234D1Z5 &nbsp;|&nbsp; <strong>State Code:</strong> 19 (WB)</div>
+                <div><strong>FSSAI:</strong> 12819019002064 &nbsp;|&nbsp; <strong>UDYAM:</strong> WB-10-0002145</div>
+              </div>
+            </div>
+            <div className="info-box">
+              <div className="info-title">Billed To (Buyer)</div>
+              <div className="info-text">
+                <div className="fw-bold" style={{ fontSize: '12px' }}>{selectedOrder.user?.name || 'Guest Customer'}</div>
+                <div>{selectedOrder.deliveryAddress.street || selectedOrder.deliveryAddress.address || selectedOrder.deliveryAddress.locality}</div>
+                <div>{selectedOrder.deliveryAddress.city}, {selectedOrder.deliveryAddress.state} - {selectedOrder.deliveryAddress.zipCode || selectedOrder.deliveryAddress.pincode}</div>
+                <div><strong>Phone:</strong> {selectedOrder.deliveryAddress?.phone || selectedOrder.user?.phone || 'N/A'}</div>
+                <div><strong>Place of Supply:</strong> {selectedOrder.deliveryAddress.state} ({getStateCode(selectedOrder.deliveryAddress.state)})</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Items Table */}
+          <table className="table">
+            <thead>
+              <tr>
+                <th className="text-center" width="5%">#</th>
+                <th width="40%">Item Description</th>
+                <th className="text-center" width="10%">HSN/SAC</th>
+                <th className="text-center" width="10%">Qty</th>
+                <th className="text-end" width="15%">Net Rate (₹)</th>
+                <th className="text-end" width="20%">Amount (₹)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {selectedOrder.items.map((item, idx) => {
+                const basePrice = Math.round((item.price / 1.05) * 100) / 100;
+                const taxAmt = Math.round((item.price - basePrice) * 100) / 100;
+                return (
+                  <tr key={item._id}>
+                    <td className="text-center">{idx + 1}</td>
+                    <td>
+                      <div className="fw-bold">{item.name}</div>
+                      <div style={{ fontSize: '8px', color: '#6b7280' }}>CGST: 2.5% | SGST: 2.5%</div>
+                    </td>
+                    <td className="text-center">08013220</td>
+                    <td className="text-center">{item.quantity}</td>
+                    <td className="text-end">{basePrice.toFixed(2)}</td>
+                    <td className="text-end fw-bold">
+                      <div>{(basePrice * item.quantity).toFixed(2)}</div>
+                      <div style={{ fontSize: '8px', color: '#6b7280', fontWeight: 'normal' }}>
+                        + Tax: {(taxAmt * item.quantity).toFixed(2)}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+              {shippingFee > 0 && (
+                <tr>
+                  <td className="text-center"></td>
+                  <td>
+                    <div className="fw-bold">Shipping Charges</div>
+                    <div style={{ fontSize: '8px', color: '#6b7280' }}>CGST: 2.5% | SGST: 2.5%</div>
+                  </td>
+                  <td className="text-center">996511</td>
+                  <td className="text-center">1</td>
+                  <td className="text-end">{shippingTaxable.toFixed(2)}</td>
+                  <td className="text-end fw-bold">
+                    <div>{shippingTaxable.toFixed(2)}</div>
+                    <div style={{ fontSize: '8px', color: '#6b7280', fontWeight: 'normal' }}>
+                      + Tax: {(shippingCGST + shippingSGST).toFixed(2)}
+                    </div>
+                  </td>
+                </tr>
+              )}
+              {couponDiscount > 0 && (
+                <tr>
+                  <td colSpan="5" className="text-end" style={{ color: '#059669' }}>Coupon Discount ({selectedOrder.couponCode})</td>
+                  <td className="text-end fw-bold" style={{ color: '#059669' }}>-₹{couponDiscount.toFixed(2)}</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+
+          {/* Totals & Tax Summary */}
+          <div className="totals-section">
+            <div style={{ width: '60%' }}>
+              <div className="info-title">Tax Summary</div>
+              <table className="table tax-table" style={{ border: '1px solid #e5e7eb', marginBottom: '5px' }}>
+                <thead>
+                  <tr>
+                    <th>HSN/SAC</th>
+                    <th className="text-end">Taxable</th>
+                    <th className="text-end">CGST (2.5%)</th>
+                    <th className="text-end">SGST (2.5%)</th>
+                    <th className="text-end">Total Tax</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>08013220</td>
+                    <td className="text-end">₹{totalTaxable.toFixed(2)}</td>
+                    <td className="text-end">₹{totalCGST.toFixed(2)}</td>
+                    <td className="text-end">₹{totalSGST.toFixed(2)}</td>
+                    <td className="text-end">₹{(totalCGST + totalSGST).toFixed(2)}</td>
+                  </tr>
+                  {shippingFee > 0 && (
+                    <tr>
+                      <td>996511</td>
+                      <td className="text-end">₹{shippingTaxable.toFixed(2)}</td>
+                      <td className="text-end">₹{shippingCGST.toFixed(2)}</td>
+                      <td className="text-end">₹{shippingSGST.toFixed(2)}</td>
+                      <td className="text-end">₹{(shippingCGST + shippingSGST).toFixed(2)}</td>
+                    </tr>
+                  )}
+                  <tr className="fw-bold" style={{ backgroundColor: '#f9fafb' }}>
+                    <td>Total</td>
+                    <td className="text-end">₹{(totalTaxable + shippingTaxable).toFixed(2)}</td>
+                    <td className="text-end">₹{(totalCGST + shippingCGST).toFixed(2)}</td>
+                    <td className="text-end">₹{(totalSGST + shippingSGST).toFixed(2)}</td>
+                    <td className="text-end">₹{(totalCGST + totalSGST + shippingCGST + shippingSGST).toFixed(2)}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div style={{ fontSize: '9px' }}>
+                <span className="fw-bold">Tax Amount in Words:</span> {numberToWords(totalCGST + totalSGST + shippingCGST + shippingSGST)}
+              </div>
             </div>
             
-            {/* IRN Block */}
-            <div className="row g-0 border-bottom p-2">
-              <div className="col-8">
-                <div><strong>IRN:</strong> 4ecf1455f213378bf{selectedOrder._id.substring(0, 6)}a0db3dd8fd9e{selectedOrder._id.substring(6, 12)}59bed15e10d4c6f86eee4add3</div>
-                <div><strong>Ack No.:</strong> 18262310{selectedOrder._id.substring(0, 6).replace(/[^0-9]/g, '8')}84</div>
-                <div><strong>Ack Date:</strong> {new Date(selectedOrder.createdAt).toLocaleDateString()}</div>
+            <div style={{ width: '35%', background: '#f9fafb', padding: '15px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+              <div className="d-flex justify-content-between mb-2">
+                <span>Taxable Amount:</span>
+                <span className="fw-bold">₹{(totalTaxable + shippingTaxable).toFixed(2)}</span>
               </div>
-              <div className="col-4 text-end d-flex align-items-center justify-content-end gap-2">
-                <div style={{ fontSize: '9px', fontWeight: 'bold' }}>e-Invoice</div>
-                <Image 
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=${encodeURIComponent('https://maxglow.in/invoice/' + selectedOrder._id)}`} 
-                  alt="e-invoice QR" 
-                  width={60}
-                  height={60}
-                  style={{ width: '60px', height: '60px' }} 
-                />
+              <div className="d-flex justify-content-between mb-2">
+                <span>Total Tax:</span>
+                <span className="fw-bold">₹{(totalCGST + totalSGST + shippingCGST + shippingSGST).toFixed(2)}</span>
+              </div>
+              {couponDiscount > 0 && (
+                <div className="d-flex justify-content-between mb-2 text-success">
+                  <span>Discount:</span>
+                  <span className="fw-bold">-₹{couponDiscount.toFixed(2)}</span>
+                </div>
+              )}
+              {Math.abs(roundOff) > 0.01 && (
+                <div className="d-flex justify-content-between mb-2">
+                  <span>Round Off:</span>
+                  <span className="fw-bold">{roundOff > 0 ? '+' : ''}₹{roundOff.toFixed(2)}</span>
+                </div>
+              )}
+              <div className="d-flex justify-content-between mt-2 pt-2" style={{ borderTop: '2px dashed #d1d5db', fontSize: '14px' }}>
+                <span className="fw-bold">Grand Total:</span>
+                <span className="fw-bold text-brand">₹{selectedOrder.totalAmount.toFixed(2)}</span>
+              </div>
+              <div className="text-end mt-1 fw-bold" style={{ fontSize: '9px', textTransform: 'uppercase' }}>
+                {numberToWords(selectedOrder.totalAmount)}
               </div>
             </div>
+          </div>
 
-            {/* Seller & Invoice Metadata */}
-            <table className="invoice-table" style={{ borderTop: 'none', borderBottom: 'none' }}>
-              <tbody>
-                <tr>
-                  <td style={{ width: '55%', borderTop: 'none', borderLeft: 'none' }} className="border-right">
-                    <div className="fw-bold" style={{ fontSize: '12px' }}>MaxGlow Enterprises - FY 2026-27 - (from 1-Apr-26)</div>
-                    <div>33, Maharshi Devendra Road, Kolkata - 700006</div>
-                    <div>FSSAI NO: 12819019002064</div>
-                    <div>UDYAM REGN: UDYAM-WB-10-0002145 (MICRO)</div>
-                    <div><strong>GSTIN/UIN:</strong> 19AAACC1234D1Z5</div>
-                    <div><strong>State Name:</strong> West Bengal, Code : 19</div>
-                  </td>
-                  <td style={{ width: '45%', padding: '0', borderTop: 'none', borderRight: 'none' }}>
-                    <table style={{ width: '100%', height: '100%', border: 'none' }}>
-                      <tbody>
-                        <tr style={{ borderBottom: '1px solid #000' }}>
-                          <td style={{ width: '50%', border: 'none', borderRight: '1px solid #000', padding: '4px' }}>
-                            <div style={{ fontSize: '8px', textTransform: 'uppercase', color: '#666' }}>Invoice No.</div>
-                            <div className="fw-bold">ST-{selectedOrder._id.substring(0, 10).toUpperCase()}</div>
-                          </td>
-                          <td style={{ width: '50%', border: 'none', padding: '4px' }}>
-                            <div style={{ fontSize: '8px', textTransform: 'uppercase', color: '#666' }}>Dated</div>
-                            <div className="fw-bold">{new Date(selectedOrder.createdAt).toLocaleDateString()}</div>
-                          </td>
-                        </tr>
-                        <tr style={{ borderBottom: '1px solid #000' }}>
-                          <td style={{ border: 'none', borderRight: '1px solid #000', padding: '4px' }}>
-                            <div style={{ fontSize: '8px', textTransform: 'uppercase', color: '#666' }}>Delivery Note</div>
-                            <div className="fw-bold">-</div>
-                          </td>
-                          <td style={{ border: 'none', padding: '4px' }}>
-                            <div style={{ fontSize: '8px', textTransform: 'uppercase', color: '#666' }}>Mode/Terms of Payment</div>
-                            <div className="fw-bold">{selectedOrder.paymentStatus === 'Paid' ? 'Prepaid' : 'COD'}</div>
-                          </td>
-                        </tr>
-                        <tr style={{ borderBottom: '1px solid #000' }}>
-                          <td style={{ border: 'none', borderRight: '1px solid #000', padding: '4px' }}>
-                            <div style={{ fontSize: '8px', textTransform: 'uppercase', color: '#666' }}>Reference No. and Date</div>
-                            <div className="fw-bold">-</div>
-                          </td>
-                          <td style={{ border: 'none', padding: '4px' }}>
-                            <div style={{ fontSize: '8px', textTransform: 'uppercase', color: '#666' }}>Other References</div>
-                            <div className="fw-bold">-</div>
-                          </td>
-                        </tr>
-                        <tr style={{ borderBottom: '1px solid #000' }}>
-                          <td style={{ border: 'none', borderRight: '1px solid #000', padding: '4px' }}>
-                            <div style={{ fontSize: '8px', textTransform: 'uppercase', color: '#666' }}>Buyer's Order No.</div>
-                            <div className="fw-bold">-</div>
-                          </td>
-                          <td style={{ border: 'none', padding: '4px' }}>
-                            <div style={{ fontSize: '8px', textTransform: 'uppercase', color: '#666' }}>Dated</div>
-                            <div className="fw-bold">-</div>
-                          </td>
-                        </tr>
-                        <tr style={{ borderBottom: '1px solid #000' }}>
-                          <td style={{ border: 'none', borderRight: '1px solid #000', padding: '4px' }}>
-                            <div style={{ fontSize: '8px', textTransform: 'uppercase', color: '#666' }}>Dispatch Doc No.</div>
-                            <div className="fw-bold">-</div>
-                          </td>
-                          <td style={{ border: 'none', padding: '4px' }}>
-                            <div style={{ fontSize: '8px', textTransform: 'uppercase', color: '#666' }}>Delivery Note Date</div>
-                            <div className="fw-bold">-</div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style={{ border: 'none', borderRight: '1px solid #000', padding: '4px' }}>
-                            <div style={{ fontSize: '8px', textTransform: 'uppercase', color: '#666' }}>Dispatched through</div>
-                            <div className="fw-bold">Courier</div>
-                          </td>
-                          <td style={{ border: 'none', padding: '4px' }}>
-                            <div style={{ fontSize: '8px', textTransform: 'uppercase', color: '#666' }}>Destination</div>
-                            <div className="fw-bold">{selectedOrder.deliveryAddress.city}</div>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </td>
-                </tr>
-                {/* Buyer row */}
-                <tr style={{ borderTop: '1px solid #000' }}>
-                  <td style={{ width: '55%', borderLeft: 'none' }} className="border-right">
-                    <div style={{ fontSize: '8px', textTransform: 'uppercase', color: '#666' }}>Buyer (Bill to)</div>
-                    <div className="fw-bold" style={{ fontSize: '12px' }}>{selectedOrder.user?.name || 'Guest Customer'}</div>
-                    <div>{selectedOrder.deliveryAddress.street || selectedOrder.deliveryAddress.address || selectedOrder.deliveryAddress.locality}</div>
-                    <div>{selectedOrder.deliveryAddress.city}, {selectedOrder.deliveryAddress.state} - {selectedOrder.deliveryAddress.zipCode || selectedOrder.deliveryAddress.pincode}</div>
-                    <div><strong>Phone:</strong> {selectedOrder.deliveryAddress?.phone || selectedOrder.user?.phone || 'N/A'}</div>
-                    <div><strong>State Name:</strong> {selectedOrder.deliveryAddress.state}, Code : {getStateCode(selectedOrder.deliveryAddress.state)}</div>
-                    <div><strong>Place of Supply:</strong> {selectedOrder.deliveryAddress.state}</div>
-                  </td>
-                  <td style={{ width: '45%', borderRight: 'none' }}>
-                    <div style={{ fontSize: '8px', textTransform: 'uppercase', color: '#666' }}>Terms of Delivery</div>
-                    <div style={{ marginTop: '5px' }}>Standard door-step delivery within 3-5 business days.</div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-
-            {/* Product Table */}
-            <table className="invoice-table" style={{ borderTop: '1px solid #000', borderBottom: '1px solid #000' }}>
-              <thead>
-                <tr className="text-center" style={{ backgroundColor: '#f2f2f2' }}>
-                  <th style={{ width: '5%', borderLeft: 'none' }}>SI No.</th>
-                  <th style={{ width: '40%' }}>Description of Goods</th>
-                  <th style={{ width: '10%' }}>HSN/SAC</th>
-                  <th style={{ width: '10%' }}>Quantity</th>
-                  <th style={{ width: '10%' }}>Rate (incl. of Tax)</th>
-                  <th style={{ width: '10%' }}>Rate</th>
-                  <th style={{ width: '5%' }}>per</th>
-                  <th style={{ width: '10%', borderRight: 'none' }}>Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {selectedOrder.items.map((item, idx) => {
-                  const basePrice = Math.round((item.price / 1.05) * 100) / 100;
-                  const taxAmt = Math.round((item.price - basePrice) * 100) / 100;
-                  
-                  return (
-                    <tr key={item._id} style={{ borderBottom: 'none' }}>
-                      <td className="text-center" style={{ borderLeft: 'none' }}>{idx + 1}</td>
-                      <td>
-                        <div className="fw-bold">{item.name}</div>
-                        <div style={{ fontSize: '9px', textIndent: '10px', color: '#555' }}>CGST 2.5%</div>
-                        <div style={{ fontSize: '9px', textIndent: '10px', color: '#555' }}>SGST 2.5%</div>
-                      </td>
-                      <td className="text-center">08013220</td>
-                      <td className="text-center">{item.quantity}.0000 Pcs</td>
-                      <td className="text-center">₹{item.price.toFixed(2)}</td>
-                      <td className="text-center">₹{basePrice.toFixed(2)}</td>
-                      <td className="text-center">Pcs</td>
-                      <td className="text-end fw-bold" style={{ borderRight: 'none' }}>
-                        <div>₹{(basePrice * item.quantity).toFixed(2)}</div>
-                        <div style={{ fontSize: '9px', fontWeight: 'normal', color: '#555' }}>₹{(taxAmt / 2 * item.quantity).toFixed(2)}</div>
-                        <div style={{ fontSize: '9px', fontWeight: 'normal', color: '#555' }}>₹{(taxAmt / 2 * item.quantity).toFixed(2)}</div>
-                      </td>
-                    </tr>
-                  );
-                })}
-
-                {/* Shipping Fee Rows */}
-                {shippingFee > 0 && (
-                  <tr>
-                    <td className="text-center" style={{ borderLeft: 'none' }}></td>
-                    <td>
-                      <div className="fw-bold">Shipping Charges</div>
-                      <div style={{ fontSize: '9px', textIndent: '10px', color: '#555' }}>CGST 2.5%</div>
-                      <div style={{ fontSize: '9px', textIndent: '10px', color: '#555' }}>SGST 2.5%</div>
-                    </td>
-                    <td className="text-center">996511</td>
-                    <td className="text-center">1.0000 Pcs</td>
-                    <td className="text-center">₹{shippingFee.toFixed(2)}</td>
-                    <td className="text-center">₹{shippingTaxable.toFixed(2)}</td>
-                    <td className="text-center">Pcs</td>
-                    <td className="text-end fw-bold" style={{ borderRight: 'none' }}>
-                      <div>₹{shippingTaxable.toFixed(2)}</div>
-                      <div style={{ fontSize: '9px', fontWeight: 'normal', color: '#555' }}>₹{shippingCGST.toFixed(2)}</div>
-                      <div style={{ fontSize: '9px', fontWeight: 'normal', color: '#555' }}>₹{shippingSGST.toFixed(2)}</div>
-                    </td>
-                  </tr>
-                )}
-
-                {/* Coupon discount row */}
-                {couponDiscount > 0 && (
-                  <tr>
-                    <td className="text-center" style={{ borderLeft: 'none' }}></td>
-                    <td>
-                      <div className="fw-bold text-success">Coupon Discount ({selectedOrder.couponCode})</div>
-                    </td>
-                    <td className="text-center">-</td>
-                    <td className="text-center">-</td>
-                    <td className="text-center">-</td>
-                    <td className="text-center">-</td>
-                    <td className="text-center">-</td>
-                    <td className="text-end fw-bold text-success" style={{ borderRight: 'none' }}>-₹{couponDiscount.toFixed(2)}</td>
-                  </tr>
-                )}
-
-                {/* Round Off row */}
-                {Math.abs(roundOff) > 0.01 && (
-                  <tr>
-                    <td className="text-center" style={{ borderLeft: 'none' }}></td>
-                    <td>
-                      <div className="fw-bold">Round Off</div>
-                    </td>
-                    <td className="text-center">-</td>
-                    <td className="text-center">-</td>
-                    <td className="text-center">-</td>
-                    <td className="text-center">-</td>
-                    <td className="text-center">-</td>
-                    <td className="text-end fw-bold" style={{ borderRight: 'none' }}>{roundOff > 0 ? '+' : ''}₹{roundOff.toFixed(2)}</td>
-                  </tr>
-                )}
-
-                {/* Totals row */}
-                <tr className="fw-bold" style={{ backgroundColor: '#f2f2f2' }}>
-                  <td style={{ borderLeft: 'none' }}></td>
-                  <td>Total</td>
-                  <td></td>
-                  <td className="text-center">{totalQty}.0000 Pcs</td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td className="text-end" style={{ borderRight: 'none' }}>₹{selectedOrder.totalAmount.toFixed(2)}</td>
-                </tr>
-              </tbody>
-            </table>
-
-            {/* Amount in words */}
-            <div className="p-2 border-bottom">
-              <div>Amount Chargeable (in words):</div>
-              <div className="fw-bold text-uppercase">{numberToWords(selectedOrder.totalAmount)}</div>
-            </div>
-
-            {/* Tax breakdown & QR Block */}
-            <div className="row g-0 border-bottom">
-              <div className="col-3 p-2 border-end d-flex flex-column align-items-center justify-content-center">
-                <div style={{ fontSize: '9px', fontWeight: 'bold', marginBottom: '4px' }}>Scan to Pay</div>
-                <Image 
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent('upi://pay?pa=maxglow2026@icici&pn=MaxGlow%20Enterprises&am=' + selectedOrder.totalAmount + '&cu=INR')}`} 
-                  alt="UPI QR Code" 
-                  width={80}
-                  height={80}
-                  style={{ width: '80px', height: '80px' }} 
-                />
+          {/* Footer */}
+          <div className="footer-section">
+            <div style={{ width: '60%' }}>
+              <div className="info-title">Bank Details</div>
+              <div style={{ fontSize: '9px' }}>
+                <strong>Bank:</strong> ICICI Bank &nbsp;|&nbsp; <strong>Branch:</strong> POSTA BRANCH (ICIC0003395)<br/>
+                <strong>A/c Name:</strong> MaxGlow Enterprises &nbsp;|&nbsp; <strong>A/c No:</strong> 339505000253
               </div>
-              <div className="col-9">
-                <table className="invoice-table" style={{ border: 'none' }}>
-                  <thead>
-                    <tr className="text-center" style={{ backgroundColor: '#f2f2f2' }}>
-                      <th style={{ borderLeft: 'none', borderTop: 'none' }}>HSN/SAC</th>
-                      <th style={{ borderTop: 'none' }}>Taxable Value</th>
-                      <th style={{ borderTop: 'none' }}>CGST Rate/Amt</th>
-                      <th style={{ borderTop: 'none' }}>SGST Rate/Amt</th>
-                      <th style={{ borderRight: 'none', borderTop: 'none' }}>Total Tax Amt</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="text-center">
-                      <td style={{ borderLeft: 'none' }}>08013220</td>
-                      <td>₹{totalTaxable.toFixed(2)}</td>
-                      <td>2.5% / ₹{totalCGST.toFixed(2)}</td>
-                      <td>2.5% / ₹{totalSGST.toFixed(2)}</td>
-                      <td className="fw-bold text-end" style={{ borderRight: 'none' }}>₹{(totalCGST + totalSGST).toFixed(2)}</td>
-                    </tr>
-                    {shippingFee > 0 && (
-                      <tr className="text-center">
-                        <td style={{ borderLeft: 'none' }}>996511</td>
-                        <td>₹{shippingTaxable.toFixed(2)}</td>
-                        <td>2.5% / ₹{shippingCGST.toFixed(2)}</td>
-                        <td>2.5% / ₹{shippingSGST.toFixed(2)}</td>
-                        <td className="fw-bold text-end" style={{ borderRight: 'none' }}>₹{(shippingCGST + shippingSGST).toFixed(2)}</td>
-                      </tr>
-                    )}
-                    <tr className="fw-bold text-center" style={{ backgroundColor: '#f2f2f2' }}>
-                      <td style={{ borderLeft: 'none' }}>Total</td>
-                      <td>₹{(totalTaxable + shippingTaxable).toFixed(2)}</td>
-                      <td>₹{(totalCGST + shippingCGST).toFixed(2)}</td>
-                      <td>₹{(totalSGST + shippingSGST).toFixed(2)}</td>
-                      <td className="text-end" style={{ borderRight: 'none' }}>₹{(totalCGST + totalSGST + shippingCGST + shippingSGST).toFixed(2)}</td>
-                    </tr>
-                  </tbody>
-                </table>
-                <div className="p-2 border-top">
-                  <div>Tax Amount (in words):</div>
-                  <div className="fw-bold text-uppercase">{numberToWords(totalCGST + totalSGST + shippingCGST + shippingSGST)}</div>
+              <div className="info-title" style={{ marginTop: '10px' }}>Declaration</div>
+              <div style={{ fontSize: '8px', color: '#6b7280' }}>
+                We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.
+              </div>
+            </div>
+            <div className="d-flex gap-4">
+              <div className="text-center d-flex flex-column justify-content-end">
+                <img 
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent('upi://pay?pa=maxglow2026@icici&pn=MaxGlow%20Enterprises&am=' + selectedOrder.totalAmount + '&cu=INR')}`} 
+                  alt="UPI QR" 
+                  style={{ width: '50px', height: '50px', margin: '0 auto 5px' }}
+                />
+                <div style={{ fontSize: '8px', fontWeight: 'bold' }}>Scan to Pay</div>
+              </div>
+              <div className="text-center d-flex flex-column justify-content-between" style={{ minWidth: '120px' }}>
+                <div className="fw-bold text-end" style={{ fontSize: '10px' }}>For MaxGlow Enterprises</div>
+                <div style={{ borderTop: '1px solid #111', paddingTop: '4px', fontSize: '9px', fontWeight: 'bold' }}>
+                  Authorised Signatory
                 </div>
               </div>
             </div>
-
-            {/* Footer Declarations & Signatures */}
-            <table className="invoice-table" style={{ border: 'none', pageBreakInside: 'avoid' }}>
-              <tbody>
-                <tr style={{ border: 'none' }}>
-                  <td style={{ width: '55%', border: 'none', borderRight: '1px solid #000', verticalAlign: 'top', padding: '10px' }}>
-                    <div className="fw-bold" style={{ fontSize: '9px', textTransform: 'uppercase' }}>Declaration:</div>
-                    <div style={{ fontSize: '10px' }}>We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.</div>
-                    
-                    <div style={{ marginTop: '15px' }} className="fw-bold">Company's Bank Details:</div>
-                    <div>Bank Name: <strong>ICICI Bank</strong></div>
-                    <div>A/c Holder's Name: <strong>MaxGlow Enterprises</strong></div>
-                    <div>A/c No.: <strong>339505000253</strong></div>
-                    <div>Branch & IFS Code: <strong>POSTA BRANCH & ICIC0003395</strong></div>
-                    
-                    <div style={{ borderTop: '1px solid #000', marginTop: '40px', paddingTop: '5px', width: '150px' }} className="text-center">
-                      Customer's Seal and Signature
-                    </div>
-                  </td>
-                  <td style={{ width: '45%', border: 'none', verticalAlign: 'top', padding: '10px', textAlign: 'right' }}>
-                    <div className="fw-bold text-end">for MaxGlow Enterprises</div>
-                    <div style={{ marginTop: '140px', borderTop: '1px solid #000', paddingTop: '5px', width: '180px', display: 'inline-block' }} className="text-center fw-bold">
-                      Authorised Signatory
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-
-            {/* Bottom centered lines */}
-            <div className="text-center py-2 border-top" style={{ fontSize: '10px' }}>
-              <div className="fw-bold">SUBJECT TO KOLKATA JURISDICTION</div>
-              <div>This is a Computer Generated Invoice</div>
-            </div>
-
+          </div>
+          
+          <div className="text-center mt-3 pt-2" style={{ borderTop: '1px solid #e5e7eb', fontSize: '8px', color: '#9ca3af' }}>
+            SUBJECT TO KOLKATA JURISDICTION &nbsp;|&nbsp; This is a Computer Generated Invoice
           </div>
         </div>
       )}

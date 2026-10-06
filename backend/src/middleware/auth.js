@@ -59,6 +59,32 @@ export const protect = async (req, res, next) => {
   }
 };
 
+export const optionalProtect = async (req, res, next) => {
+  let token = req.cookies?.token;
+  if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'super_secret_jwt_key_for_maxglow_2026_enterprise');
+      const cachedUser = userCache.get(decoded.id);
+      if (cachedUser && (Date.now() - cachedUser.timestamp < CACHE_TTL)) {
+        req.user = cachedUser.data;
+      } else {
+        const user = await User.findById(decoded.id).select('-password');
+        if (user) {
+          userCache.set(decoded.id, { data: user, timestamp: Date.now() });
+          req.user = user;
+        }
+      }
+    } catch (error) {
+      // Silently ignore token errors for optional protection
+    }
+  }
+  next();
+};
+
 export const authorizeRoles = (...roles) => {
   return (req, res, next) => {
     // Super Admin is always authorized

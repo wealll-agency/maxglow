@@ -73,6 +73,10 @@ const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggl
   const handleAddToCart = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!/^[0-9a-fA-F]{24}$/.test(productId)) {
+      alert("Product data is syncing. Please try again in a moment.");
+      return;
+    }
     const finalPrice = calculatedDiscountedPrice;
     dispatch(addToCart({
       product: {
@@ -88,24 +92,42 @@ const ProductCard = ({ product, isComboMode = false, isSelected = false, onToggl
     }));
   };
 
-  // Buy now handler — unchanged logic
+  // Buy now handler
   const handleBuyNow = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    const finalPrice = calculatedDiscountedPrice;
-    dispatch(addToCart({
+    if (!/^[0-9a-fA-F]{24}$/.test(productId)) {
+      alert("Product data is syncing. Please try again in a moment.");
+      return;
+    }
+    const finalPrice = parseInt(calculatedDiscountedPrice.toString().replace(/,/g, ''));
+    
+    const buyNowItem = {
+      itemType: 'Product',
       product: {
         _id: productId,
         name: resolvedProduct.name,
-        price: parseInt(finalPrice.toString().replace(/,/g, '')),
+        price: finalPrice,
         discount: 0,
         images: [resolvedProduct.image || (resolvedProduct.images && resolvedProduct.images[0]) || '/placeholder.png'],
         stock: resolvedProduct.stock || 100
       },
       quantity: 1,
-      size: resolvedProduct.unit || 'Default'
+      size: resolvedProduct.unit || 'Default',
+      price: finalPrice,
+      name: resolvedProduct.name
+    };
+
+    sessionStorage.setItem('buyNowItem', JSON.stringify({
+      items: [buyNowItem],
+      subtotal: finalPrice,
+      discount: 0,
+      tax: 0,
+      shippingFee: 40,
+      total: finalPrice + 40
     }));
-    router.push('/checkout');
+
+    router.push('/checkout?mode=buynow');
   };
 
   const allImages = resolvedProduct.images && resolvedProduct.images.length > 0

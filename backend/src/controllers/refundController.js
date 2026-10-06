@@ -97,13 +97,39 @@ export const createCustomerRefundRequest = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'A request for this order already exists' });
     }
 
-    // If order is not shipped, we can directly cancel it (and still create the refund request if paid)
-    // For simplicity, we just create a refund request and let admin handle the rest.
+    // If order is not shipped, we can directly cancel it (and do NOT create a refund request)
     if (order.orderStatus === 'Placed' || order.orderStatus === 'Confirmed') {
         order.orderStatus = 'Cancelled';
+        
+        // Restore stock for cancelled items
+        for (const item of order.items) {
+          const Product = (await import('../models/Product.js')).default;
+          const Inventory = (await import('../models/Inventory.js')).default;
+          
+          await Product.findByIdAndUpdate(item.product, { $inc: { stock: item.quantity, totalSold: -item.quantity } }, { runValidators: true });
+          await Inventory.findOneAndUpdate(
+            { product: item.product },
+            { 
+              $inc: { stockQuantity: item.quantity },
+              $push: {
+                adjustments: {
+                  quantityChanged: item.quantity,
+                  type: 'AuditAdjustment',
+                  reason: `Customer Cancellation (ID: ${order._id})`,
+                  adjustedBy: req.user._id
+                }
+              }
+            },
+            { runValidators: true }
+          );
+        }
+        
         await order.save();
+        return res.status(201).json({ success: true, message: 'Order has been successfully cancelled.' });
     } else if (order.orderStatus === 'Packed' || order.orderStatus === 'Shipped') {
         return res.status(400).json({ success: false, message: 'Your order is already packed or in transit and cannot be cancelled. You can request a refund once it is delivered.' });
+    } else if (order.orderStatus !== 'Delivered') {
+        return res.status(400).json({ success: false, message: 'Refund request cannot be created for this order status.' });
     }
 
     const refund = new RefundRequest({

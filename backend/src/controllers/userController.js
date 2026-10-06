@@ -198,32 +198,51 @@ export const getUserData = async (req, res, next) => {
 export const addToCart = async (req, res, next) => {
   const { product, combo, itemType = 'Product', quantity, selectedAttributes, size } = req.body;
   try {
-    const user = await User.findById(req.user._id);
     const itemSize = selectedAttributes?.size || size || 'Default';
     const idSource = combo || product;
     const idStr = idSource ? idSource.toString() : '';
 
-    const itemIndex = user.cart.findIndex(i => {
-      const iType = i.itemType || (i.combo ? 'Combo' : 'Product');
-      const iId = i.combo || i.product;
-      return iType === itemType && iId && iId.toString() === idStr && (i.selectedAttributes?.size || i.size || 'Default') === itemSize;
-    });
+    let user;
+    let retries = 3;
+    while (retries > 0) {
+      try {
+        user = await User.findById(req.user._id);
+        if (!user) break;
 
-    if (itemIndex > -1) {
-      user.cart[itemIndex].quantity = quantity; // Update quantity directly
-    } else {
-      user.cart.push({ 
-        ...(itemType === 'Combo' ? { combo: idStr } : { product: idStr }),
-        itemType,
-        quantity, 
-        selectedAttributes: { size: itemSize } 
-      });
+        const itemIndex = user.cart.findIndex(i => {
+          const iType = i.itemType || (i.combo ? 'Combo' : 'Product');
+          const iId = i.combo || i.product;
+          return iType === itemType && iId && iId.toString() === idStr && (i.selectedAttributes?.size || i.size || 'Default') === itemSize;
+        });
+
+        if (itemIndex > -1) {
+          user.cart[itemIndex].quantity = quantity; // Update quantity directly
+        } else {
+          user.cart.push({ 
+            ...(itemType === 'Combo' ? { combo: idStr } : { product: idStr }),
+            itemType,
+            quantity, 
+            selectedAttributes: { size: itemSize } 
+          });
+        }
+        await user.save();
+        break; // Success
+      } catch (err) {
+        if (err.name === 'VersionError' && retries > 1) {
+          retries--;
+          continue;
+        }
+        throw err;
+      }
     }
-    await user.save();
-    invalidateUserCache(req.user._id);
     
-    const populatedCart = await populateCartItems(user.cart);
-    res.json({ success: true, cart: populatedCart });
+    if (user) {
+      invalidateUserCache(req.user._id);
+      const populatedCart = await populateCartItems(user.cart);
+      return res.json({ success: true, cart: populatedCart });
+    } else {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
   } catch (error) {
     next(error);
   }
@@ -234,29 +253,49 @@ export const addToCart = async (req, res, next) => {
 // @access  Private
 export const removeFromCart = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user._id);
+    let user;
+    let retries = 3;
+    
     const prodId = req.params.productId;
     const reqSize = req.query.size || req.body?.size;
     const reqType = req.query.itemType || req.body?.itemType || 'Product';
 
-    user.cart = user.cart.filter(i => {
-      const iType = i.itemType || (i.combo ? 'Combo' : 'Product');
-      const iId = i.combo || i.product;
-      if (!iId) return false;
-      const isSameProd = iId.toString() === prodId && iType === reqType;
-      if (!isSameProd) return true;
-      if (reqSize) {
-        const itemSize = i.selectedAttributes?.size || i.size || 'Default';
-        return itemSize !== reqSize;
+    while (retries > 0) {
+      try {
+        user = await User.findById(req.user._id);
+        if (!user) break;
+
+        user.cart = user.cart.filter(i => {
+          const iType = i.itemType || (i.combo ? 'Combo' : 'Product');
+          const iId = i.combo || i.product;
+          if (!iId) return false;
+          const isSameProd = iId.toString() === prodId && iType === reqType;
+          if (!isSameProd) return true;
+          if (reqSize) {
+            const itemSize = i.selectedAttributes?.size || i.size || 'Default';
+            return itemSize !== reqSize;
+          }
+          return false;
+        });
+
+        await user.save();
+        break;
+      } catch (err) {
+        if (err.name === 'VersionError' && retries > 1) {
+          retries--;
+          continue;
+        }
+        throw err;
       }
-      return false;
-    });
+    }
 
-    await user.save();
-    invalidateUserCache(req.user._id);
-
-    const populatedCart = await populateCartItems(user.cart);
-    res.json({ success: true, cart: populatedCart });
+    if (user) {
+      invalidateUserCache(req.user._id);
+      const populatedCart = await populateCartItems(user.cart);
+      res.json({ success: true, cart: populatedCart });
+    } else {
+      res.status(404).json({ success: false, message: 'User not found' });
+    }
   } catch (error) {
     next(error);
   }

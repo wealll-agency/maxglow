@@ -21,7 +21,7 @@ const getTransporter = () => {
   });
 };
 
-export const sendEmail = async (to, subject, text, html) => {
+export const sendEmail = async (to, subject, text, html, attachments = []) => {
   const transporter = getTransporter();
   const from = process.env.EMAIL_FROM || 'no-reply@maxglow.in';
 
@@ -40,7 +40,8 @@ Content: ${text || html}`);
       to,
       subject,
       text,
-      html
+      html,
+      attachments
     });
     console.log(`[EMAIL DISPATCH SUCCESS] Message sent: ${info.messageId}`);
     return { success: true, messageId: info.messageId };

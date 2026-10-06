@@ -155,15 +155,32 @@ function ComboDetailContent() {
 
   const handleBuyNow = () => {
     if (isOutOfStock || quantity > maxStock) return;
-    dispatch(addToCart({
-      combo,
+    
+    const buyNowItem = {
       itemType: 'Combo',
+      combo,
       quantity,
-      size: 'Standard'
+      size: 'Standard',
+      price: finalPrice,
+      name: combo.name
+    };
+
+    sessionStorage.setItem('buyNowItem', JSON.stringify({
+      items: [buyNowItem],
+      subtotal: finalPrice * quantity,
+      discount: 0,
+      tax: 0,
+      shippingFee: 40,
+      total: (finalPrice * quantity) + 40
     }));
 
+    if (!user) {
+      router.push('/login?redirect=checkout&mode=buynow');
+      return;
+    }
+
     setTimeout(() => {
-      router.push('/checkout');
+      router.push('/checkout?mode=buynow');
     }, 100);
   };
 

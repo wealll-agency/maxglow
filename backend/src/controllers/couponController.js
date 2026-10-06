@@ -54,7 +54,15 @@ export const applyCoupon = async (req, res, next) => {
     }
 
     if (!coupon.isValid()) {
-      return res.status(400).json({ success: false, message: 'Coupon is expired, inactive, or has reached its usage limit' });
+      return res.status(400).json({ success: false, message: 'Coupon is expired, inactive, or has reached its global usage limit' });
+    }
+
+    if (req.user) {
+      const mongoose = (await import('mongoose')).default;
+      const userUsageCount = await mongoose.model('Order').countDocuments({ user: req.user._id, couponCode: coupon.code, paymentStatus: { $ne: 'Failed' }, orderStatus: { $ne: 'Cancelled' } });
+      if (userUsageCount >= 1) {
+        return res.status(400).json({ success: false, message: 'You have already used this coupon.' });
+      }
     }
 
     if (cartTotal !== undefined && coupon.minOrderValue > 0 && cartTotal < coupon.minOrderValue) {

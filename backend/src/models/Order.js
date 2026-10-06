@@ -52,6 +52,7 @@ const orderSchema = new mongoose.Schema({
   gatewayTxnId: { type: String, index: true },
   bankRefNo: { type: String },
   paymentMode: { type: String },
+  isBuyNow: { type: Boolean, default: false },
   
   // Shipping Integration Fields (Multiple shipments support)
   shipments: [{
