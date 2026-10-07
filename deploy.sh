@@ -91,7 +91,7 @@ ln -sfn "$NEW_RELEASE_DIR" "$CURRENT_DIR"
 # 10. Reload PM2
 echo "🔄 Reloading PM2 gracefully..."
 cd "$CURRENT_DIR"
-pm2 reload ecosystem.config.js || pm2 start ecosystem.config.js
+pm2 reload ecosystem.config.cjs || pm2 start ecosystem.config.cjs
 pm2 save
 
 # 11. Clean old releases
