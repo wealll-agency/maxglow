@@ -69,6 +69,8 @@ grep "^NEXT_PUBLIC_" "$SHARED_DIR/.env" > "$NEW_RELEASE_DIR/frontend/.env.produc
 echo "💾 Symlinking persistent uploads..."
 mkdir -p "$NEW_RELEASE_DIR/backend/public"
 ln -sfn "$SHARED_DIR/uploads" "$NEW_RELEASE_DIR/backend/public/uploads"
+mkdir -p "$NEW_RELEASE_DIR/frontend/public"
+ln -sfn "$SHARED_DIR/uploads" "$NEW_RELEASE_DIR/frontend/public/uploads"
 
 # 7. Install dependencies
 echo "📦 Installing backend dependencies..."

@@ -125,7 +125,7 @@ const Footer = () => {
                     { label: 'Home', href: '/' },
                     { label: 'Shop All', href: '/shop' },
                     { label: 'Bestsellers', href: '/shop?sort=bestselling' },
-                    { label: 'Combo Boxes', href: '/build-combo' },
+                    { label: 'Combo Boxes', href: '/combos' },
                     { label: 'About Us', href: '/about' },
                     { label: 'Contact', href: '/contact' },
                   ].map((link, idx) => (
