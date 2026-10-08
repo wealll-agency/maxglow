@@ -54,6 +54,8 @@ const CashewsBanner = () => {
             .t-banner-desktop {
               display: block;
               aspect-ratio: 1400 / 300;
+              height: auto;
+              object-fit: fill;
             }
             .t-banner-mobile {
               display: none;

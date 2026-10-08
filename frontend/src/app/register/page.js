@@ -41,7 +41,7 @@ function RegisterContent() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name || !email || !password) return;
+    if (!name || !email || !phone || !password) return;
     setIsSubmitting(true);
     const resultAction = await dispatch(registerUser({ name, email, password, phone }));
     setIsSubmitting(false);
@@ -54,7 +54,7 @@ function RegisterContent() {
   const inputFields = [
     { icon: <FiUser size={16} color="#94a3b8" />, label: 'Full Name', type: 'text', value: name, onChange: setName, required: true },
     { icon: <FiMail size={16} color="#94a3b8" />, label: 'Email Address', type: 'email', value: email, onChange: setEmail, required: true },
-    { icon: <FiPhone size={16} color="#94a3b8" />, label: 'Phone Number', type: 'tel', value: phone, onChange: setPhone, required: false },
+    { icon: <FiPhone size={16} color="#94a3b8" />, label: 'Phone Number', type: 'tel', value: phone, onChange: setPhone, required: true },
     { icon: <FiLock size={16} color="#94a3b8" />, label: 'Password', type: showPassword ? 'text' : 'password', value: password, onChange: setPassword, required: true },
   ];
 

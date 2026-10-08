@@ -539,6 +539,7 @@ export const iciciCallback = async (req, res, next) => {
     const bankRefNo = responseParams.bankRefNo || responseParams.BankRefNo;
     const message = responseParams.respDescription || responseParams.message || responseParams.Message;
     const merchantTranId = responseParams.merchantTxnNo || responseParams.MerchantTxnNo || responseParams.merchantTranId || responseParams.orderId;
+    const extractedPaymentMode = responseParams.paymentMode || responseParams.PaymentMode || responseParams.payMethod || 'ICICI';
 
     if (!merchantTranId) {
       console.error('Missing Transaction ID in callback:', responseParams);
@@ -579,13 +580,13 @@ export const iciciCallback = async (req, res, next) => {
         lockedOrder.paymentStatus = 'Failed';
         lockedOrder.gatewayTxnId = txnId;
         lockedOrder.bankRefNo = bankRefNo;
-        lockedOrder.paymentMode = 'ICICI';
+        lockedOrder.paymentMode = extractedPaymentMode;
         await lockedOrder.save({ session });
 
         lockedPayment.status = 'Failed';
         lockedPayment.gatewayTxnId = txnId;
         lockedPayment.bankRefNo = bankRefNo;
-        lockedPayment.paymentMode = 'ICICI';
+        lockedPayment.paymentMode = extractedPaymentMode;
         lockedPayment.failureMessage = `Amount mismatch (Paid: ${amount}, Expected: ${lockedOrder.totalAmount})`;
         lockedPayment.encResponse = JSON.stringify(responseParams);
         await lockedPayment.save({ session });
@@ -602,7 +603,7 @@ export const iciciCallback = async (req, res, next) => {
       lockedOrder.confirmedAt = Date.now();
       lockedOrder.gatewayTxnId = txnId;
       lockedOrder.bankRefNo = bankRefNo;
-      lockedOrder.paymentMode = 'ICICI';
+      lockedOrder.paymentMode = extractedPaymentMode;
       await lockedOrder.save({ session });
       
       // Clear user cart if it was a standard cart checkout
@@ -640,7 +641,7 @@ export const iciciCallback = async (req, res, next) => {
       lockedPayment.status = 'Captured';
       lockedPayment.gatewayTxnId = txnId;
       lockedPayment.bankRefNo = bankRefNo;
-      lockedPayment.paymentMode = 'ICICI';
+      lockedPayment.paymentMode = extractedPaymentMode;
       lockedPayment.encResponse = JSON.stringify(responseParams);
       await lockedPayment.save({ session });
 
@@ -687,13 +688,13 @@ export const iciciCallback = async (req, res, next) => {
       lockedOrder.paymentStatus = 'Failed';
       lockedOrder.gatewayTxnId = txnId;
       lockedOrder.bankRefNo = bankRefNo;
-      lockedOrder.paymentMode = 'ICICI';
+      lockedOrder.paymentMode = extractedPaymentMode;
       await lockedOrder.save({ session });
 
       lockedPayment.status = 'Failed';
       lockedPayment.gatewayTxnId = txnId;
       lockedPayment.bankRefNo = bankRefNo;
-      lockedPayment.paymentMode = 'ICICI';
+      lockedPayment.paymentMode = extractedPaymentMode;
       lockedPayment.failureMessage = message || 'Payment Failed';
       lockedPayment.encResponse = JSON.stringify(responseParams);
       await lockedPayment.save({ session });

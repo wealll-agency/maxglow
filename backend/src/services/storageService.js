@@ -100,3 +100,39 @@ export const uploadFile = async (file, prefix = '') => {
   // Return relative path (client side will prepend host URL or route via proxy)
   return `/uploads/${fileName}`;
 };
+
+/**
+ * Deletes a file from S3 or local storage
+ * @param {string} fileUrl 
+ */
+export const deleteFile = async (fileUrl) => {
+  if (!fileUrl || typeof fileUrl !== 'string') return;
+  
+  const client = getS3Client();
+
+  if (fileUrl.includes('amazonaws.com') && client) {
+    try {
+      const urlParts = new URL(fileUrl);
+      const key = urlParts.pathname.substring(1); // Remove leading slash
+      
+      const { DeleteObjectCommand } = await import('@aws-sdk/client-s3');
+      const command = new DeleteObjectCommand({
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: decodeURIComponent(key)
+      });
+      await client.send(command);
+    } catch (error) {
+      console.error(`Failed to delete from S3: ${error.message}`);
+    }
+  } else if (fileUrl.startsWith('/uploads/')) {
+    try {
+      const fileName = path.basename(fileUrl);
+      const localPath = path.join(__dirname, '..', '..', 'public', 'uploads', fileName);
+      if (fs.existsSync(localPath)) {
+        fs.unlinkSync(localPath);
+      }
+    } catch (error) {
+      console.error(`Failed to delete local file: ${error.message}`);
+    }
+  }
+};

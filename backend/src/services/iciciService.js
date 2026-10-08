@@ -15,9 +15,9 @@ export const generateICICISecureHash = (params) => {
     throw new Error('ICICI_SECURE_HASH_KEY is missing from environment variables');
   }
 
-  // 1 & 2: Filter non-empty and sort keys
+  // 1 & 2: Filter non-empty and sort keys (case-insensitive exclude for securehash)
   const sortedKeys = Object.keys(params)
-    .filter((key) => key !== 'secureHash' && params[key] !== null && params[key] !== undefined && params[key] !== '')
+    .filter((key) => key.toLowerCase() !== 'securehash' && params[key] !== null && params[key] !== undefined && params[key] !== '')
     .sort();
 
   // 3: Build the canonical concatenated string (only values)
@@ -33,10 +33,13 @@ export const generateICICISecureHash = (params) => {
  * Verifies the secureHash in an incoming ICICI callback/response
  */
 export const verifyICICISecureHash = (responseParams) => {
-  if (!responseParams || !responseParams.secureHash) return false;
+  if (!responseParams) return false;
   
+  const hashKey = Object.keys(responseParams).find(key => key.toLowerCase() === 'securehash');
+  if (!hashKey || !responseParams[hashKey]) return false;
+
   const generatedHash = generateICICISecureHash(responseParams);
-  return generatedHash === responseParams.secureHash.toLowerCase();
+  return generatedHash === responseParams[hashKey].toLowerCase();
 };
 
 /**

@@ -456,9 +456,6 @@ function AdminOrdersContent() {
           <p className="text-muted m-0">View customer checkouts, ship packages, and verify transaction receipts.</p>
         </div>
         <div className="d-flex align-items-center gap-3">
-          <button onClick={handleClearOrders} className="btn btn-danger d-flex align-items-center gap-2 btn-sm fw-medium px-3 py-2">
-            <X size={16} /> Clear All Orders
-          </button>
           <button onClick={exportToExcel} className="btn btn-success d-flex align-items-center gap-2 btn-sm fw-medium px-3 py-2">
             <Download size={16} /> Export to Excel
           </button>

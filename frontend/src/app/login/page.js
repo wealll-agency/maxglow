@@ -93,14 +93,15 @@ function LoginContent() {
           </p>
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {/* Email */}
+            {/* Email or Mobile */}
             <div>
-              <label className="mg-form-label">Email Address</label>
+              <label className="mg-form-label">Email or Mobile Number</label>
               <div style={{ position: 'relative' }}>
                 <FiMail size={16} color="#94a3b8" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
                 <input
-                  type="email"
+                  type="text"
                   required
+                  placeholder="Enter your email or mobile number"
                   className="mg-input"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}

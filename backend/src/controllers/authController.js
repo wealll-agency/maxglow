@@ -4,6 +4,7 @@ import { logActivity } from '../middleware/logger.js';
 import jwt from 'jsonwebtoken';
 import SystemSetting from '../models/SystemSetting.js';
 import { invalidateUserCache } from '../middleware/auth.js';
+import { deleteFile } from '../services/storageService.js';
 
 import { performSync } from './userController.js';
 
@@ -13,16 +14,34 @@ import { performSync } from './userController.js';
 export const registerUser = async (req, res, next) => {
   let { name, email, password, phone, localCart = [], localWishlist = [] } = req.body;
   if (email) email = email.toLowerCase().trim();
+  if (phone) phone = phone.trim();
 
   try {
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, message: 'Full Name is required' });
+    }
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email address is required' });
+    }
+    if (!phone) {
+      return res.status(400).json({ success: false, message: 'Mobile number is required' });
+    }
     if (password && password.length < 6) {
       return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
     }
 
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({
+      $or: [
+        { email },
+        { phone }
+      ]
+    });
 
     if (userExists) {
-      return res.status(400).json({ success: false, message: 'User already exists' });
+      if (userExists.email === email) {
+        return res.status(400).json({ success: false, message: 'An account with this email already exists' });
+      }
+      return res.status(400).json({ success: false, message: 'An account with this mobile number already exists' });
     }
 
     // First user is Super Admin
@@ -40,7 +59,7 @@ export const registerUser = async (req, res, next) => {
     if (user) {
       // Generate Tokens
       const token = generateToken(res, user._id, true, user.role);
-      await logActivity(user._id, 'REGISTER', `User successfully registered with email: ${email}`, req);
+      await logActivity(user._id, 'REGISTER', `User successfully registered with email: ${email}, phone: ${phone}`, req);
 
       let syncedData = { cart: [], wishlist: [] };
       if (localCart.length > 0 || localWishlist.length > 0) {
@@ -74,16 +93,38 @@ export const registerUser = async (req, res, next) => {
 // @route   POST /api/auth/login
 // @access  Public
 export const loginUser = async (req, res, next) => {
-  
-  let { email, password, rememberMe, localCart = [], localWishlist = [] } = req.body;
-  if (email) email = email.toLowerCase().trim();
+  let { email, loginInput, password, rememberMe, localCart = [], localWishlist = [] } = req.body;
+  const rawInput = (loginInput || email || '').trim();
 
   try {
-    const user = await User.findOne({ email });
+    if (!rawInput || !password) {
+      return res.status(400).json({ success: false, message: 'Please provide email or mobile number and password' });
+    }
+
+    const cleanDigits = rawInput.replace(/\D/g, '');
+    const phoneVariants = Array.from(new Set([
+      rawInput,
+      cleanDigits,
+      cleanDigits.length === 10 ? `+91${cleanDigits}` : null,
+      cleanDigits.length === 10 ? `91${cleanDigits}` : null,
+      cleanDigits.length === 12 && cleanDigits.startsWith('91') ? cleanDigits.slice(2) : null
+    ].filter(Boolean)));
+
+    const user = await User.findOne({
+      $or: [
+        { email: rawInput.toLowerCase() },
+        { phone: { $in: phoneVariants } },
+        ...(cleanDigits.length >= 7 ? [
+          { phone: { $regex: cleanDigits, $options: 'i' } },
+          { 'addresses.phone': { $in: phoneVariants } },
+          { 'addresses.phone': { $regex: cleanDigits, $options: 'i' } }
+        ] : [])
+      ]
+    });
 
     if (user && (await user.matchPassword(password))) {
       const token = generateToken(res, user._id, rememberMe !== false, user.role);
-      await logActivity(user._id, 'LOGIN', `User logged in`, req);
+      await logActivity(user._id, 'LOGIN', `User logged in (${rawInput})`, req);
 
       let syncedData = { cart: [], wishlist: [] };
       if (localCart.length > 0 || localWishlist.length > 0) {
@@ -109,7 +150,7 @@ export const loginUser = async (req, res, next) => {
         }
       });
     } else {
-      res.status(401).json({ success: false, message: 'Invalid email or password' });
+      res.status(401).json({ success: false, message: 'Invalid email/mobile number or password' });
     }
   } catch (error) {
     next(error);
@@ -497,6 +538,20 @@ export const updateSystemSettings = async (req, res, next) => {
           if (field.type === 'string') valueToSave = String(settings[field.key]);
           if (field.type === 'array') valueToSave = Array.isArray(settings[field.key]) ? settings[field.key] : [];
           if (field.type === 'object') valueToSave = typeof settings[field.key] === 'object' && settings[field.key] !== null ? settings[field.key] : {};
+
+          const oldSetting = await SystemSetting.findOne({ key: field.key });
+          
+          if (oldSetting && field.key.startsWith('media_')) {
+             if (field.type === 'string' && oldSetting.value !== valueToSave) {
+                if (oldSetting.value) await deleteFile(oldSetting.value);
+             } else if (field.type === 'array') {
+                const oldArray = oldSetting.value || [];
+                const newArray = valueToSave || [];
+                for (const oldUrl of oldArray) {
+                   if (!newArray.includes(oldUrl)) await deleteFile(oldUrl);
+                }
+             }
+          }
 
           await SystemSetting.findOneAndUpdate(
             { key: field.key },
