@@ -12,3 +12,6 @@ backend/public/uploads/
 
 # Firebase Config
 backend/src/config/firebaseServiceAccount.json
+
+# Agents
+.agents/
