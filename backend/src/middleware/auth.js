@@ -21,10 +21,12 @@ setInterval(() => {
 }, 10 * 60 * 1000).unref(); // unref prevents this interval from keeping the process alive
 
 export const protect = async (req, res, next) => {
-  let token = req.cookies?.token;
+  let token;
 
-  if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies?.token) {
+    token = req.cookies.token;
   }
 
   if (!token) {
@@ -60,9 +62,12 @@ export const protect = async (req, res, next) => {
 };
 
 export const optionalProtect = async (req, res, next) => {
-  let token = req.cookies?.token;
-  if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+  let token;
+  
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies?.token) {
+    token = req.cookies.token;
   }
 
   if (token) {

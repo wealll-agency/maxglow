@@ -10,6 +10,8 @@ import { Star, Heart, Plus, Minus, Share2, ShieldCheck, Leaf, Award, ChevronDown
 import api from '../../../utils/axiosConfig';
 import { useNotification } from '../../../context/NotificationContext';
 import { getImageUrl } from '../../../utils/imageConfig';
+import { fetchSystemSettings } from '../../../utils/settingsCache';
+import { showOrdersUnavailableModal } from '../../../utils/orderModal';
 
 function ComboDetailContent() {
   const { id } = useParams();
@@ -153,7 +155,16 @@ function ComboDetailContent() {
     }
   };
 
-  const handleBuyNow = () => {
+  const handleBuyNow = async () => {
+    try {
+      const res = await fetchSystemSettings();
+      if (res?.settings?.developer_mode) {
+        showOrdersUnavailableModal();
+        return;
+      }
+    } catch (err) {
+      console.error('Error checking developer mode on buy now:', err);
+    }
     if (isOutOfStock || quantity > maxStock) return;
     
     const buyNowItem = {

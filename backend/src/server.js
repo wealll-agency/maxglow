@@ -233,7 +233,7 @@ const gracefulShutdown = (exitCode = 0, source = 'Signal') => {
 
   const shutdownTasks = async () => {
     try {
-      if (server) {
+      if (server && server.listening) {
         await new Promise((resolve, reject) => {
           server.close((err) => {
             if (err) return reject(err);

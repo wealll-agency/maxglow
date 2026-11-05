@@ -347,43 +347,84 @@ function AdminOrdersContent() {
     return true;
   });
 
-  const exportToExcel = () => {
-    const csvRows = [];
-    const headers = ['Order ID', 'Customer Name', 'Customer Email', 'Date', 'Total Amount', 'Payment Mode', 'Payment Status', 'Order Status'];
-    csvRows.push(headers.join(','));
+  const exportToExcel = async () => {
+    try {
+      const XLSX = await import('xlsx');
+      
+      const excelData = orders.map(ord => {
+        let formattedDate = 'N/A';
+        if (ord.createdAt) {
+          const d = new Date(ord.createdAt);
+          const day = String(d.getDate()).padStart(2, '0');
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          const year = d.getFullYear();
+          formattedDate = `${day}/${month}/${year}`;
+        }
 
-    displayOrders.forEach(ord => {
-      let formattedDate = 'N/A';
-      if (ord.createdAt) {
-        const d = new Date(ord.createdAt);
-        const day = String(d.getDate()).padStart(2, '0');
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const year = d.getFullYear();
-        formattedDate = `="${day}/${month}/${year}"`;
-      }
+        const phone = ord.deliveryAddress?.phone || ord.user?.phone || 'N/A';
+        const cleanPhone = phone.replace(/[^0-9+]/g, '');
 
-      const row = [
-        ord._id,
-        `"${(ord.user?.name || 'Guest').replace(/"/g, '""')}"`,
-        `"${(ord.user?.email || 'N/A').replace(/"/g, '""')}"`,
-        formattedDate,
-        ord.totalAmount,
-        `"${ord.paymentMode === 'COD' ? 'COD' : 'Online'}"`,
-        `"${ord.paymentStatus}"`,
-        `"${ord.orderStatus}"`
+        const addressParts = [];
+        if (ord.deliveryAddress) {
+          const street = ord.deliveryAddress.street || ord.deliveryAddress.address || ord.deliveryAddress.locality || '';
+          if (street) addressParts.push(street.replace(/\s+/g, ' ').trim());
+          if (ord.deliveryAddress.city) addressParts.push(ord.deliveryAddress.city.trim());
+          if (ord.deliveryAddress.state) addressParts.push(ord.deliveryAddress.state.trim());
+          const pin = ord.deliveryAddress.zipCode || ord.deliveryAddress.pincode;
+          if (pin) addressParts.push(pin);
+          addressParts.push(ord.deliveryAddress.country || 'India');
+        }
+        const fullAddress = addressParts.join(', ').replace(/\n/g, ', ');
+
+        const productsList = (ord.items || []).map(item => `${item.name} (₹${item.price} x ${item.quantity})`).join(' | ');
+
+        const paymentMethod = ord.paymentMode === 'COD' ? 'COD' : 'Online / ICICI';
+        const deliveryCharge = ord.shippingFee > 0 ? `₹${ord.shippingFee}` : 'Free';
+        const discount = ord.couponDiscount > 0 ? `₹${ord.couponDiscount} ${ord.couponCode ? `(${ord.couponCode})` : ''}`.trim() : '₹0';
+
+        return {
+          'Order ID': ord._id,
+          'Customer Name': (ord.user?.name || 'Guest').replace(/\s+/g, ' ').trim(),
+          'Customer Email': ord.user?.email || 'N/A',
+          'Customer Phone': cleanPhone,
+          'Delivery Address': fullAddress,
+          'Date': formattedDate,
+          'Ordered Products': productsList,
+          'Payment Method': paymentMethod,
+          'Payment Status': ord.orderStatus === 'Cancelled' ? 'Cancelled Order' : ord.paymentStatus,
+          'Delivery Charge': deliveryCharge,
+          'Discount (Coupon)': discount,
+          'Total Amount': `₹${ord.totalAmount}`,
+          'Order Status': ord.orderStatus
+        };
+      });
+
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+      // Set nice column widths for a premium look
+      worksheet['!cols'] = [
+        { wch: 26 }, // Order ID
+        { wch: 22 }, // Customer Name
+        { wch: 30 }, // Customer Email
+        { wch: 16 }, // Customer Phone
+        { wch: 60 }, // Delivery Address
+        { wch: 14 }, // Date
+        { wch: 60 }, // Ordered Products
+        { wch: 20 }, // Payment Method
+        { wch: 16 }, // Payment Status
+        { wch: 16 }, // Delivery Charge
+        { wch: 20 }, // Discount (Coupon)
+        { wch: 14 }, // Total Amount
+        { wch: 16 }, // Order Status
       ];
-      csvRows.push(row.join(','));
-    });
 
-    const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.setAttribute('hidden', '');
-    a.setAttribute('href', url);
-    a.setAttribute('download', 'orders_export.csv');
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Orders');
+      XLSX.writeFile(workbook, 'MaxGlow_Orders.xlsx');
+    } catch (error) {
+      console.error('Error exporting to Excel:', error);
+      if (showAlert) showAlert('Failed to generate Excel file.', 'error');
+    }
   };
 
   // Pagination Logic
@@ -944,6 +985,18 @@ function AdminOrdersContent() {
                 <div><strong>Phone:</strong> {selectedOrder.deliveryAddress?.phone || selectedOrder.user?.phone || 'N/A'}</div>
                 <div><strong>Place of Supply:</strong> {selectedOrder.deliveryAddress.state} ({getStateCode(selectedOrder.deliveryAddress.state)})</div>
               </div>
+            </div>
+          </div>
+
+          {/* Dispatch From Address */}
+          <div className="info-box" style={{ marginBottom: '10px' }}>
+            <div className="info-title">Dispatch From Address</div>
+            <div className="info-text" style={{ fontSize: '9px', lineHeight: '1.4' }}>
+              <div className="fw-bold text-dark" style={{ fontSize: '11px' }}>Vaid Enterprises (India) Pvt. Ltd.</div>
+              <div><span className="fw-bold">Head Office:</span> 26, Strand Road, 1st Floor, Kolkata-700001 &nbsp;|&nbsp; <span className="fw-bold">Godown:</span> B/32/H/16/1, Mahendra Roy Lane, Police Station Topsia, Kolkata-46</div>
+              <div><span className="fw-bold">CIN:</span> U27103WB1994PTC136423 &nbsp;|&nbsp; <span className="fw-bold">GSTIN:</span> 19AAACV4442J1Z5 &nbsp;|&nbsp; <span className="fw-bold">IT PAN:</span> AAACV4442J</div>
+              <div><span className="fw-bold">Tel.:</span> (033)40637093, 46023147, 22428887 &nbsp;|&nbsp; <span className="fw-bold">Facebook:</span> www.facebook.com/VEIPL &nbsp;|&nbsp; <span className="fw-bold">Email:</span> vaidentindia@yahoo.co.in; vaidentindia@gmail.com</div>
+              <div><span className="fw-bold">D/L No.:</span> 12765-SW &amp; 12570-SBW &nbsp;|&nbsp; <span className="fw-bold">FSSI No.:</span> 12816019000267</div>
             </div>
           </div>
 

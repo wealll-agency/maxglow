@@ -21,7 +21,10 @@
         "braces": "^3.0.3"
       }
     },
-    "braces": "^3.0.3"
+    "braces": "^3.0.3",
+    "@google-cloud/firestore-api": {
+      "rimraf": "^6.1.4"
+    }
   },
   "scripts": {
     "start": "node src/server.js",

@@ -3,7 +3,7 @@ import api from './axiosConfig';
 let pendingSettingsPromise = null;
 let cachedSettingsData = null;
 let lastCacheTime = 0;
-const CACHE_TTL_MS = 60000; // 1 minute client-side cache
+const CACHE_TTL_MS = 5000; // 5-second client-side cache for near-instant toggle response
 
 /**
  * Deduplicated system settings fetcher.

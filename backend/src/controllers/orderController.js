@@ -207,6 +207,15 @@ export const createOrder = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'No items in order' });
     }
 
+    const devModeSetting = await SystemSetting.findOne({ key: 'developer_mode' });
+    if (devModeSetting && devModeSetting.value === true) {
+      return res.status(403).json({
+        success: false,
+        developerMode: true,
+        message: "We're currently not accepting orders at the moment. Please check back soon."
+      });
+    }
+
     if (paymentMode === 'COD') {
       const codSetting = await SystemSetting.findOne({ key: 'cod' });
       const hasCodPermission = codSetting ? codSetting.value : true;

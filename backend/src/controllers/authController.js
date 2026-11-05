@@ -462,13 +462,14 @@ export const getSystemSettings = async (req, res, next) => {
       });
     }
 
-    const keys = ['cod', 'refund', 'shipping_tiers', 'topSellingSource', 'media_hero', 'media_hero_mobile', 'media_new_arrivals', 'media_new_arrivals_mobile', 'media_trending_banner', 'media_trending_banner_mobile', 'media_offers', 'media_category_banner', 'media_category_banners', 'media_reels', 'about_page_content', 'media_shop_by_products', 'media_combo_banner', 'media_bestseller_banner', 'notification_settings'];
+    const keys = ['cod', 'refund', 'developer_mode', 'shipping_tiers', 'topSellingSource', 'media_hero', 'media_hero_mobile', 'media_new_arrivals', 'media_new_arrivals_mobile', 'media_trending_banner', 'media_trending_banner_mobile', 'media_offers', 'media_category_banner', 'media_category_banners', 'media_reels', 'about_page_content', 'media_shop_by_products', 'media_combo_banner', 'media_bestseller_banner', 'notification_settings'];
     const docs = await SystemSetting.find({ key: { $in: keys } }).lean();
     const map = new Map(docs.map(d => [d.key, d.value]));
 
     const settings = {
       cod: map.has('cod') ? map.get('cod') : true,
       refund: map.has('refund') ? map.get('refund') : true,
+      developer_mode: map.has('developer_mode') ? map.get('developer_mode') : false,
       shipping_tiers: map.has('shipping_tiers') ? map.get('shipping_tiers') : [],
       topSellingSource: map.has('topSellingSource') ? map.get('topSellingSource') : 'automatic',
       media_hero: map.has('media_hero') ? map.get('media_hero') : null,
@@ -512,6 +513,7 @@ export const updateSystemSettings = async (req, res, next) => {
       const keysToUpdate = [
         { key: 'cod', type: 'boolean' },
         { key: 'refund', type: 'boolean' },
+        { key: 'developer_mode', type: 'boolean' },
         { key: 'shipping_tiers', type: 'array' },
         { key: 'topSellingSource', type: 'string' },
         { key: 'media_hero', type: 'array' },

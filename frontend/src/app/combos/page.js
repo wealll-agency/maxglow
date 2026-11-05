@@ -10,6 +10,8 @@ import { Star, ShoppingCart } from 'lucide-react';
 import { useNotification } from '../../context/NotificationContext';
 import api from '../../utils/axiosConfig';
 import { getImageUrl } from '../../utils/imageConfig';
+import { fetchSystemSettings } from '../../utils/settingsCache';
+import { showOrdersUnavailableModal } from '../../utils/orderModal';
 
 export default function BuildComboPage() {
   return (
@@ -253,7 +255,7 @@ function ComboListingContent() {
 
                       {/* Wishlist Button Placeholder */}
                       <button
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); showAlert('Wishlist feature for combos coming soon!', 'info'); }}
+                        onClick={async (e) => { e.preventDefault(); e.stopPropagation(); showAlert('Wishlist feature for combos coming soon!', 'info'); }}
                         style={{
                           position: 'absolute', bottom: '12px', right: '12px', zIndex: 10,
                           width: '34px', height: '34px', borderRadius: '50%',
@@ -342,7 +344,16 @@ function ComboListingContent() {
                               <ShoppingCart size={15} /> CART
                             </button>
                             <button
-                              onClick={(e) => {
+                              onClick={async (e) => {
+                                try {
+                                  const res = await fetchSystemSettings();
+                                  if (res?.settings?.developer_mode) {
+                                    showOrdersUnavailableModal();
+                                    return;
+                                  }
+                                } catch (err) {
+                                  console.error('Error checking developer mode:', err);
+                                }
                                 handleAddToCart(e, combo);
                                 router.push('/checkout');
                               }}

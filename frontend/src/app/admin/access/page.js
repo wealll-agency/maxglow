@@ -3,13 +3,14 @@
 
 
 import { useState, useEffect } from 'react';
-import { Shield, Save, Check, RefreshCw, AlertCircle, ShoppingBag, RotateCcw } from 'lucide-react';
+import { Shield, Save, Check, RefreshCw, AlertCircle, ShoppingBag, RotateCcw, Code2 } from 'lucide-react';
 import api from '../../../utils/axiosConfig';
 import { useNotification } from '../../../context/NotificationContext';
+import { invalidateSettingsCache } from '../../../utils/settingsCache';
 
 export default function CustomerAccessPage() {
   const { showAlert } = useNotification();
-  const [settings, setSettings] = useState({ cod: true, refund: true });
+  const [settings, setSettings] = useState({ cod: true, refund: true, developer_mode: false });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [statusMessage, setStatusMessage] = useState(null); // { type: 'success' | 'danger', text: '' }
@@ -35,11 +36,30 @@ export default function CustomerAccessPage() {
     fetchSettings();
   }, []);
 
-  const handleToggle = (key) => {
-    setSettings(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
+  const [togglingKey, setTogglingKey] = useState(null);
+
+  const handleToggle = async (key) => {
+    if (loading || saving || togglingKey) return;
+    const updatedValue = !settings[key];
+    const newSettings = { ...settings, [key]: updatedValue };
+    setSettings(newSettings);
+    setTogglingKey(key);
+
+    try {
+      const res = await api.put('/auth/settings', { settings: { [key]: updatedValue } });
+      if (res.data?.success) {
+        invalidateSettingsCache();
+        const label = key === 'developer_mode' ? 'Developer Mode' : key.toUpperCase();
+        showAlert(`${label} ${updatedValue ? 'Enabled' : 'Disabled'} and saved successfully!`, 'success');
+      }
+    } catch (err) {
+      console.error('Failed to auto-save toggle setting:', err);
+      // Revert if error
+      setSettings(prev => ({ ...prev, [key]: !updatedValue }));
+      showAlert(err.response?.data?.message || 'Failed to update setting.', 'error');
+    } finally {
+      setTogglingKey(null);
+    }
   };
 
   const handleAddTier = () => {
@@ -71,6 +91,7 @@ export default function CustomerAccessPage() {
     try {
       const res = await api.put(`/auth/settings`, { settings });
       if (res.data.success) {
+        invalidateSettingsCache();
         setStatusMessage({
           type: 'success',
           text: 'Global access settings saved successfully.'
@@ -153,6 +174,44 @@ export default function CustomerAccessPage() {
                   checked={settings.cod}
                   disabled={loading}
                   onChange={() => handleToggle('cod')}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        {/* Developer Mode Control Card */}
+        <div className="col-md-6">
+          <div className="card border-0 shadow-sm rounded-4 p-4 bg-white h-100 d-flex flex-column justify-content-between">
+            <div>
+              <div className="d-flex align-items-center gap-3 mb-3">
+                <div className="rounded-4 p-3 bg-danger bg-opacity-10 text-danger d-flex align-items-center justify-content-center">
+                  <Code2 size={24} />
+                </div>
+                <div>
+                  <h5 className="fw-bold text-dark m-0">Developer Mode</h5>
+                  <small className="text-muted">Order Interceptor & Popup Simulator</small>
+                </div>
+              </div>
+              <p className="text-muted fs-7 mb-4">
+                When enabled, checkout and direct purchases trigger the &apos;Orders Temporarily Unavailable&apos; popup. Turn off to resume normal live customer purchases.
+              </p>
+            </div>
+
+            <div className="d-flex align-items-center justify-content-between pt-3 border-top">
+              <span className={`fw-bold fs-7 ${settings.developer_mode ? 'text-danger' : 'text-success'}`}>
+                {settings.developer_mode ? 'Currently Enabled (Popup Active)' : 'Currently Disabled (Live Purchases)'}
+              </span>
+              <div className="form-check form-switch m-0">
+                <input 
+                  className="form-check-input" 
+                  type="checkbox" 
+                  role="switch" 
+                  style={{ width: '2.5em', height: '1.25em', cursor: 'pointer' }}
+                  checked={!!settings.developer_mode}
+                  disabled={loading}
+                  onChange={() => handleToggle('developer_mode')}
                 />
               </div>
             </div>
