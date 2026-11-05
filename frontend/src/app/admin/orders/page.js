@@ -968,12 +968,13 @@ function AdminOrdersContent() {
           {/* Addresses */}
           <div className="grid-2">
             <div className="info-box">
-              <div className="info-title">Billed By (Seller)</div>
-              <div className="info-text">
-                <div className="fw-bold text-brand" style={{ fontSize: '12px' }}>MaxGlow Enterprises</div>
-                <div>33, Maharshi Devendra Road, Kolkata - 700006</div>
-                <div><strong>GSTIN:</strong> 19AAACC1234D1Z5 &nbsp;|&nbsp; <strong>State Code:</strong> 19 (WB)</div>
-                <div><strong>FSSAI:</strong> 12819019002064 &nbsp;|&nbsp; <strong>UDYAM:</strong> WB-10-0002145</div>
+              <div className="info-title">Dispatch From Address</div>
+              <div className="info-text" style={{ fontSize: '9px', lineHeight: '1.4' }}>
+                <div className="fw-bold text-dark" style={{ fontSize: '11px' }}>Vaid Enterprises (India) Pvt. Ltd.</div>
+                <div><span className="fw-bold">Head Office:</span> 26, Strand Road, 1st Floor, Kolkata-700001 &nbsp;|&nbsp; <span className="fw-bold">Godown:</span> B/32/H/16/1, Mahendra Roy Lane, Police Station Topsia, Kolkata-46</div>
+                <div><span className="fw-bold">CIN:</span> U27103WB1994PTC136423 &nbsp;|&nbsp; <span className="fw-bold">GSTIN:</span> 19AAACV4442J1Z5 &nbsp;|&nbsp; <span className="fw-bold">IT PAN:</span> AAACV4442J</div>
+                <div><span className="fw-bold">Tel.:</span> (033)40637093, 46023147, 22428887 &nbsp;|&nbsp; <span className="fw-bold">Facebook:</span> www.facebook.com/VEIPL &nbsp;|&nbsp; <span className="fw-bold">Email:</span> vaidentindia@yahoo.co.in; vaidentindia@gmail.com</div>
+                <div><span className="fw-bold">D/L No.:</span> 12765-SW &amp; 12570-SBW &nbsp;|&nbsp; <span className="fw-bold">FSSI No.:</span> 12816019000267</div>
               </div>
             </div>
             <div className="info-box">
@@ -985,18 +986,6 @@ function AdminOrdersContent() {
                 <div><strong>Phone:</strong> {selectedOrder.deliveryAddress?.phone || selectedOrder.user?.phone || 'N/A'}</div>
                 <div><strong>Place of Supply:</strong> {selectedOrder.deliveryAddress.state} ({getStateCode(selectedOrder.deliveryAddress.state)})</div>
               </div>
-            </div>
-          </div>
-
-          {/* Dispatch From Address */}
-          <div className="info-box" style={{ marginBottom: '10px' }}>
-            <div className="info-title">Dispatch From Address</div>
-            <div className="info-text" style={{ fontSize: '9px', lineHeight: '1.4' }}>
-              <div className="fw-bold text-dark" style={{ fontSize: '11px' }}>Vaid Enterprises (India) Pvt. Ltd.</div>
-              <div><span className="fw-bold">Head Office:</span> 26, Strand Road, 1st Floor, Kolkata-700001 &nbsp;|&nbsp; <span className="fw-bold">Godown:</span> B/32/H/16/1, Mahendra Roy Lane, Police Station Topsia, Kolkata-46</div>
-              <div><span className="fw-bold">CIN:</span> U27103WB1994PTC136423 &nbsp;|&nbsp; <span className="fw-bold">GSTIN:</span> 19AAACV4442J1Z5 &nbsp;|&nbsp; <span className="fw-bold">IT PAN:</span> AAACV4442J</div>
-              <div><span className="fw-bold">Tel.:</span> (033)40637093, 46023147, 22428887 &nbsp;|&nbsp; <span className="fw-bold">Facebook:</span> www.facebook.com/VEIPL &nbsp;|&nbsp; <span className="fw-bold">Email:</span> vaidentindia@yahoo.co.in; vaidentindia@gmail.com</div>
-              <div><span className="fw-bold">D/L No.:</span> 12765-SW &amp; 12570-SBW &nbsp;|&nbsp; <span className="fw-bold">FSSI No.:</span> 12816019000267</div>
             </div>
           </div>
 

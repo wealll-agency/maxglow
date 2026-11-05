@@ -32,12 +32,16 @@ export default function AdminCustomersPage() {
             id: user._id,
             name: user.name,
             email: user.email,
-            phone: user.phone || 'N/A',
+            phone: user.phone || order.deliveryAddress?.phone || order.deliveryAddress?.alternatePhone || 'N/A',
             addresses: order.deliveryAddress ? [order.deliveryAddress] : [],
             ordersCount: 0,
             totalSpent: 0,
             ordersList: []
           };
+        }
+
+        if (customerMap[email].phone === 'N/A' && (user.phone || order.deliveryAddress?.phone || order.deliveryAddress?.alternatePhone)) {
+          customerMap[email].phone = user.phone || order.deliveryAddress?.phone || order.deliveryAddress?.alternatePhone;
         }
 
         customerMap[email].ordersCount += 1;
