@@ -307,10 +307,28 @@ export default function AdminWarehouses() {
                         </div>
                       </div>
                     )}
-                    <div className="form-check form-switch mb-4">
-                      <input className="form-check-input" type="checkbox" role="switch" id="isActiveSwitch"
-                        checked={formData.isActive} onChange={e => setFormData({...formData, isActive: e.target.checked})} />
-                      <label className="form-check-label fw-bold fs-7" htmlFor="isActiveSwitch">Active</label>
+                    {/* Active Status Switch - Premium Style */}
+                    <div className="d-flex align-items-center justify-content-between p-3 mb-4 rounded-3 border bg-light">
+                      <div>
+                        <span className="fw-semibold text-dark fs-7 d-block">Warehouse Operational Status</span>
+                        <span className="text-muted fs-8">Enable or disable dispatch from this warehouse location</span>
+                      </div>
+                      <div className="d-flex align-items-center gap-2">
+                        <span className={`fs-8 fw-bold ${formData.isActive ? 'text-success' : 'text-muted'}`}>
+                          {formData.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                        <div className="form-check form-switch m-0 p-0 d-flex align-items-center">
+                          <input 
+                            className="form-check-input ms-0 shadow-none cursor-pointer" 
+                            type="checkbox" 
+                            role="switch" 
+                            id="isActiveSwitch"
+                            style={{ width: '2.5rem', height: '1.25rem', cursor: 'pointer' }}
+                            checked={formData.isActive} 
+                            onChange={e => setFormData({...formData, isActive: e.target.checked})} 
+                          />
+                        </div>
+                      </div>
                     </div>
                     <button type="submit" className="btn btn-primary w-100 fw-bold py-2">
                       {editingId ? 'Update Warehouse' : 'Save Warehouse'}
