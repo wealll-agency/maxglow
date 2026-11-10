@@ -6,8 +6,8 @@ import Link from 'next/link';
 
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchAdminShipments, getDelhiveryLabel, cancelDelhiveryShipment } from '../../../store/adminSlice';
-import { Search, Printer, X, FileText, CheckCircle, Package, MoreVertical, Eye, RefreshCw, Truck } from 'lucide-react';
+import { fetchAdminShipments, getDelhiveryLabel, cancelDelhiveryShipment, requestDelhiveryPickup } from '../../../store/adminSlice';
+import { Search, Printer, X, FileText, CheckCircle, Package, MoreVertical, Eye, RefreshCw, Truck, Calendar } from 'lucide-react';
 
 import { useNotification } from '../../../context/NotificationContext';
 
@@ -57,6 +57,22 @@ export default function AdminShipments() {
           dispatch(fetchAdminShipments({ pageNumber: shipmentsCurrentPage, keyword, status: statusFilter }));
         })
         .catch(err => showAlert(err || 'Cancellation failed', 'error'));
+    }
+  };
+
+  const handleRequestPickup = async (shipment) => {
+    const wLoc = shipment.warehouse?.delhiveryPickupLocationName || shipment.warehouse?.name || 'MS JAINSONS HERBO B2C';
+    const confirmed = await showConfirm(`Request Delhivery Courier Pickup from "${wLoc}" for today?`);
+    if (confirmed) {
+      dispatch(requestDelhiveryPickup({
+        pickup_location: wLoc,
+        pickup_date: new Date().toISOString().split('T')[0],
+        pickup_time: '16:00:00',
+        expected_package_count: 1
+      }))
+        .unwrap()
+        .then(() => showAlert('Delhivery Courier Pickup Scheduled Successfully!', 'success'))
+        .catch(err => showAlert(err || 'Failed to schedule pickup', 'error'));
     }
   };
 
@@ -207,6 +223,9 @@ export default function AdminShipments() {
                               </Link>
                               <button onClick={() => handleGetLabel(shipment.waybill)} className="dropdown-item py-2 px-3 btn btn-link text-start text-dark d-flex align-items-center gap-2 w-100 rounded-0 border-0">
                                 <Printer size={14} /> Print Label
+                              </button>
+                              <button onClick={() => handleRequestPickup(shipment)} className="dropdown-item py-2 px-3 btn btn-link text-start text-primary d-flex align-items-center gap-2 w-100 rounded-0 border-0 fw-semibold">
+                                <Calendar size={14} /> Schedule Pickup
                               </button>
                               <button onClick={() => handleGenerateManifest(shipment.waybill)} className="dropdown-item py-2 px-3 btn btn-link text-start text-dark d-flex align-items-center gap-2 w-100 rounded-0 border-0">
                                 <FileText size={14} /> Print Manifest

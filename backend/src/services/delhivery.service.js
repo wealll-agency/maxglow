@@ -30,8 +30,8 @@ class DelhiveryService {
           cod_amount: order.paymentMode === 'COD' ? order.totalAmount.toString() : '0',
           order_date: new Date(order.createdAt).toISOString(),
           total_amount: order.totalAmount.toString(),
-          seller_add: '',
-          seller_name: 'MaxGlow Enterprises',
+          seller_add: order.warehouse.address || '',
+          seller_name: order.warehouse.name || 'MS JAINSONS HERBO B2C',
           seller_inv: '',
           quantity: order.items.reduce((acc, item) => acc + item.quantity, 0).toString(),
           tax_value: order.tax ? order.tax.toString() : '0',
@@ -120,6 +120,13 @@ class DelhiveryService {
       labelUrl: response.labelUrl,
       rawResponse: response.raw
     };
+  }
+  /**
+   * Request / Schedule Pickup from Delhivery
+   * @param {Object} params
+   */
+  async requestPickup(params) {
+    return await delhiveryProvider.createPickupRequest(params);
   }
 }
 

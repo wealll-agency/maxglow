@@ -8,8 +8,8 @@ import Image from 'next/image';
 
 import { useEffect, useState, Suspense } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchAdminOrders, updateOrderStatus, refundOrder, createDelhiveryShipment, cancelDelhiveryShipment, getDelhiveryLabel, fetchWarehouses, clearAllOrders } from '../../../store/adminSlice';
-import { ShoppingBag, Eye, MapPin, Check, Filter, Clock, Search, X, Printer, Package, Truck, CheckCircle, CreditCard, RotateCcw, AlertTriangle, Download } from 'lucide-react';
+import { fetchAdminOrders, updateOrderStatus, refundOrder, createDelhiveryShipment, cancelDelhiveryShipment, getDelhiveryLabel, requestDelhiveryPickup, fetchWarehouses, clearAllOrders } from '../../../store/adminSlice';
+import { ShoppingBag, Eye, MapPin, Check, Filter, Clock, Search, X, Printer, Package, Truck, CheckCircle, CreditCard, RotateCcw, AlertTriangle, Download, Calendar } from 'lucide-react';
 
 
 import { useNotification } from '../../../context/NotificationContext';
@@ -226,6 +226,26 @@ function AdminOrdersContent() {
     }
   };
   
+  const handleRequestPickup = async (warehouseLocation, packageCount = 1) => {
+    const today = new Date().toISOString().split('T')[0];
+    const confirmed = await showConfirm(`Request Delhivery Courier Pickup from "${warehouseLocation}" for today?`);
+    if (confirmed) {
+      setActionSuccess('');
+      dispatch(requestDelhiveryPickup({
+        pickup_location: warehouseLocation,
+        pickup_date: today,
+        pickup_time: '16:00:00',
+        expected_package_count: packageCount
+      }))
+        .unwrap()
+        .then((res) => {
+          showAlert('Delhivery Courier Pickup Scheduled Successfully!', 'success');
+          setActionSuccess('Courier pickup requested successfully.');
+        })
+        .catch(err => showAlert(err || 'Failed to schedule pickup. Please check wallet balance on Delhivery.', 'error'));
+    }
+  };
+
   const handleGetLabel = (waybill) => {
     dispatch(getDelhiveryLabel(waybill))
       .unwrap()
@@ -863,12 +883,21 @@ function AdminOrdersContent() {
                           <div className="fs-8 text-muted mb-2">
                             Courier: {shipment.courierName} | Shipped: {new Date(shipment.shippedAt).toLocaleDateString()}
                           </div>
-                          <div className="d-flex gap-2">
-                            <button onClick={() => handleGetLabel(shipment.waybill)} className="btn btn-sm btn-outline-dark d-flex align-items-center gap-1">
-                              <Printer size={14} /> Shipping Label
+                          <div className="d-flex flex-wrap gap-2">
+                            <button onClick={() => handleGetLabel(shipment.waybill)} className="btn btn-sm btn-dark d-flex align-items-center gap-1.5 fw-semibold px-3 py-1.5 shadow-sm">
+                              <Printer size={14} /> Download Official Shipping Label
+                            </button>
+                            <button 
+                              onClick={() => {
+                                const wLoc = shipment.warehouse?.delhiveryPickupLocationName || shipment.warehouse?.name || 'MS JAINSONS HERBO B2C';
+                                handleRequestPickup(wLoc, 1);
+                              }} 
+                              className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1.5 fw-semibold px-3 py-1.5"
+                            >
+                              <Calendar size={14} /> Request Courier Pickup
                             </button>
                             {shipment.status !== 'Cancelled' && shipment.status !== 'Delivered' && (
-                               <button onClick={() => handleCancelDelhiveryShipment(shipment.waybill)} className="btn btn-sm btn-outline-danger">
+                               <button onClick={() => handleCancelDelhiveryShipment(shipment.waybill)} className="btn btn-sm btn-outline-danger ms-auto">
                                  Cancel
                                </button>
                             )}

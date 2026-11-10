@@ -165,6 +165,15 @@ class ShippingService {
     const service = this.getActiveService();
     return await service.generateLabel(waybill);
   }
+
+  /**
+   * Schedule / Request Pickup
+   * @param {Object} params
+   */
+  async requestPickup(params) {
+    const service = this.getActiveService();
+    return await service.requestPickup(params);
+  }
 }
 
 export default new ShippingService();

@@ -78,3 +78,31 @@ export const generateManifest = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+export const requestPickup = async (req, res) => {
+  try {
+    const { pickup_location, pickup_date, pickup_time, expected_package_count } = req.body;
+    if (!pickup_location) {
+      return res.status(400).json({ success: false, message: 'Pickup location is required' });
+    }
+
+    const result = await shippingService.requestPickup({
+      pickup_location,
+      pickup_date: pickup_date || new Date().toISOString().split('T')[0],
+      pickup_time: pickup_time || '15:00:00',
+      expected_package_count: Number(expected_package_count) || 1
+    });
+
+    if (!result.success) {
+      return res.status(400).json({ success: false, message: result.error || 'Pickup request failed' });
+    }
+
+    res.status(200).json({ 
+      success: true, 
+      message: 'Delhivery courier pickup requested successfully', 
+      data: result.data 
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

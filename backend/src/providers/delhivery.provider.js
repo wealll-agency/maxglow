@@ -265,6 +265,46 @@ class DelhiveryProvider extends ShippingProvider {
       };
     }
   }
+
+  /**
+   * Request / Schedule Courier Pickup in Delhivery (FM API)
+   * @param {Object} params { pickup_location, pickup_date, pickup_time, expected_package_count }
+   */
+  async createPickupRequest({ pickup_location, pickup_date, pickup_time, expected_package_count = 1 }) {
+    try {
+      const payload = {
+        pickup_location,
+        pickup_date,
+        pickup_time: pickup_time || '15:00:00',
+        expected_package_count: Number(expected_package_count) || 1
+      };
+
+      const response = await axios.post(`${this.baseUrl}/fm/request/new/`, payload, {
+        headers: this.getHeaders(),
+        timeout: 10000
+      });
+
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('DelhiveryProvider - createPickupRequest Error:', error.response?.data || error.message);
+      const backendErr = error.response?.data;
+      let msg = error.message;
+      if (backendErr?.prepaid) {
+        msg = backendErr.prepaid;
+      } else if (backendErr?.error) {
+        msg = typeof backendErr.error === 'string' ? backendErr.error : JSON.stringify(backendErr.error);
+      } else if (backendErr?.message) {
+        msg = backendErr.message;
+      }
+      return {
+        success: false,
+        error: msg
+      };
+    }
+  }
 }
 
 export default new DelhiveryProvider();

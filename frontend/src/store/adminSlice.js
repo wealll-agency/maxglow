@@ -374,6 +374,23 @@ export const getDelhiveryLabel = createAsyncThunk(
       const response = await axios.get(`${DELHIVERY_URL}/label/${waybill}`);
       return response.data;
     } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch Delhivery shipping label');
+    }
+  }
+);
+
+export const requestDelhiveryPickup = createAsyncThunk(
+  'admin/requestDelhiveryPickup',
+  async (pickupData, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(`${DELHIVERY_URL}/pickup`, pickupData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to schedule Delhivery courier pickup');
+    }
+  }
+);
+    } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to generate shipping label');
     }
   }

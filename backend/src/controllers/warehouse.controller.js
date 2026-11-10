@@ -1,4 +1,5 @@
 import Warehouse from '../models/Warehouse.js';
+import delhiveryProvider from '../providers/delhivery.provider.js';
 
 // @desc    Get all warehouses
 // @route   GET /api/warehouses
@@ -55,6 +56,17 @@ export const createWarehouse = async (req, res) => {
     });
 
     const createdWarehouse = await warehouse.save();
+
+    // Realtime sync to Delhivery
+    try {
+      const delhiveryRes = await delhiveryProvider.createWarehouse(createdWarehouse);
+      if (!delhiveryRes.success) {
+        console.warn('Delhivery warehouse sync note:', delhiveryRes.error);
+      }
+    } catch (syncErr) {
+      console.warn('Failed to sync warehouse to Delhivery:', syncErr.message);
+    }
+
     res.status(201).json(createdWarehouse);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -92,6 +104,17 @@ export const updateWarehouse = async (req, res) => {
       }
 
       const updatedWarehouse = await warehouse.save();
+
+      // Realtime sync to Delhivery
+      try {
+        const delhiveryRes = await delhiveryProvider.updateWarehouse(updatedWarehouse);
+        if (!delhiveryRes.success) {
+          console.warn('Delhivery warehouse update note:', delhiveryRes.error);
+        }
+      } catch (syncErr) {
+        console.warn('Failed to update warehouse in Delhivery:', syncErr.message);
+      }
+
       res.json(updatedWarehouse);
     } else {
       res.status(404).json({ message: 'Warehouse not found' });
@@ -109,6 +132,21 @@ export const deleteWarehouse = async (req, res) => {
     const warehouse = await Warehouse.findById(req.params.id);
 
     if (warehouse) {
+      // Inactivate in Delhivery realtime
+      try {
+        await delhiveryProvider.updateWarehouse({
+          delhiveryPickupLocationName: warehouse.delhiveryPickupLocationName,
+          name: warehouse.name,
+          address: warehouse.address,
+          city: warehouse.city,
+          pincode: warehouse.pincode,
+          contactPhone: warehouse.contactPhone,
+          isActive: false
+        });
+      } catch (syncErr) {
+        console.warn('Failed to inactivate warehouse in Delhivery:', syncErr.message);
+      }
+
       await warehouse.deleteOne();
       res.json({ message: 'Warehouse removed' });
     } else {
