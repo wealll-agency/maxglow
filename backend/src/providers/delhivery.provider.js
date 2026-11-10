@@ -42,18 +42,35 @@ class DelhiveryProvider extends ShippingProvider {
         timeout: 10000
       });
 
-      if (response.data && response.data.success) {
+      if (response.data && response.data.success && response.data.packages?.[0]?.waybill) {
         return {
           success: true,
           waybill: response.data.packages[0].waybill,
           raw: response.data
         };
       } else {
-        throw new Error(response.data?.error || 'Failed to create Delhivery shipment');
+        const pkg = response.data?.packages?.[0];
+        let errorMsg = response.data?.error || response.data?.rmk;
+        if (pkg?.remarks && Array.isArray(pkg.remarks) && pkg.remarks.length > 0) {
+          errorMsg = pkg.remarks.join(' | ');
+        }
+        if (!errorMsg && pkg?.status === 'Fail') {
+          errorMsg = 'Delhivery rejected package manifest.';
+        }
+        throw new Error(errorMsg || 'Failed to create Delhivery shipment');
       }
     } catch (error) {
       console.error('DelhiveryProvider - createShipment Error:', error.response?.data || error.message);
-      throw new Error(error.response?.data?.error || error.message);
+      const backendErr = error.response?.data;
+      let detailedMsg = error.message;
+      if (backendErr?.packages?.[0]?.remarks?.length) {
+        detailedMsg = backendErr.packages[0].remarks.join(' | ');
+      } else if (backendErr?.error) {
+        detailedMsg = backendErr.error;
+      } else if (backendErr?.rmk) {
+        detailedMsg = backendErr.rmk;
+      }
+      throw new Error(detailedMsg);
     }
   }
 
@@ -161,6 +178,91 @@ class DelhiveryProvider extends ShippingProvider {
     } catch (error) {
       console.error('DelhiveryProvider - checkServiceability Error:', error.response?.data || error.message);
       throw new Error(error.response?.data?.error || error.message);
+    }
+  }
+
+  /**
+   * Create or Register a Warehouse / Pickup Location in Delhivery
+   * @param {Object} warehouse 
+   */
+  async createWarehouse(warehouse) {
+    try {
+      const payload = {
+        name: warehouse.delhiveryPickupLocationName || warehouse.name,
+        registered_name: warehouse.name || 'MS JAINSONS HERBO B2C',
+        phone: warehouse.contactPhone,
+        email: warehouse.email || '',
+        address: warehouse.address,
+        city: warehouse.city,
+        pin: warehouse.pincode,
+        country: 'India',
+        contact_person: warehouse.contactPersonName || warehouse.name,
+        return_address: warehouse.returnSameAsPickup ? warehouse.address : (warehouse.returnAddressLine || warehouse.address),
+        return_city: warehouse.returnSameAsPickup ? warehouse.city : (warehouse.returnCity || warehouse.city),
+        return_state: warehouse.returnSameAsPickup ? warehouse.state : (warehouse.returnState || warehouse.state),
+        return_pin: warehouse.returnSameAsPickup ? warehouse.pincode : (warehouse.returnPincode || warehouse.pincode),
+        return_country: 'India'
+      };
+
+      const response = await axios.post(`${this.baseUrl}/api/backend/clientwarehouse/create.json`, payload, {
+        headers: this.getHeaders(),
+        timeout: 10000
+      });
+
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('DelhiveryProvider - createWarehouse Error:', error.response?.data || error.message);
+      const msg = error.response?.data?.message || error.response?.data?.error || error.message;
+      return {
+        success: false,
+        error: msg
+      };
+    }
+  }
+
+  /**
+   * Update Warehouse in Delhivery
+   * @param {Object} warehouse 
+   */
+  async updateWarehouse(warehouse) {
+    try {
+      const payload = {
+        name: warehouse.delhiveryPickupLocationName || warehouse.name,
+        registered_name: warehouse.name || 'MS JAINSONS HERBO B2C',
+        phone: warehouse.contactPhone,
+        email: warehouse.email || '',
+        address: warehouse.address,
+        city: warehouse.city,
+        pin: warehouse.pincode,
+        country: 'India',
+        contact_person: warehouse.contactPersonName || warehouse.name,
+        return_address: warehouse.returnSameAsPickup ? warehouse.address : (warehouse.returnAddressLine || warehouse.address),
+        return_city: warehouse.returnSameAsPickup ? warehouse.city : (warehouse.returnCity || warehouse.city),
+        return_state: warehouse.returnSameAsPickup ? warehouse.state : (warehouse.returnState || warehouse.state),
+        return_pin: warehouse.returnSameAsPickup ? warehouse.pincode : (warehouse.returnPincode || warehouse.pincode),
+        return_country: 'India',
+        active: warehouse.isActive !== undefined ? warehouse.isActive : true
+      };
+
+      const response = await axios.post(`${this.baseUrl}/api/backend/clientwarehouse/edit.json`, payload, {
+        headers: this.getHeaders(),
+        timeout: 10000
+      });
+
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('DelhiveryProvider - updateWarehouse Error:', error.response?.data || error.message);
+      const msg = error.response?.data?.message || error.response?.data?.error || error.message;
+      return {
+        success: false,
+        error: msg
+      };
     }
   }
 }
