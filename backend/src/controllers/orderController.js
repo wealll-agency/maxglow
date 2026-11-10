@@ -852,17 +852,52 @@ export const getAllOrders = async (req, res, next) => {
     const total = await Order.countDocuments(query);
     const orders = await Order.find(query)
       .populate('user', 'name email phone')
+      .populate({
+        path: 'shipments.warehouse',
+        select: 'name delhiveryPickupLocationName address city state pincode contactPhone'
+      })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNum)
       .lean();
+
+    // Attach payment transaction details if present
+    const orderIds = orders.map(o => o._id);
+    const payments = await Payment.find({ order: { $in: orderIds } }).lean();
+    const paymentMap = new Map();
+    payments.forEach(p => {
+      paymentMap.set(p.order.toString(), p);
+    });
+
+    const enrichedOrders = orders.map(ord => {
+      const p = paymentMap.get(ord._id.toString());
+      if (p) {
+        return {
+          ...ord,
+          gatewayTxnId: ord.gatewayTxnId || p.gatewayTxnId,
+          bankRefNo: ord.bankRefNo || p.bankRefNo,
+          paidAt: p.createdAt || ord.confirmedAt || ord.createdAt,
+          paymentDoc: {
+            status: p.status,
+            amount: p.amount,
+            currency: p.currency,
+            createdAt: p.createdAt,
+            refundDetails: p.refundDetails
+          }
+        };
+      }
+      return {
+        ...ord,
+        paidAt: ord.confirmedAt || ord.createdAt
+      };
+    });
 
     res.json({
       success: true,
       total,
       pages: Math.ceil(total / limitNum),
       currentPage: pageNum,
-      orders
+      orders: enrichedOrders
     });
   } catch (error) {
     next(error);

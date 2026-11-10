@@ -946,35 +946,65 @@ function AdminOrdersContent() {
                       )}
                     </div>
                   )}
-                <div className="fs-8 text-muted border-top pt-3 mt-3">
-                  <div className="mb-2">
-                    Payment Method: <strong className="text-dark">{selectedOrder.paymentMode === 'COD' ? 'Cash on Delivery (COD)' : 'Online Transaction (' + (selectedOrder.paymentMode || 'Prepaid') + ')'}</strong> | Current Status: <strong className="text-dark">{selectedOrder.orderStatus}</strong> | Payment Status: <strong className="text-dark">{selectedOrder.paymentStatus}</strong>
+                {/* Payment & Transaction Audit Card */}
+                <div className="card border rounded-3 p-3 bg-light mt-3">
+                  <div className="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                    <span className="fw-bold text-dark fs-8 text-uppercase d-flex align-items-center gap-1.5">
+                      <CreditCard size={15} className="text-primary" /> Payment & Transaction Summary
+                    </span>
+                    <span className={`badge ${selectedOrder.paymentStatus === 'Paid' ? 'bg-success' : selectedOrder.paymentStatus === 'Refunded' ? 'bg-warning text-dark' : 'bg-secondary'}`}>
+                      {selectedOrder.paymentStatus}
+                    </span>
                   </div>
-                  {(selectedOrder.gatewayTxnId) && (
-                    <div className="bg-light p-3 rounded border mt-3">
-                      <h6 className="fw-bold text-dark fs-8 mb-2 text-uppercase">Transaction Details</h6>
-                      <div className="d-flex flex-column gap-1">
-                        {(selectedOrder.gatewayTxnId) && (
-                          <div className="d-flex justify-content-between">
-                            <span>Gateway Txn ID:</span>
-                            <span className="text-dark fw-medium font-monospace">{selectedOrder.gatewayTxnId}</span>
-                          </div>
-                        )}
-                        {selectedOrder.bankRefNo && (
-                          <div className="d-flex justify-content-between">
-                            <span>Bank Ref No:</span>
-                            <span className="text-dark fw-medium font-monospace">{selectedOrder.bankRefNo}</span>
-                          </div>
-                        )}
-                        {selectedOrder.paymentStatus === 'Paid' && (
-                          <div className="d-flex justify-content-between">
-                            <span>Payment Processed (Approx):</span>
-                            <span className="text-dark fw-medium">{new Date(selectedOrder.createdAt).toLocaleString()}</span>
-                          </div>
-                        )}
-                      </div>
+
+                  <div className="row g-2 fs-7">
+                    <div className="col-sm-6">
+                      <span className="text-muted d-block fs-8">Payment Method</span>
+                      <strong className="text-dark">
+                        {selectedOrder.paymentMode === 'COD' ? '💵 Cash on Delivery (COD)' : `💳 Online Transaction (${selectedOrder.paymentMode || 'ICICI'})`}
+                      </strong>
                     </div>
-                  )}
+
+                    <div className="col-sm-6">
+                      <span className="text-muted d-block fs-8">Payment Date & Time</span>
+                      <strong className="text-dark">
+                        {selectedOrder.paidAt || selectedOrder.confirmedAt || selectedOrder.createdAt 
+                          ? new Date(selectedOrder.paidAt || selectedOrder.confirmedAt || selectedOrder.createdAt).toLocaleString('en-IN', {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: true
+                            }) 
+                          : 'Pending'}
+                      </strong>
+                    </div>
+
+                    <div className="col-sm-6">
+                      <span className="text-muted d-block fs-8">Transaction / Gateway ID</span>
+                      <strong className="font-monospace text-dark">
+                        {selectedOrder.gatewayTxnId || selectedOrder.transactionId || selectedOrder.paymentId || 'N/A'}
+                      </strong>
+                    </div>
+
+                    <div className="col-sm-6">
+                      <span className="text-muted d-block fs-8">Bank Ref No</span>
+                      <strong className="font-monospace text-dark">
+                        {selectedOrder.bankRefNo || 'N/A (Direct S2S)'}
+                      </strong>
+                    </div>
+
+                    {selectedOrder.paymentStatus === 'Refunded' && selectedOrder.paymentDoc?.refundDetails && (
+                      <div className="col-12 mt-2 pt-2 border-top">
+                        <span className="text-danger fw-bold d-block fs-8">Refund Reference</span>
+                        <div className="d-flex justify-content-between text-muted fs-8">
+                          <span>Refund ID: <strong className="text-dark font-monospace">{selectedOrder.paymentDoc.refundDetails.refundId}</strong></span>
+                          <span>Refunded on: <strong>{new Date(selectedOrder.paymentDoc.refundDetails.processedAt).toLocaleString('en-IN')}</strong></span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
               
