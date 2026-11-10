@@ -390,11 +390,6 @@ export const requestDelhiveryPickup = createAsyncThunk(
     }
   }
 );
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to generate shipping label');
-    }
-  }
-);
 
 const adminSlice = createSlice({
   name: 'admin',
