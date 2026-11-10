@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchWarehouses, createWarehouse, updateWarehouse, deleteWarehouse } from '../../../store/adminSlice';
-import { Plus, Edit2, Trash2, MapPin, Phone } from 'lucide-react';
+import { Plus, Edit2, Trash2, MapPin, Phone, Check } from 'lucide-react';
 import { useNotification } from '../../../context/NotificationContext';
 
 export default function AdminWarehouses() {
@@ -223,32 +223,63 @@ export default function AdminWarehouses() {
                           value={formData.email || ''} onChange={e => setFormData({...formData, email: e.target.value})} />
                       </div>
                     </div>
-                    <div className="mb-3">
-                      <label className="form-label fw-bold fs-7">Working Days</label>
+                    {/* Working Days - Premium Pills UI */}
+                    <div className="mb-4">
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <label className="form-label fw-bold fs-7 mb-0 text-dark">Working Days</label>
+                        <span className="text-muted fs-8">{formData.workingDays.length} days selected</span>
+                      </div>
                       <div className="d-flex flex-wrap gap-2">
-                        {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => (
-                          <div key={day} className="form-check form-check-inline m-0">
-                            <input 
-                              className="form-check-input cursor-pointer" 
-                              type="checkbox" 
-                              id={`day-${day}`}
-                              checked={formData.workingDays.includes(day)}
-                              onChange={(e) => {
-                                const newDays = e.target.checked 
-                                  ? [...formData.workingDays, day]
-                                  : formData.workingDays.filter(d => d !== day);
-                                setFormData({...formData, workingDays: newDays});
+                        {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => {
+                          const isSelected = formData.workingDays.includes(day);
+                          return (
+                            <button
+                              type="button"
+                              key={day}
+                              onClick={() => {
+                                const newDays = isSelected
+                                  ? formData.workingDays.filter(d => d !== day)
+                                  : [...formData.workingDays, day];
+                                setFormData({ ...formData, workingDays: newDays });
                               }}
-                            />
-                            <label className="form-check-label fs-7 cursor-pointer" htmlFor={`day-${day}`}>{day}</label>
-                          </div>
-                        ))}
+                              className={`btn btn-sm px-3 py-1.5 rounded-3 d-inline-flex align-items-center gap-1.5 transition-all ${
+                                isSelected 
+                                  ? 'btn-dark text-white fw-semibold shadow-sm' 
+                                  : 'btn-outline-secondary text-secondary bg-white border-opacity-50'
+                              }`}
+                              style={{ fontSize: '0.8125rem' }}
+                            >
+                              <div 
+                                className={`rounded-circle d-flex align-items-center justify-content-center ${isSelected ? 'bg-primary text-white' : 'border'}`}
+                                style={{ width: 14, height: 14 }}
+                              >
+                                {isSelected && <Check size={10} strokeWidth={3} />}
+                              </div>
+                              {day}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
-                    <div className="form-check mb-3">
-                      <input className="form-check-input shadow-none cursor-pointer" type="checkbox" id="returnSameAsPickup"
-                        checked={formData.returnSameAsPickup} onChange={e => setFormData({...formData, returnSameAsPickup: e.target.checked})} />
-                      <label className="form-check-label fw-bold fs-7 cursor-pointer text-muted" htmlFor="returnSameAsPickup">Return address is the same as the pickup address</label>
+
+                    {/* Return Address Same - Premium Card Checkbox */}
+                    <div 
+                      onClick={() => setFormData({ ...formData, returnSameAsPickup: !formData.returnSameAsPickup })}
+                      className="p-3 mb-3 rounded-3 border bg-white d-flex align-items-center gap-3 cursor-pointer shadow-sm transition-all"
+                      style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
+                    >
+                      <div 
+                        className={`rounded-2 d-flex align-items-center justify-content-center transition-all ${
+                          formData.returnSameAsPickup ? 'bg-primary text-white shadow-sm' : 'border bg-light text-transparent'
+                        }`}
+                        style={{ width: 22, height: 22, minWidth: 22 }}
+                      >
+                        {formData.returnSameAsPickup && <Check size={14} strokeWidth={3} />}
+                      </div>
+                      <div className="flex-grow-1 select-none" style={{ userSelect: 'none' }}>
+                        <div className="fw-semibold text-dark fs-7">Return address is the same as pickup address</div>
+                        <div className="text-muted fs-8">Returned parcels will be delivered back to this exact facility</div>
+                      </div>
                     </div>
 
                     {!formData.returnSameAsPickup && (
