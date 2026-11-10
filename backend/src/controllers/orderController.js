@@ -973,11 +973,20 @@ export const processRefund = async (req, res, next) => {
       payment.gatewayTxnId
     );
 
+    if (!refundResult || !refundResult.success) {
+      const errMsg = refundResult?.message || refundResult?.data?.message || 'ICICI Payment Gateway rejected the refund request';
+      return res.status(400).json({ 
+        success: false, 
+        message: `ICICI Refund Failed: ${errMsg}` 
+      });
+    }
+
     payment.status = 'Refunded';
     payment.refundDetails = {
-      refundId: refundResult.refundId || 'MANUAL_REFUND_' + Date.now(),
+      refundId: refundResult.refundId || 'REFUND_' + Date.now(),
       amount: order.totalAmount,
       reason: 'Admin Initiated Refund',
+      rawResponse: refundResult.data,
       processedAt: new Date()
     };
     await payment.save();
@@ -988,11 +997,16 @@ export const processRefund = async (req, res, next) => {
         orderStatus: 'Cancelled'
       }
     };
-    await Order.findByIdAndUpdate(order._id, updateQuery);
+    const updatedOrder = await Order.findByIdAndUpdate(order._id, updateQuery, { new: true });
 
-    await logActivity(req.user._id, 'PROCESS_REFUND', `Processed manual refund record for Order ID ${order._id}`, req);
+    await logActivity(req.user._id, 'PROCESS_REFUND', `Successfully processed refund ID ${refundResult.refundId} for Order ID ${order._id} via ICICI`, req);
 
-    res.json({ success: true, message: 'Refund recorded and processed successfully via ICICI Gateway.', order });
+    res.json({ 
+      success: true, 
+      message: 'Refund initiated and confirmed successfully via ICICI Gateway.', 
+      order: updatedOrder,
+      refundId: refundResult.refundId 
+    });
   } catch (error) {
     next(error);
   }
