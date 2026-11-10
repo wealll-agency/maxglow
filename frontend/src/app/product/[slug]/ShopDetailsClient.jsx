@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addToCart } from '../../../store/cartSlice';
 import { fetchProductDetails, fetchProductReviews, submitProductReview, deleteProductReview, fetchProducts, clearSelectedProduct } from '../../../store/productsSlice';
 import { toggleWishlist } from '../../../store/wishlistSlice';
-import { Star, Heart, Plus, Minus, MessageCircle, Share2, ShieldCheck, RefreshCw, AlertCircle, ChevronDown, ChevronUp, Leaf, Award, Trash2, Check } from 'lucide-react';
+import { Star, Heart, Plus, Minus, MessageCircle, Share2, ShieldCheck, RefreshCw, AlertCircle, ChevronDown, ChevronUp, Leaf, Award, Trash2, Check, Tag, Copy } from 'lucide-react';
 import ProductCard from '../../../components/ProductCard';
 import api from '../../../utils/axiosConfig';
 import { useNotification } from '../../../context/NotificationContext';
@@ -48,6 +48,9 @@ function ShopDetailsContent({ initialProduct }) {
   const [reviewSuccess, setReviewSuccess] = useState('');
   const [notifyLoading, setNotifyLoading] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [availableCoupons, setAvailableCoupons] = useState([]);
+  const [loadingCoupons, setLoadingCoupons] = useState(false);
+  const [copiedCouponCode, setCopiedCouponCode] = useState('');
 
   const productIdParam = slug; // Keeping variable name same for minimal change
   const productNameParam = '';
@@ -86,6 +89,38 @@ function ShopDetailsContent({ initialProduct }) {
     }
     dispatch(fetchProducts({ limit: 100 }));
   }, [dispatch, productIdParam, initialProduct]);
+
+  // Fetch available public coupons for desktop offer showcase
+  useEffect(() => {
+    let isSubscribed = true;
+    const loadCoupons = async () => {
+      try {
+        setLoadingCoupons(true);
+        const res = await api.get('/coupons/public');
+        if (isSubscribed && res.data?.success && Array.isArray(res.data.coupons)) {
+          setAvailableCoupons(res.data.coupons);
+        }
+      } catch (err) {
+        console.error('Failed to load public coupons:', err);
+      } finally {
+        if (isSubscribed) setLoadingCoupons(false);
+      }
+    };
+    loadCoupons();
+    return () => {
+      isSubscribed = false;
+    };
+  }, []);
+
+  const handleCopyCoupon = (code) => {
+    if (!code) return;
+    navigator.clipboard?.writeText(code);
+    setCopiedCouponCode(code);
+    showAlert?.('success', `Coupon ${code} copied to clipboard!`);
+    setTimeout(() => {
+      setCopiedCouponCode('');
+    }, 2500);
+  };
 
   // 2. Resolve product
   let realProduct = initialProduct || null;
@@ -464,6 +499,10 @@ function ShopDetailsContent({ initialProduct }) {
           display: block;
         }
         
+        .desktop-coupon-section {
+          display: block;
+        }
+        
         @media (min-width: 769px) {
           .image-floating-wishlist {
             display: none !important;
@@ -471,9 +510,15 @@ function ShopDetailsContent({ initialProduct }) {
           .collapsible-product-details {
             display: none !important;
           }
+          .desktop-coupon-section {
+            display: block !important;
+          }
         }
         
         @media (max-width: 768px) {
+          .desktop-coupon-section {
+            display: none !important;
+          }
           .mobile-reviews-section {
             width: calc(100% + 40px) !important;
             margin-left: -20px !important;
@@ -796,6 +841,174 @@ function ShopDetailsContent({ initialProduct }) {
                       <Heart size={20} fill={isInWishlist ? '#ef4444' : 'none'} color={isInWishlist ? '#ef4444' : '#64748b'} />
                     </button>
                   </div>
+                </div>
+
+                {/* Available Coupons & Offers (Desktop only) */}
+                <div className="desktop-coupon-section" style={{
+                  marginTop: '16px',
+                  padding: '16px',
+                  borderRadius: '16px',
+                  background: '#f8fafc',
+                  border: '1.5px dashed #cbd5e1',
+                  transition: 'all 0.2s ease'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{
+                        width: '28px',
+                        height: '28px',
+                        borderRadius: '8px',
+                        background: '#DDF7E3',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#3BAE56'
+                      }}>
+                        <Tag size={16} />
+                      </div>
+                      <span style={{
+                        fontFamily: 'var(--font-outfit)',
+                        fontSize: '14px',
+                        fontWeight: '700',
+                        color: '#1a2332',
+                        letterSpacing: '0.02em',
+                        textTransform: 'uppercase'
+                      }}>
+                        Available Coupons & Offers
+                      </span>
+                    </div>
+                    {availableCoupons.length > 0 && (
+                      <span style={{
+                        fontSize: '11px',
+                        fontWeight: '700',
+                        background: '#EAF8FF',
+                        color: '#2563eb',
+                        padding: '3px 8px',
+                        borderRadius: '9999px',
+                        border: '1px solid #bfdbfe'
+                      }}>
+                        {availableCoupons.length} Active {availableCoupons.length === 1 ? 'Offer' : 'Offers'}
+                      </span>
+                    )}
+                  </div>
+
+                  {loadingCoupons ? (
+                    <div style={{ fontSize: '13px', color: '#94a3b8', textAlign: 'center', padding: '12px 0' }}>
+                      Checking active offers...
+                    </div>
+                  ) : availableCoupons.length === 0 ? (
+                    <div style={{ fontSize: '13px', color: '#64748b', background: 'white', padding: '12px 14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                      No public coupons available at the moment. Stay tuned for seasonal promotions!
+                    </div>
+                  ) : (
+                    <div style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '10px',
+                      maxHeight: '260px',
+                      overflowY: availableCoupons.length > 2 ? 'auto' : 'visible',
+                      paddingRight: availableCoupons.length > 2 ? '4px' : '0'
+                    }}>
+                      {availableCoupons.map((coupon) => {
+                        const discountDisplay = coupon.discountType === 'flat'
+                          ? `₹${coupon.flatDiscountAmount} FLAT OFF`
+                          : `${coupon.discountPercentage}% OFF`;
+                        const minOrderDisplay = coupon.minOrderValue > 0
+                          ? `Applicable on orders above ₹${coupon.minOrderValue.toLocaleString('en-IN')}`
+                          : 'Valid on all orders (No minimum purchase required)';
+                        const isCopied = copiedCouponCode === coupon.code;
+
+                        return (
+                          <div
+                            key={coupon._id || coupon.code}
+                            style={{
+                              background: 'white',
+                              border: isCopied ? '1.5px solid #10b981' : '1px solid #e2e8f0',
+                              borderRadius: '12px',
+                              padding: '12px 14px',
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                              position: 'relative',
+                              transition: 'all 0.2s ease'
+                            }}
+                          >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{
+                                  background: '#f1f5f9',
+                                  color: '#0f172a',
+                                  fontFamily: 'monospace',
+                                  fontSize: '13px',
+                                  fontWeight: '800',
+                                  letterSpacing: '0.08em',
+                                  padding: '4px 10px',
+                                  borderRadius: '6px',
+                                  border: '1px dashed #94a3b8'
+                                }}>
+                                  {coupon.code}
+                                </span>
+                                <span style={{
+                                  fontSize: '13px',
+                                  fontWeight: '700',
+                                  color: '#3BAE56'
+                                }}>
+                                  {discountDisplay}
+                                </span>
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() => handleCopyCoupon(coupon.code)}
+                                style={{
+                                  background: isCopied ? '#ecfdf5' : '#f8fafc',
+                                  border: isCopied ? '1px solid #10b981' : '1px solid #cbd5e1',
+                                  color: isCopied ? '#059669' : '#334155',
+                                  borderRadius: '6px',
+                                  padding: '4px 10px',
+                                  fontSize: '11px',
+                                  fontWeight: '700',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  transition: 'all 0.15s ease'
+                                }}
+                                title="Click to copy coupon code"
+                              >
+                                {isCopied ? (
+                                  <>
+                                    <Check size={12} color="#059669" /> Copied
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy size={12} /> Copy Code
+                                  </>
+                                )}
+                              </button>
+                            </div>
+
+                            {/* Eligibility Criteria */}
+                            <div style={{
+                              fontSize: '12px',
+                              color: '#64748b',
+                              marginTop: '4px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px'
+                            }}>
+                              <span style={{
+                                display: 'inline-block',
+                                width: '5px',
+                                height: '5px',
+                                borderRadius: '50%',
+                                background: '#3BAE56'
+                              }}></span>
+                              <span>Criteria: <strong style={{ color: '#334155', fontWeight: '600' }}>{minOrderDisplay}</strong></span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 {/* Collapsible Product Details Dropdown */}

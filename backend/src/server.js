@@ -84,9 +84,11 @@ try {
   process.exit(1);
 }
 
-// Initialize Cron Jobs
+// Initialize Cron Jobs (Only on primary instance in PM2 cluster mode to prevent duplication)
 import { initCronJobs } from './utils/cronJobs.js';
-initCronJobs();
+if (!process.env.NODE_APP_INSTANCE || process.env.NODE_APP_INSTANCE === '0') {
+  initCronJobs();
+}
 
 // Middlewares
 app.use(helmet({

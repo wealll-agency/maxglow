@@ -455,6 +455,9 @@ export const createOrder = async (req, res, next) => {
     const actionUrl = process.env.ICICI_INITIATE_SALE_URL;
     if (!actionUrl) throw new Error('ICICI_INITIATE_SALE_URL missing');
     
+    const callbackBase = process.env.BACKEND_URL || (process.env.CLIENT_URL ? `${process.env.CLIENT_URL}/api` : 'https://maxglow.in/api');
+    const returnUrl = `${callbackBase.replace(/\/$/, '')}/orders/icici-callback`;
+
     const iciciPayload = {
       addlParam1: "000",
       addlParam2: "111",
@@ -467,7 +470,7 @@ export const createOrder = async (req, res, next) => {
       merchantId: process.env.ICICI_MERCHANT_ID,
       merchantTxnNo: savedOrder._id.toString(),
       payType: '0', // 0 = Redirect to gateway
-      returnURL: `${process.env.FRONTEND_URL || 'http://localhost:7052'}/api/orders/icici-callback`,
+      returnURL: returnUrl,
       transactionType: "SALE",
       txnDate: new Date().toISOString().replace(/[-:T.]/g, '').substring(0, 14) // YYYYMMDDHHMMSS
     };
@@ -813,6 +816,10 @@ export const getOrderById = async (req, res, next) => {
     const order = await Order.findById(req.params.id)
       .populate('user', 'name email phone')
       .populate('items.product', 'images name')
+      .populate({
+        path: 'shipments.warehouse',
+        select: 'name delhiveryPickupLocationName address city state pincode contactPhone'
+      })
       .lean();
 
     if (!order) {
@@ -824,7 +831,26 @@ export const getOrderById = async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'Unauthorized access to this order' });
     }
 
-    res.json({ success: true, order });
+    // Attach real payment document details
+    const isPaid = order.paymentStatus === 'Paid' || order.paymentStatus === 'Refunded';
+    let enrichedOrder = { ...order };
+    if (isPaid) {
+      const payment = await Payment.findOne({ order: order._id }).lean();
+      if (payment) {
+        enrichedOrder.gatewayTxnId = order.gatewayTxnId || (payment.gatewayTxnId !== 'initiated' && payment.gatewayTxnId !== 'pending' ? payment.gatewayTxnId : null);
+        enrichedOrder.bankRefNo = order.bankRefNo || payment.bankRefNo || null;
+        enrichedOrder.paidAt = payment.updatedAt || payment.createdAt || order.confirmedAt;
+        enrichedOrder.paymentDoc = {
+          status: payment.status,
+          amount: payment.amount,
+          currency: payment.currency,
+          createdAt: payment.createdAt,
+          refundDetails: payment.refundDetails
+        };
+      }
+    }
+
+    res.json({ success: true, order: enrichedOrder });
   } catch (error) {
     next(error);
   }
@@ -870,13 +896,14 @@ export const getAllOrders = async (req, res, next) => {
     });
 
     const enrichedOrders = orders.map(ord => {
+      const isPaid = ord.paymentStatus === 'Paid' || ord.paymentStatus === 'Refunded';
       const p = paymentMap.get(ord._id.toString());
-      if (p) {
+      if (isPaid && p && p.status === 'Captured') {
         return {
           ...ord,
-          gatewayTxnId: ord.gatewayTxnId || p.gatewayTxnId,
-          bankRefNo: ord.bankRefNo || p.bankRefNo,
-          paidAt: p.createdAt || ord.confirmedAt || ord.createdAt,
+          gatewayTxnId: p.gatewayTxnId !== 'initiated' && p.gatewayTxnId !== 'pending' ? p.gatewayTxnId : ord.gatewayTxnId,
+          bankRefNo: p.bankRefNo || ord.bankRefNo,
+          paidAt: p.updatedAt || p.createdAt || ord.confirmedAt,
           paymentDoc: {
             status: p.status,
             amount: p.amount,
@@ -888,7 +915,9 @@ export const getAllOrders = async (req, res, next) => {
       }
       return {
         ...ord,
-        paidAt: ord.confirmedAt || ord.createdAt
+        gatewayTxnId: isPaid ? ord.gatewayTxnId : null,
+        bankRefNo: isPaid ? ord.bankRefNo : null,
+        paidAt: null
       };
     });
 

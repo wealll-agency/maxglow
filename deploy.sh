@@ -25,6 +25,9 @@ if [ ! -d "$SHARED_DIR" ]; then
     mkdir -p "$SHARED_DIR/uploads"
 fi
 
+# Ensure PM2 persistent logs directory exists
+mkdir -p "$BASE_DIR/logs"
+
 if [ ! -f "$SHARED_DIR/.env" ]; then
     echo "⚠️ WARNING: .env file missing from $SHARED_DIR. Creating from example."
     if [ -f ".env" ]; then

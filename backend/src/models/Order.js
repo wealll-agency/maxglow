@@ -69,8 +69,8 @@ const orderSchema = new mongoose.Schema({
   }],
   
   // --- PRODUCTION FIX: Catch-all for legacy unique indexes ---
-  paymentId: { type: String, default: () => new mongoose.Types.ObjectId().toString() },
-  transactionId: { type: String, default: () => new mongoose.Types.ObjectId().toString() }
+  paymentId: { type: String, default: () => new mongoose.Types.ObjectId().toString(), index: true },
+  transactionId: { type: String, default: () => new mongoose.Types.ObjectId().toString(), index: true }
 }, {
   timestamps: true
 });
@@ -82,8 +82,6 @@ orderSchema.index({ orderStatus: 1, createdAt: -1 });
 orderSchema.index({ couponCode: 1, createdAt: -1 });
 orderSchema.index({ couponCode: 1, orderStatus: 1 });
 orderSchema.index({ couponCode: 1, "deliveryAddress.pincode": 1 });
-orderSchema.index({ transactionId: 1 });
-orderSchema.index({ paymentId: 1 });
 
 const Order = mongoose.model('Order', orderSchema);
 export default Order;

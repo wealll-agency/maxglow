@@ -375,6 +375,19 @@ function AdminOrdersContent() {
   const exportToExcel = async () => {
     try {
       const XLSX = await import('xlsx');
+
+      // Helper to neutralize CSV/Excel formula injection (=, +, -, @) safely handling leading spaces and control characters (\t, \r, \n)
+      const sanitizeExcelCell = (val) => {
+        if (val === null || val === undefined) return '';
+        if (typeof val === 'number') {
+          return Number.isFinite(val) ? val : '';
+        }
+        const str = String(val);
+        if (/^[\s\u0000-\u001F]*[=+\-@]/.test(str)) {
+          return `'${str}`;
+        }
+        return str;
+      };
       
       const excelData = orders.map(ord => {
         let formattedDate = 'N/A';
@@ -408,19 +421,19 @@ function AdminOrdersContent() {
         const discount = ord.couponDiscount > 0 ? `₹${ord.couponDiscount} ${ord.couponCode ? `(${ord.couponCode})` : ''}`.trim() : '₹0';
 
         return {
-          'Order ID': ord._id,
-          'Customer Name': (ord.user?.name || 'Guest').replace(/\s+/g, ' ').trim(),
-          'Customer Email': ord.user?.email || 'N/A',
-          'Customer Phone': cleanPhone,
-          'Delivery Address': fullAddress,
+          'Order ID': sanitizeExcelCell(ord._id),
+          'Customer Name': sanitizeExcelCell((ord.user?.name || 'Guest').replace(/\s+/g, ' ').trim()),
+          'Customer Email': sanitizeExcelCell(ord.user?.email || 'N/A'),
+          'Customer Phone': sanitizeExcelCell(cleanPhone),
+          'Delivery Address': sanitizeExcelCell(fullAddress),
           'Date': formattedDate,
-          'Ordered Products': productsList,
-          'Payment Method': paymentMethod,
-          'Payment Status': ord.orderStatus === 'Cancelled' ? 'Cancelled Order' : ord.paymentStatus,
+          'Ordered Products': sanitizeExcelCell(productsList),
+          'Payment Method': sanitizeExcelCell(paymentMethod),
+          'Payment Status': sanitizeExcelCell(ord.orderStatus === 'Cancelled' ? 'Cancelled Order' : ord.paymentStatus),
           'Delivery Charge': deliveryCharge,
           'Discount (Coupon)': discount,
           'Total Amount': `₹${ord.totalAmount}`,
-          'Order Status': ord.orderStatus
+          'Order Status': sanitizeExcelCell(ord.orderStatus)
         };
       });
 
@@ -968,30 +981,40 @@ function AdminOrdersContent() {
                     <div className="col-sm-6">
                       <span className="text-muted d-block fs-8">Payment Date & Time</span>
                       <strong className="text-dark">
-                        {selectedOrder.paidAt || selectedOrder.confirmedAt || selectedOrder.createdAt 
-                          ? new Date(selectedOrder.paidAt || selectedOrder.confirmedAt || selectedOrder.createdAt).toLocaleString('en-IN', {
-                              day: '2-digit',
-                              month: 'short',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              hour12: true
-                            }) 
-                          : 'Pending'}
+                        {selectedOrder.paymentStatus === 'Paid' || selectedOrder.paymentStatus === 'Refunded'
+                          ? (selectedOrder.paidAt || selectedOrder.confirmedAt
+                              ? new Date(selectedOrder.paidAt || selectedOrder.confirmedAt).toLocaleString('en-IN', {
+                                  day: '2-digit',
+                                  month: 'short',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                  hour12: true
+                                })
+                              : 'Payment Recorded')
+                          : <span className="text-warning fw-semibold">Payment Not Received (Pending)</span>}
                       </strong>
                     </div>
 
                     <div className="col-sm-6">
-                      <span className="text-muted d-block fs-8">Transaction / Gateway ID</span>
+                      <span className="text-muted d-block fs-8">ICICI Transaction ID</span>
                       <strong className="font-monospace text-dark">
-                        {selectedOrder.gatewayTxnId || selectedOrder.transactionId || selectedOrder.paymentId || 'N/A'}
+                        {selectedOrder.paymentStatus === 'Paid' || selectedOrder.paymentStatus === 'Refunded'
+                          ? (selectedOrder.gatewayTxnId 
+                              ? selectedOrder.gatewayTxnId 
+                              : <span className="text-muted fw-normal fst-italic">Awaiting live webhook / test order</span>)
+                          : <span className="text-muted fw-normal">N/A (Unpaid)</span>}
                       </strong>
                     </div>
 
                     <div className="col-sm-6">
-                      <span className="text-muted d-block fs-8">Bank Ref No</span>
+                      <span className="text-muted d-block fs-8">Bank Reference No</span>
                       <strong className="font-monospace text-dark">
-                        {selectedOrder.bankRefNo || 'N/A (Direct S2S)'}
+                        {selectedOrder.paymentStatus === 'Paid' || selectedOrder.paymentStatus === 'Refunded'
+                          ? (selectedOrder.bankRefNo 
+                              ? selectedOrder.bankRefNo 
+                              : <span className="text-muted fw-normal fst-italic">Direct S2S Gateway</span>)
+                          : <span className="text-muted fw-normal">N/A (Unpaid)</span>}
                       </strong>
                     </div>
 
