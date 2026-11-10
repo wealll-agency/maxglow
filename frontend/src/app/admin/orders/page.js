@@ -738,18 +738,17 @@ function AdminOrdersContent() {
                         </button>
                       )}
 
-                      {/* Step 2: Confirmed -> Mark as Packed */}
+                      {/* Step 2 & 3: Confirmed / Packed -> Mark as Packed or Directly Generate Shipment */}
                       {selectedOrder.orderStatus === 'Confirmed' && (
                         <button 
                           onClick={() => handleStatusChange(selectedOrder._id, 'Packed')}
-                          className="btn btn-info text-white btn-sm px-3 py-2 fw-bold d-flex align-items-center gap-2 shadow-sm"
+                          className="btn btn-outline-info btn-sm px-3 py-2 fw-bold d-flex align-items-center gap-2 shadow-sm"
                         >
                           <Package size={16} /> Mark as Packed
                         </button>
                       )}
 
-                      {/* Step 3: Packed -> Generate Shipment */}
-                      {selectedOrder.orderStatus === 'Packed' && (!selectedOrder.shipments || selectedOrder.shipments.length === 0) && (
+                      {['Confirmed', 'Packed'].includes(selectedOrder.orderStatus) && (!selectedOrder.shipments || selectedOrder.shipments.length === 0) && (
                         <button 
                           onClick={() => handleCreateDelhiveryShipment(selectedOrder._id)}
                           className="btn btn-dark btn-sm px-3 py-2 fw-bold d-flex align-items-center gap-2 shadow-sm"
@@ -828,14 +827,26 @@ function AdminOrdersContent() {
                 <h6 className="fw-bold text-muted uppercase fs-8 mb-2">Shipments (Delhivery)</h6>
                 <div className="bg-light p-3 rounded border mb-4 d-flex flex-column gap-3">
                   {(!selectedOrder.shipments || selectedOrder.shipments.length === 0) ? (
-                    <div>
-                      <p className="fs-7 text-muted m-0 mb-2">
-                        {selectedOrder.orderStatus === 'Packed' 
-                          ? 'Order is packed. Use the action bar above to generate shipment.' 
-                          : selectedOrder.orderStatus === 'Confirmed' 
-                            ? 'Order is confirmed. Please mark as Packed before generating shipment.' 
-                            : 'No active shipments for this order.'}
-                      </p>
+                    <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
+                      <div>
+                        <p className="fs-7 text-muted m-0">
+                          {selectedOrder.orderStatus === 'Packed' 
+                            ? 'Order is packed and ready for dispatch.' 
+                            : selectedOrder.orderStatus === 'Confirmed' 
+                              ? 'Order is confirmed. You can generate shipment directly or mark as packed.' 
+                              : selectedOrder.orderStatus === 'Placed'
+                                ? 'Order is placed. Confirm the order first to generate shipment.'
+                                : 'No active shipments for this order.'}
+                        </p>
+                      </div>
+                      {['Confirmed', 'Packed'].includes(selectedOrder.orderStatus) && (
+                        <button 
+                          onClick={() => handleCreateDelhiveryShipment(selectedOrder._id)}
+                          className="btn btn-dark btn-sm px-3 py-2 fw-bold d-inline-flex align-items-center gap-2 shadow-sm text-nowrap"
+                        >
+                          <Truck size={16} /> Generate Delhivery Shipment
+                        </button>
+                      )}
                     </div>
                   ) : (
                     <div className="d-flex flex-column gap-3">
