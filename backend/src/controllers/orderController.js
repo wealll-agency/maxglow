@@ -899,7 +899,10 @@ export const updateOrderStatus = async (req, res, next) => {
 
     // If Order is Cancelled and wasn't already Cancelled, restore items to stock
     if (status === 'Cancelled' && order.orderStatus !== 'Cancelled') {
-      updateQuery.$set.paymentStatus = 'Refunded';
+      // If order was unpaid (e.g. COD pending, or incomplete), keep/set paymentStatus to 'Cancelled' or 'Pending', NOT 'Refunded'
+      if (order.paymentStatus !== 'Paid') {
+        updateQuery.$set.paymentStatus = 'Cancelled';
+      }
       
       for (const item of order.items) {
         await Product.findByIdAndUpdate(item.product, { $inc: { stock: item.quantity, totalSold: -item.quantity } }, { runValidators: true });
@@ -944,7 +947,17 @@ export const processRefund = async (req, res, next) => {
     }
 
     if (order.paymentStatus !== 'Paid') {
-      return res.status(400).json({ success: false, message: 'Order cannot be refunded because it is not in Paid status' });
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Order cannot be refunded because payment has not been received (Payment Status is not Paid).' 
+      });
+    }
+
+    if (order.orderStatus !== 'Cancelled') {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Order must be Cancelled before initiating a refund.' 
+      });
     }
 
     const payment = await Payment.findOne({ order: order._id });

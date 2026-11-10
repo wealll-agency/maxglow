@@ -172,18 +172,23 @@ function AdminOrdersContent() {
   };
 
   const handleRefund = async (id) => {
-    const confirmed = await showConfirm('Are you sure you want to cancel this order and record it as refunded? (You must initiate the actual refund in your ICICI Dashboard if auto-refund fails)');
+    const confirmed = await showConfirm('Initiate refund for this cancelled order? The amount will be refunded to the customer via the payment gateway.');
     if (confirmed) {
       setActionSuccess('');
       dispatch(refundOrder(id))
         .unwrap()
-        .then((updatedOrder) => {
-          setActionSuccess('Order cancelled and refund recorded. Please check if refund processed via ICICI.');
-          setSelectedOrder(updatedOrder);
+        .then((res) => {
+          showAlert('Refund initiated successfully! Payment status updated to Refunded.', 'success');
+          setActionSuccess('Refund initiated successfully.');
           dispatch(fetchAdminOrders({ limit: 1000 }));
+          if (res?.order) {
+            setSelectedOrder(res.order);
+          } else {
+            setSelectedOrder(prev => prev ? ({ ...prev, paymentStatus: 'Refunded' }) : prev);
+          }
         })
         .catch((err) => {
-          showAlert(err || 'Refund processing failed', 'error');
+          showAlert(err || 'Refund initiation failed', 'error');
         });
     }
   };
@@ -910,30 +915,34 @@ function AdminOrdersContent() {
 
                   
                   
-                  {/* Cancel / Refund */}
+                  {/* Cancel / Initiate Refund Actions */}
                   {selectedOrder.orderStatus !== 'Delivered' && user.role === 'Super Admin' && (
-                    <div className="d-flex gap-2">
+                    <div className="d-flex align-items-center gap-2 mt-2">
+                      {/* Standard Cancel for uncancelled orders */}
                       {selectedOrder.orderStatus !== 'Cancelled' && (
                         <button 
-                          onClick={() => {
-                            if (selectedOrder.paymentStatus === 'Paid') {
-                              handleRefund(selectedOrder._id);
-                            } else {
-                              handleStatusChange(selectedOrder._id, 'Cancelled');
-                            }
-                          }} 
-                          className="btn btn-sm btn-danger"
+                          onClick={() => handleStatusChange(selectedOrder._id, 'Cancelled')} 
+                          className="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1.5 fw-semibold px-3 py-2 rounded-3"
                         >
-                          {selectedOrder.paymentStatus === 'Paid' ? 'Cancel & Refund Order' : 'Cancel Order'}
+                          <X size={15} /> Cancel Order
                         </button>
                       )}
+
+                      {/* Initiate Refund: Activated ONLY when order is Cancelled AND Payment was received (Paid) */}
                       {selectedOrder.orderStatus === 'Cancelled' && selectedOrder.paymentStatus === 'Paid' && (
                         <button 
                           onClick={() => handleRefund(selectedOrder._id)} 
-                          className="btn btn-sm btn-warning fw-bold text-dark"
+                          className="btn btn-sm btn-warning text-dark fw-bold d-inline-flex align-items-center gap-1.5 px-3 py-2 rounded-3 shadow-sm"
                         >
-                          Process Refund
+                          <RotateCcw size={15} /> Initiate Refund (₹{selectedOrder.totalAmount})
                         </button>
+                      )}
+
+                      {/* Refunded indicator */}
+                      {selectedOrder.paymentStatus === 'Refunded' && (
+                        <span className="badge bg-secondary-subtle text-secondary border px-3 py-2 fs-7 fw-bold d-inline-flex align-items-center gap-1.5">
+                          <CheckCircle size={15} className="text-success" /> Amount Refunded (₹{selectedOrder.totalAmount})
+                        </span>
                       )}
                     </div>
                   )}
