@@ -1,6 +1,7 @@
 import RefundRequest from '../models/RefundRequest.js';
 import Order from '../models/Order.js';
 import SystemSetting from '../models/SystemSetting.js';
+import { sendAdminNotification } from '../utils/firebaseHelper.js';
 
 // @desc    Get all refund requests (with optional status filter)
 // @route   GET /api/refunds
@@ -125,6 +126,14 @@ export const createCustomerRefundRequest = async (req, res, next) => {
         }
         
         await order.save();
+
+        // Push notification for customer cancellation
+        sendAdminNotification(
+          '❌ Order Cancelled by Customer',
+          `Order #${order._id.toString().slice(-8).toUpperCase()} (₹${order.totalAmount}) was cancelled by customer.`,
+          '/admin/orders'
+        ).catch(err => console.error('Order cancel notification error:', err));
+
         return res.status(201).json({ success: true, message: 'Order has been successfully cancelled.' });
     } else if (order.orderStatus === 'Packed' || order.orderStatus === 'Shipped') {
         return res.status(400).json({ success: false, message: 'Your order is already packed or in transit and cannot be cancelled. You can request a refund once it is delivered.' });
@@ -142,6 +151,14 @@ export const createCustomerRefundRequest = async (req, res, next) => {
     });
 
     await refund.save();
+
+    // Push notification for new refund request
+    sendAdminNotification(
+      '💸 New Refund Request!',
+      `Customer requested refund of ₹${refund.amount} for Order #${orderId.toString().slice(-8).toUpperCase()}`,
+      '/admin/refunds'
+    ).catch(err => console.error('Refund notification error:', err));
+
     res.status(201).json({ success: true, refund });
   } catch (error) {
     next(error);

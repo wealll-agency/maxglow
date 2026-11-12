@@ -398,10 +398,30 @@ export const createOrder = async (req, res, next) => {
 
         // Send Push Notification
         sendAdminNotification(
-          'New COD Order Placed!',
+          '🛒 New COD Order Placed!',
           `${req.user.name || 'Customer'} placed an order worth ₹${totalAmount}`,
           '/admin/orders'
-        );
+        ).catch(err => console.error('COD order push notification error:', err));
+
+        // Check for Low Stock after order placement
+        (async () => {
+          try {
+            for (const item of savedOrder.items) {
+              if (item.product) {
+                const p = await Product.findById(item.product).select('name stock').lean();
+                if (p && p.stock <= 10) {
+                  sendAdminNotification(
+                    '⚠️ Low Stock Alert!',
+                    `Product "${p.name}" has only ${p.stock} item${p.stock === 1 ? '' : 's'} remaining in stock!`,
+                    '/admin/inventory'
+                  ).catch(() => {});
+                }
+              }
+            }
+          } catch (e) {
+            console.error('Low stock check error:', e);
+          }
+        })();
 
         // Send Email to Customer with PDF
         try {
@@ -662,10 +682,30 @@ export const iciciCallback = async (req, res, next) => {
 
       // Send Push Notification
       sendAdminNotification(
-        'New Prepaid Order Confirmed!',
+        '💳 Payment Success! New Prepaid Order Confirmed',
         `Order #${lockedOrder._id.toString().slice(-8).toUpperCase()} worth ₹${lockedOrder.totalAmount} was paid via ICICI.`,
         '/admin/orders'
-      );
+      ).catch(err => console.error('Prepaid order push notification error:', err));
+
+      // Check for Low Stock after online payment capture
+      (async () => {
+        try {
+          for (const item of lockedOrder.items) {
+            if (item.product) {
+              const p = await Product.findById(item.product).select('name stock').lean();
+              if (p && p.stock <= 10) {
+                sendAdminNotification(
+                  '⚠️ Low Stock Alert!',
+                  `Product "${p.name}" has only ${p.stock} item${p.stock === 1 ? '' : 's'} remaining in stock!`,
+                  '/admin/inventory'
+                ).catch(() => {});
+              }
+            }
+          }
+        } catch (e) {
+          console.error('Low stock check error:', e);
+        }
+      })();
 
       // Send Email to Customer with PDF
       try {
@@ -991,7 +1031,13 @@ export const updateOrderStatus = async (req, res, next) => {
     const updatedOrder = await Order.findByIdAndUpdate(req.params.id, updateQuery, { new: true });
     await logActivity(req.user._id, 'UPDATE_ORDER_STATUS', `Updated order ID ${order._id} status to: ${status}`, req);
 
-
+    if (status === 'Cancelled' && order.orderStatus !== 'Cancelled') {
+      sendAdminNotification(
+        '⚠️ Order Cancelled by Admin/Staff',
+        `Order #${order._id.toString().slice(-8).toUpperCase()} was marked as Cancelled.`,
+        '/admin/orders'
+      ).catch(err => console.error('Order status push notification error:', err));
+    }
 
     res.json({ success: true, order: updatedOrder });
   } catch (error) {

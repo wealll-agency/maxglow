@@ -17,16 +17,55 @@ export const sendAdminNotification = async (title, body, url = '/admin') => {
 
     if (tokens.length === 0) return;
 
+    // Deduplicate tokens across machines
+    const uniqueTokens = Array.from(new Set(tokens));
+
     const message = {
       notification: { title, body },
-      webpush: {
-        fcmOptions: { link: url }
+      data: {
+        url: url || '/admin',
+        title: title || 'MaxGlow Admin',
+        body: body || ''
       },
-      tokens
+      webpush: {
+        fcmOptions: { link: url },
+        headers: {
+          Urgency: 'high'
+        },
+        notification: {
+          icon: '/icon_organic.jpg',
+          badge: '/icon_organic.jpg',
+          requireInteraction: true
+        }
+      },
+      tokens: uniqueTokens
     };
 
     const response = await getMessaging().sendEachForMulticast(message);
     console.log(`Push notification sent. Success: ${response.successCount}, Failures: ${response.failureCount}`);
+
+    // Clean up stale or invalid tokens
+    if (response.failureCount > 0) {
+      const invalidTokens = [];
+      response.responses.forEach((resp, idx) => {
+        if (!resp.success) {
+          const errCode = resp.error?.code;
+          if (
+            errCode === 'messaging/invalid-registration-token' ||
+            errCode === 'messaging/registration-token-not-registered'
+          ) {
+            invalidTokens.push(uniqueTokens[idx]);
+          }
+        }
+      });
+
+      if (invalidTokens.length > 0) {
+        await User.updateMany(
+          { fcmTokens: { $in: invalidTokens } },
+          { $pull: { fcmTokens: { $in: invalidTokens } } }
+        );
+      }
+    }
   } catch (error) {
     console.error("Error sending push notification:", error);
   }
