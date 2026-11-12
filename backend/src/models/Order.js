@@ -65,7 +65,9 @@ const orderSchema = new mongoose.Schema({
     expectedDeliveryDate: { type: Date },
     currentLocation: { type: String },
     lastScan: { type: String },
-    lastUpdated: { type: Date }
+    lastUpdated: { type: Date },
+    pickupScheduled: { type: Boolean, default: false },
+    pickupId: { type: String }
   }],
   
   // --- PRODUCTION FIX: Catch-all for legacy unique indexes ---

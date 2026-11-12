@@ -24,7 +24,17 @@ export const NotificationProvider = ({ children }) => {
     if (toastTimer.current) {
       clearTimeout(toastTimer.current);
     }
-    setToast({ show: true, message, type });
+    // Safeguard: Ensure message is a renderable string, not an Error object or plain object
+    let msgString = message;
+    if (message instanceof Error) {
+      msgString = message.message;
+    } else if (typeof message === 'object' && message !== null) {
+      msgString = message.message || message.error || JSON.stringify(message);
+    } else {
+      msgString = String(message || '');
+    }
+
+    setToast({ show: true, message: msgString, type });
     toastTimer.current = setTimeout(() => {
       setToast(prev => ({ ...prev, show: false }));
     }, 4000);
@@ -35,7 +45,15 @@ export const NotificationProvider = ({ children }) => {
   }, []);
 
   const showConfirm = useCallback((message) => {
-    setConfirmModal({ show: true, message });
+    let msgString = message;
+    if (message instanceof Error) {
+      msgString = message.message;
+    } else if (typeof message === 'object' && message !== null) {
+      msgString = message.message || message.error || JSON.stringify(message);
+    } else {
+      msgString = String(message || '');
+    }
+    setConfirmModal({ show: true, message: msgString });
     return new Promise((resolve) => {
       confirmResolver.current = resolve;
     });
