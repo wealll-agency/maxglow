@@ -221,15 +221,19 @@ export default function AdminShipments() {
                               <Link href={`/admin/shipments/${shipment.waybill}`} className="dropdown-item py-2 px-3 text-decoration-none text-dark d-flex align-items-center gap-2">
                                 <Eye size={14} /> View Details
                               </Link>
-                              <button onClick={() => handleGetLabel(shipment.waybill)} className="dropdown-item py-2 px-3 btn btn-link text-start text-dark d-flex align-items-center gap-2 w-100 rounded-0 border-0">
-                                <Printer size={14} /> Print Label
-                              </button>
-                              <button onClick={() => handleRequestPickup(shipment)} className="dropdown-item py-2 px-3 btn btn-link text-start text-primary d-flex align-items-center gap-2 w-100 rounded-0 border-0 fw-semibold">
-                                <Calendar size={14} /> Schedule Pickup
-                              </button>
-                              <button onClick={() => handleGenerateManifest(shipment.waybill)} className="dropdown-item py-2 px-3 btn btn-link text-start text-dark d-flex align-items-center gap-2 w-100 rounded-0 border-0">
-                                <FileText size={14} /> Print Manifest
-                              </button>
+                              {shipment.status !== 'Cancelled' && (
+                                <>
+                                  <button onClick={() => handleGetLabel(shipment.waybill)} className="dropdown-item py-2 px-3 btn btn-link text-start text-dark d-flex align-items-center gap-2 w-100 rounded-0 border-0">
+                                    <Printer size={14} /> Print Label
+                                  </button>
+                                  <button onClick={() => handleRequestPickup(shipment)} className="dropdown-item py-2 px-3 btn btn-link text-start text-primary d-flex align-items-center gap-2 w-100 rounded-0 border-0 fw-semibold">
+                                    <Calendar size={14} /> Schedule Pickup
+                                  </button>
+                                  <button onClick={() => handleGenerateManifest(shipment.waybill)} className="dropdown-item py-2 px-3 btn btn-link text-start text-dark d-flex align-items-center gap-2 w-100 rounded-0 border-0">
+                                    <FileText size={14} /> Print Manifest
+                                  </button>
+                                </>
+                              )}
                               <button onClick={handleRefreshSync} className="dropdown-item py-2 px-3 btn btn-link text-start text-dark d-flex align-items-center gap-2 w-100 rounded-0 border-0">
                                 <RefreshCw size={14} /> Retry Sync
                               </button>

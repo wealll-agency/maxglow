@@ -9,7 +9,7 @@ import Image from 'next/image';
 import { useEffect, useState, Suspense } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchAdminOrders, updateOrderStatus, refundOrder, createDelhiveryShipment, cancelDelhiveryShipment, getDelhiveryLabel, requestDelhiveryPickup, fetchWarehouses, clearAllOrders } from '../../../store/adminSlice';
-import { ShoppingBag, Eye, MapPin, Check, Filter, Clock, Search, X, Printer, Package, Truck, CheckCircle, CreditCard, RotateCcw, AlertTriangle, Download, Calendar } from 'lucide-react';
+import { ShoppingBag, Eye, MapPin, Check, Filter, Clock, Search, X, Printer, Package, Truck, CheckCircle, CreditCard, RotateCcw, AlertTriangle, AlertCircle, Download, Calendar } from 'lucide-react';
 
 
 import { useNotification } from '../../../context/NotificationContext';
@@ -98,6 +98,17 @@ function AdminOrdersContent() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [trackingNumber, setTrackingNumber] = useState('');
   const [actionSuccess, setActionSuccess] = useState('');
+
+  // Enterprise Pickup Schedule Modal State
+  const [pickupModal, setPickupModal] = useState({
+    isOpen: false,
+    warehouseLocation: '',
+    packageCount: 1,
+    waybill: null,
+    selectedDate: '',
+    selectedSlot: '14:00:00',
+    loading: false
+  });
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -231,24 +242,86 @@ function AdminOrdersContent() {
     }
   };
   
-  const handleRequestPickup = async (warehouseLocation, packageCount = 1) => {
-    const today = new Date().toISOString().split('T')[0];
-    const confirmed = await showConfirm(`Request Delhivery Courier Pickup from "${warehouseLocation}" for today?`);
-    if (confirmed) {
-      setActionSuccess('');
-      dispatch(requestDelhiveryPickup({
-        pickup_location: warehouseLocation,
-        pickup_date: today,
-        pickup_time: '16:00:00',
-        expected_package_count: packageCount
-      }))
-        .unwrap()
-        .then((res) => {
-          showAlert('Delhivery Courier Pickup Scheduled Successfully!', 'success');
-          setActionSuccess('Courier pickup requested successfully.');
-        })
-        .catch(err => showAlert(err || 'Failed to schedule pickup. Please check wallet balance on Delhivery.', 'error'));
+  // Generate dynamic date options matching Delhivery cutoff rules (Today if < 14:00, plus next 2 days)
+  const getAvailablePickupDates = () => {
+    const dates = [];
+    const now = new Date();
+    const currentHour = now.getHours();
+
+    const startOffset = currentHour < 14 ? 0 : 1; // After 2:00 PM (14:00), same-day cutoff passes
+    for (let i = startOffset; i < startOffset + 3; i++) {
+      const d = new Date();
+      d.setDate(now.getDate() + i);
+      const iso = d.toISOString().split('T')[0];
+      const dayName = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : d.toLocaleDateString('en-US', { weekday: 'short' });
+      const formatted = `${dayName} (${d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })})`;
+      dates.push({ value: iso, label: formatted, isToday: i === 0 });
     }
+    return dates;
+  };
+
+  const openPickupModal = (warehouseLocation, packageCount = 1, waybill = null) => {
+    const availableDates = getAvailablePickupDates();
+    setPickupModal({
+      isOpen: true,
+      warehouseLocation,
+      packageCount,
+      waybill,
+      selectedDate: availableDates[0]?.value || new Date().toISOString().split('T')[0],
+      selectedSlot: '14:00:00',
+      loading: false
+    });
+  };
+
+  const handleConfirmPickupSchedule = () => {
+    if (!pickupModal.selectedDate) {
+      showAlert('Please select a pickup date', 'warning');
+      return;
+    }
+    setPickupModal(prev => ({ ...prev, loading: true }));
+    setActionSuccess('');
+
+    dispatch(requestDelhiveryPickup({
+      pickup_location: pickupModal.warehouseLocation,
+      pickup_date: pickupModal.selectedDate,
+      pickup_time: pickupModal.selectedSlot,
+      expected_package_count: pickupModal.packageCount,
+      waybill: pickupModal.waybill
+    }))
+      .unwrap()
+      .then((res) => {
+        showAlert(res.message || 'Delhivery Courier Pickup Scheduled Successfully!', 'success');
+        setActionSuccess('Courier pickup requested successfully.');
+        dispatch(fetchAdminOrders({ limit: 1000 }));
+        
+        // Update local selectedOrder shipment immediately so the button turns into "Pickup Scheduled"
+        if (selectedOrder) {
+          setSelectedOrder(prev => {
+            if (!prev || !prev.shipments) return prev;
+            return {
+              ...prev,
+              shipments: prev.shipments.map(s => 
+                (pickupModal.waybill ? s.waybill === pickupModal.waybill : true)
+                  ? { ...s, pickupScheduled: true, pickupId: res.pickup_id }
+                  : s
+              )
+            };
+          });
+        }
+        setPickupModal({
+          isOpen: false,
+          warehouseLocation: '',
+          packageCount: 1,
+          waybill: null,
+          selectedDate: '',
+          selectedSlot: '14:00:00',
+          loading: false
+        });
+      })
+      .catch(err => {
+        showAlert(err || 'Failed to schedule pickup. Please check wallet balance on Delhivery.', 'error');
+        setPickupModal(prev => ({ ...prev, loading: false }));
+      });
   };
 
   const handleGetLabel = (waybill) => {
@@ -888,40 +961,73 @@ function AdminOrdersContent() {
                     </div>
                   ) : (
                     <div className="d-flex flex-column gap-3">
-                      {selectedOrder.shipments.map((shipment, index) => (
-                        <div key={shipment._id || index} className="p-2 border rounded bg-white">
-                          <div className="d-flex justify-content-between align-items-center mb-2">
-                            <span className="fs-7">
-                              Waybill: <strong className="font-monospace">{shipment.waybill}</strong>
-                            </span>
-                            <span className="badge bg-primary bg-opacity-10 text-primary">
-                              {shipment.status || 'Manifested'}
-                            </span>
-                          </div>
-                          <div className="fs-8 text-muted mb-2">
-                            Courier: {shipment.courierName} | Shipped: {new Date(shipment.shippedAt).toLocaleDateString()}
-                          </div>
-                          <div className="d-flex flex-wrap gap-2">
-                            <button onClick={() => handleGetLabel(shipment.waybill)} className="btn btn-sm btn-dark d-flex align-items-center gap-1.5 fw-semibold px-3 py-1.5 shadow-sm">
-                              <Printer size={14} /> Download Official Shipping Label
-                            </button>
-                            <button 
-                              onClick={() => {
-                                const wLoc = shipment.warehouse?.delhiveryPickupLocationName || shipment.warehouse?.name || 'MS JAINSONS HERBO B2C';
-                                handleRequestPickup(wLoc, 1);
-                              }} 
-                              className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1.5 fw-semibold px-3 py-1.5"
-                            >
-                              <Calendar size={14} /> Request Courier Pickup
-                            </button>
-                            {shipment.status !== 'Cancelled' && shipment.status !== 'Delivered' && (
-                               <button onClick={() => handleCancelDelhiveryShipment(shipment.waybill)} className="btn btn-sm btn-outline-danger ms-auto">
-                                 Cancel
-                               </button>
+                      {selectedOrder.shipments.map((shipment, index) => {
+                        const isCancelled = shipment.status === 'Cancelled';
+                        const isDelivered = shipment.status === 'Delivered';
+                        return (
+                          <div key={shipment._id || index} className={`p-3 border rounded ${isCancelled ? 'bg-light border-danger-subtle' : 'bg-white'}`}>
+                            <div className="d-flex justify-content-between align-items-center mb-2">
+                              <span className="fs-7">
+                                Waybill: <strong className="font-monospace">{shipment.waybill}</strong>
+                              </span>
+                              <span className={`badge ${
+                                isCancelled 
+                                  ? 'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25' 
+                                  : isDelivered 
+                                    ? 'bg-success bg-opacity-10 text-success' 
+                                    : 'bg-primary bg-opacity-10 text-primary'
+                              }`}>
+                                {isCancelled ? 'Shipment Cancelled' : (shipment.status || 'Manifested')}
+                              </span>
+                            </div>
+                            <div className="fs-8 text-muted mb-2">
+                              Courier: {shipment.courierName} | Shipped: {new Date(shipment.shippedAt).toLocaleDateString()}
+                            </div>
+                            
+                            {isCancelled ? (
+                              <div className="d-flex align-items-center justify-content-between pt-2 border-top border-light-subtle">
+                                <div className="text-danger small d-flex align-items-center gap-1.5 fw-medium">
+                                  <AlertCircle size={14} /> This shipment was cancelled. No further courier actions or pickups can be performed.
+                                </div>
+                                {selectedOrder.orderStatus !== 'Cancelled' && (
+                                  <button 
+                                    onClick={() => handleCreateDelhiveryShipment(selectedOrder._id)}
+                                    className="btn btn-sm btn-dark fw-semibold d-inline-flex align-items-center gap-1.5 shadow-sm"
+                                  >
+                                    <Truck size={14} /> Re-generate Shipment
+                                  </button>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="d-flex flex-wrap align-items-center gap-2 pt-2 border-top border-light-subtle">
+                                <button onClick={() => handleGetLabel(shipment.waybill)} className="btn btn-sm btn-dark d-flex align-items-center gap-1.5 fw-semibold px-3 py-1.5 shadow-sm">
+                                  <Printer size={14} /> Download Official Shipping Label
+                                </button>
+                                {shipment.pickupScheduled ? (
+                                  <span className="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 d-inline-flex align-items-center gap-1.5 px-3 py-1.5 fs-8">
+                                    <Check size={14} /> Pickup Scheduled {shipment.pickupId ? `(#${shipment.pickupId})` : ''}
+                                  </span>
+                                ) : (
+                                  <button 
+                                    onClick={() => {
+                                      const wLoc = shipment.warehouse?.delhiveryPickupLocationName || shipment.warehouse?.name || 'MS JAINSONS HERBO B2C';
+                                      openPickupModal(wLoc, 1, shipment.waybill);
+                                    }} 
+                                    className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1.5 fw-semibold px-3 py-1.5"
+                                  >
+                                    <Calendar size={14} /> Request Courier Pickup
+                                  </button>
+                                )}
+                                {!isDelivered && (
+                                  <button onClick={() => handleCancelDelhiveryShipment(shipment.waybill)} className="btn btn-sm btn-outline-danger ms-auto">
+                                    Cancel
+                                  </button>
+                                )}
+                              </div>
                             )}
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -1033,6 +1139,150 @@ function AdminOrdersContent() {
               
               <div className="modal-footer border-top py-2">
                 <button type="button" onClick={closeDetailsModal} className="btn btn-sm btn-brand-secondary">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Enterprise Delhivery Schedule Pickup Modal */}
+      {pickupModal.isOpen && (
+        <div 
+          className="modal show d-block" 
+          style={{ backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 1060 }}
+          onClick={() => !pickupModal.loading && setPickupModal(prev => ({ ...prev, isOpen: false }))}
+        >
+          <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: '480px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+              <div className="modal-header border-bottom py-3 px-4 bg-light d-flex align-items-center justify-content-between">
+                <div className="d-flex align-items-center gap-2">
+                  <div className="p-2 bg-primary bg-opacity-10 text-primary rounded-3">
+                    <Calendar size={18} />
+                  </div>
+                  <div>
+                    <h6 className="modal-title fw-bold m-0 text-dark">Schedule Courier Pickup</h6>
+                    <small className="text-muted">Delhivery Express First-Mile</small>
+                  </div>
+                </div>
+                <button 
+                  type="button" 
+                  disabled={pickupModal.loading}
+                  onClick={() => setPickupModal(prev => ({ ...prev, isOpen: false }))} 
+                  className="btn-close" 
+                  aria-label="Close"
+                ></button>
+              </div>
+
+              <div className="modal-body p-4">
+                {/* Warehouse Location Info */}
+                <div className="p-3 mb-3 bg-light rounded-3 border">
+                  <div className="d-flex justify-content-between align-items-center mb-1">
+                    <span className="text-muted fs-8 fw-semibold text-uppercase">Pickup Location</span>
+                    <span className="badge bg-success bg-opacity-10 text-success fs-8">Active Warehouse</span>
+                  </div>
+                  <div className="fw-bold text-dark fs-7">{pickupModal.warehouseLocation}</div>
+                  {pickupModal.waybill && (
+                    <div className="text-muted small mt-1 font-monospace">Waybill: {pickupModal.waybill}</div>
+                  )}
+                </div>
+
+                {/* Available Date Selection (Delhivery 2 PM Cutoff Real-time) */}
+                <div className="mb-3">
+                  <label className="form-label fs-7 fw-bold text-dark d-flex align-items-center justify-content-between mb-2">
+                    <span>Available Pickup Date</span>
+                    <span className="text-muted fw-normal fs-8">Delhivery cutoff: 2:00 PM</span>
+                  </label>
+                  <div className="d-grid gap-2">
+                    {getAvailablePickupDates().map((d) => (
+                      <label 
+                        key={d.value}
+                        className={`d-flex align-items-center justify-content-between p-2.5 border rounded-3 cursor-pointer transition-all ${
+                          pickupModal.selectedDate === d.value 
+                            ? 'border-primary bg-primary bg-opacity-10 text-primary fw-bold' 
+                            : 'border-secondary-subtle bg-white hover-bg-light'
+                        }`}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <div className="d-flex align-items-center gap-2">
+                          <input 
+                            type="radio" 
+                            name="pickupDate" 
+                            value={d.value}
+                            checked={pickupModal.selectedDate === d.value}
+                            onChange={() => setPickupModal(prev => ({ ...prev, selectedDate: d.value }))}
+                            className="form-check-input m-0"
+                          />
+                          <span className="fs-7">{d.label}</span>
+                        </div>
+                        {d.isToday && (
+                          <span className="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 fs-8">
+                            Fastest Pickup
+                          </span>
+                        )}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Pickup Time Slot */}
+                <div className="mb-3">
+                  <label className="form-label fs-7 fw-bold text-dark mb-1 d-flex align-items-center gap-1">
+                    <Clock size={14} className="text-muted" /> Preferred Time Slot
+                  </label>
+                  <select 
+                    className="form-select form-select-sm py-2 shadow-none border-secondary-subtle rounded-3"
+                    value={pickupModal.selectedSlot}
+                    onChange={(e) => setPickupModal(prev => ({ ...prev, selectedSlot: e.target.value }))}
+                  >
+                    <option value="11:00:00">10:00 AM – 02:00 PM (Mid Day Slot)</option>
+                    <option value="14:00:00">02:00 PM – 06:00 PM (Standard Evening Slot)</option>
+                    <option value="18:00:00">06:00 PM – 09:00 PM (Late Evening Slot)</option>
+                  </select>
+                </div>
+
+                {/* Expected Packages */}
+                <div className="mb-2">
+                  <label className="form-label fs-7 fw-bold text-dark mb-1 d-flex align-items-center gap-1">
+                    <Package size={14} className="text-muted" /> Expected Package Count
+                  </label>
+                  <input 
+                    type="number" 
+                    min="1"
+                    max="100"
+                    className="form-control form-control-sm py-2 shadow-none border-secondary-subtle rounded-3"
+                    value={pickupModal.packageCount}
+                    onChange={(e) => setPickupModal(prev => ({ ...prev, packageCount: Math.max(1, parseInt(e.target.value) || 1) }))}
+                  />
+                  <small className="text-muted fs-8">Field executive will be assigned based on total scheduled parcels.</small>
+                </div>
+              </div>
+
+              <div className="modal-footer border-top py-3 px-4 bg-light d-flex justify-content-end gap-2">
+                <button 
+                  type="button" 
+                  disabled={pickupModal.loading}
+                  onClick={() => setPickupModal(prev => ({ ...prev, isOpen: false }))} 
+                  className="btn btn-sm btn-outline-secondary px-3 py-2 fw-medium rounded-3"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button" 
+                  disabled={pickupModal.loading}
+                  onClick={handleConfirmPickupSchedule}
+                  className="btn btn-sm btn-primary px-4 py-2 fw-bold rounded-3 d-inline-flex align-items-center gap-2 shadow-sm"
+                >
+                  {pickupModal.loading ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                      Scheduling with Delhivery...
+                    </>
+                  ) : (
+                    <>
+                      <Check size={16} /> Confirm & Schedule Pickup
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           </div>

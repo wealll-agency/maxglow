@@ -284,9 +284,28 @@ class DelhiveryProvider extends ShippingProvider {
         timeout: 10000
       });
 
+      // Delhivery returns success: false if a pickup request already exists for this slot/location
+      if (response.data && response.data.pr_exist) {
+        return {
+          success: true,
+          data: response.data,
+          alreadyExisted: true,
+          pickup_id: response.data.pickup_id,
+          message: response.data.data?.message || `A pickup request (#${response.data.pickup_id}) already exists for this date.`
+        };
+      }
+
+      if (response.data && response.data.success === false && !response.data.pr_exist) {
+        return {
+          success: false,
+          error: response.data.data?.message || response.data.error?.message || 'Delhivery rejected the pickup request.'
+        };
+      }
+
       return {
         success: true,
-        data: response.data
+        data: response.data,
+        pickup_id: response.data.pickup_id
       };
     } catch (error) {
       console.error('DelhiveryProvider - createPickupRequest Error:', error.response?.data || error.message);

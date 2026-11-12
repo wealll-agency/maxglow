@@ -81,7 +81,7 @@ export const generateManifest = async (req, res) => {
 
 export const requestPickup = async (req, res) => {
   try {
-    const { pickup_location, pickup_date, pickup_time, expected_package_count } = req.body;
+    const { pickup_location, pickup_date, pickup_time, expected_package_count, waybill } = req.body;
     if (!pickup_location) {
       return res.status(400).json({ success: false, message: 'Pickup location is required' });
     }
@@ -97,10 +97,28 @@ export const requestPickup = async (req, res) => {
       return res.status(400).json({ success: false, message: result.error || 'Pickup request failed' });
     }
 
+    // If a waybill was passed, mark the shipment as pickupScheduled
+    if (waybill) {
+      await Order.findOneAndUpdate(
+        { 'shipments.waybill': waybill },
+        { 
+          $set: { 
+            'shipments.$.pickupScheduled': true,
+            'shipments.$.pickupId': String(result.pickup_id || result.data?.pickup_id || '')
+          } 
+        }
+      );
+    }
+
+    const message = result.alreadyExisted
+      ? (result.message || 'A pickup request for this warehouse is already scheduled with Delhivery.')
+      : 'Delhivery courier pickup requested successfully';
+
     res.status(200).json({ 
       success: true, 
-      message: 'Delhivery courier pickup requested successfully', 
-      data: result.data 
+      message, 
+      data: result.data,
+      pickup_id: result.pickup_id || result.data?.pickup_id
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
